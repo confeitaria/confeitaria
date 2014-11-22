@@ -1,12 +1,15 @@
 import wsgiref.simple_server as simple_server
+
 class Server(object):
     """
     The `Server` objects listen to HTTP requests and serve responses according
     to the page object returned values.
     """
+
     def __init__(self, page, port=8080):
         self.page = page
         self.port = port
+
     def run(self):
         """
        This method starts the server up serving the given page.
@@ -41,8 +44,10 @@ class Server(object):
         httpd = simple_server.make_server('', self.port, self._run_app)
         print "Serving on port 8000..."
         httpd.serve_forever()
+
     def _run_app(self, environ, start_response):
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
         start_response(status, headers)
+
         return self.page.index()
