@@ -1,6 +1,8 @@
 import functools
 import wsgiref.simple_server as simple_server
 
+from server import Server
+
 DEFAULT_CONFIG = {
     'port': 8080
 }
@@ -15,9 +17,9 @@ def page_server(page, environ, start_response):
 
 def run(page, config=None):
     """
-    This is the simplest way so far of running a Confeitaria site. 
+    This is the simplest way so far of running a Confeitaria site.
     `confeitaria.run()`Starts up a server to serve the output of a page.
-    
+
     A page is an object of a class as the one below:
 
     >>> class TestPage(object):
@@ -45,12 +47,9 @@ def run(page, config=None):
     200
     >>> r.headers['content-type']
     'text/html'
-    
+
     >>> p.terminate()
     """
     config = DEFAULT_CONFIG if config is None else config
-    
-    app = functools.partial(page_server, page)
-    httpd = simple_server.make_server('', config['port'], app)
-    print "Serving on port 8000..."
-    httpd.serve_forever()
+
+    server = Server(page, **config).run()
