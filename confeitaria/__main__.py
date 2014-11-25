@@ -1,13 +1,13 @@
-from . import run
+import confeitaria
 
-class ExamplePage(object):
-     def index(self):
-         return """<!doctype html>
-         <html>
-             <head><title>Confeitaria example page</title></head>
-             <body>
-                 <h1>Confeitaria example page</h1>
-             </body>
-         </html>"""
+class BasicDocumentationPage(object):
+    """
+    This page reads the HTML file ``index.html`` and returns its content for the
+    HTTP response.
+    """
+    def index(self):
+        import pkgutil
 
-run(ExamplePage())
+        return pkgutil.get_data('confeitaria', 'doc/index.html')
+
+confeitaria.run(BasicDocumentationPage())
