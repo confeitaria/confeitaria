@@ -42,5 +42,36 @@ class TestServer(unittest.TestCase):
             self.assertEquals(200, request.status_code)
             self.assertEquals('text/html', request.headers['content-type'])
 
+    def test_attributes_as_subpages(self):
+        """
+        This test ensures that when a path is requested to the server it will
+        access subpages (that is, pages that are attributes of other pages).
+        """
+        import requests
+
+        class RootPage(object):
+            def index(self):
+                return 'root'
+
+        class SubPage(object):
+            def index(self):
+                return 'a subpage'
+
+        class SubSubPage(object):
+            def index(self):
+                return 'another subpage'
+
+        root = RootPage()
+        root.sub = SubPage()
+        root.sub.another = SubSubPage()
+
+        with Server(root):
+            r = requests.get('http://localhost:8080/')
+            self.assertEquals(u'root', r.text)
+            r = requests.get('http://localhost:8080/sub')
+            self.assertEquals(u'a subpage', r.text)
+            r = requests.get('http://localhost:8080/sub/another')
+            self.assertEquals(u'another subpage', r.text)
+
 if __name__ == "__main__":
     unittest.main()
