@@ -1,0 +1,156 @@
+=====================================================
+Confeitaria, an experimental web framework for Python
+=====================================================
+
+Welcome to Confeitaria's documentation! Confeitaria is a Web framework for
+Python whose main purpose is to test some hypothesis and possibilities about
+Web development. Those hypothesis are the `principles`_ behind Confeitaria.
+Let's take a look at them... after some initial tests.
+
+How to use Confeitaria
+======================
+
+The very first use to Confeitaria is to see its own documentation. You should
+be able to install Confeitaria with ``pip``::
+
+    $ pip install confeitaria
+
+Now, just run
+
+::
+
+    $ python -mconfeitaria
+
+and access http://localhost:8080. Voilà! You will see this same documentation.
+
+Creating and serving pages
+--------------------------
+
+You would rather show your own page, for sure. In Confeitaria, a page is an
+object with an ``index()`` method. The *instances* of the class below would be
+valid pages::
+
+    >>> class TestPage(object):
+    ...    def index(self):
+    ...        return "This is a test"
+
+The simplest way so far of running a Confeitaria object is to use
+``confeitaria.run()``. It starts up a server to serve the return of the
+``index()`` method::
+
+    import confeitaria
+    page = TestPage()
+    confeitaria.run(page)
+
+If you access http://localhost:8080 after this, you will see ``This is a test``
+in the browser.
+
+.. One can also create a ``Server`` object, which is more flexible. They are
+   created and used as below::
+   
+       from confeitaria import Server
+       page = TestPage()
+       server = Server(page)
+       server.run()
+
+   A nice ``Server`` trick is to start it up through a ``with`` statement. The
+   server will start in a different process, requests would be possible from the
+   source code and it would bw shut down after everything is done::
+   
+       >>> from confeitaria import Server
+       >>> import requests
+       >>> page = TestPage()
+       >>> with Server(page):
+       ...     requests.get('http://localhost:8080').text
+       u'This is a test'
+
+Subpages
+--------
+
+If the page passed to ``confeitaria.run()`` / ``Server`` has an attribute, and
+this attribute is also a page, then we only need to add the attribute name as
+part of the path in the URL to get its output. The attribute page is a subpage
+and can has its own subpages. For example, if we have the classes
+below::
+
+    >>> class RootPage(object):
+    ...     def index(self):
+    ...         return 'root'
+    >>> class SubPage(object):
+    ...     def index(self):
+    ...         return 'a subpage'
+    >>> class SubSubPage(object):
+    ...     def index(self):
+    ...         return 'another subpage'
+
+...and then we build a structure as such::
+
+   >>> root = RootPage()
+   >>> root.sub = SubPage()
+   >>> root.sub.another = SubSubPage()
+
+... then we should expect the following responses::
+
+    >>> with Server(root):
+    ...    print requests.get('http://localhost:8080/').text
+    ...    print requests.get('http://localhost:8080/sub').text
+    ...    print requests.get('http://localhost:8080/sub/another').text
+    root
+    a subpage
+    another subpage
+
+Principles
+==========
+
+In Confeitaria, we try to follow some principles as much as possible. We do not
+know how much they are feasible or advantageus, they are not necessarily
+original and we are not saying you have to follow them. We will try, however.
+
+ Principle 1: *The customer should get only the desired piece.*
+    Confeitaria should provide many applications, each in its own package. They
+    should be as independent as possible so the developer may use only what is
+    needed.
+
+ Principle 2: *To use a page should be a piece of cake.*
+    An application should be pages that can be instatiated many times, maybe
+    with some pages. The pages should be as flexible as any simple object, not
+    requiring any setup other than being called by ``confeitaria.run()`` (but
+    being open to more, optional configuration0.
+
+ Principle 3: *A cake should be useful without more cooking.*
+    Whenever possible, a Confeitaria package should be usable by only calling
+    it with the Python interpreter's ``-m`` flag. For example, the reference
+    confeitaria module does provide a feature: it displays this same
+    documenation.
+
+ Principle 4: *The layered cake should be edible without the frosting.*
+    The Confeitaria pages should have tiers, and the lower one cannot depend on
+    the higher one. In special, any Confeitaria page should be usable even
+    without CSS and JavaScript (the "frosting"). CSS and JavaScript should be
+    added to improve the usabiity of a functioning page. A rule of thumb to
+    ensure this is that *any task should be executed only using ``curl`` or the
+    ``requests`` module*.
+
+ Principle 5: *The dough should be tested at each step.*
+   We should test as much as possible. Each commit set should contain a new
+   test. We should have unit tests, integration tests, functional tests without
+   JavaScript and functional tests with JavaScript - probably even JavaScript
+   tests.
+
+ Principle 6: *The recipes should be written down.*
+    We should document how to use Confeitaria. Each public method should have a
+    docstring. Each application page should have a separate document explaining
+    it. Examples should be doctests.
+
+ Principle 7: *Each order should be written down.*
+    Each change in the code base should be preceded by a ticket in the issue
+    tracker.
+
+ Principle 8: *The dough should harmonize with any flavor.*
+    It should be possible to run add a Confeitaria page to applications in as
+    many frameworks as possible - such as Django, CherryPy, CGI... This WSGI
+    implementation is actually a reference implementation - other modules should
+    not depend on it!
+
+We may add more principles, or give up some of them - that is acceptable. The
+main objective here, after all, is to discover what is possible to do.
