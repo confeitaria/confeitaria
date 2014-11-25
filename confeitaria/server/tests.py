@@ -1,6 +1,9 @@
 import unittest
 
+import requests
+
 from ..server import Server
+
 
 class SimplestTestPage(object):
 
@@ -12,7 +15,6 @@ class TestServer(unittest.TestCase):
     def test_serve_page(self):
         import multiprocessing
         import time
-        import requests
 
         page = SimplestTestPage()
         server = Server(page)
@@ -32,8 +34,6 @@ class TestServer(unittest.TestCase):
         """
         The Server object should be compatible with the `with` clause.
         """
-        import requests
-
         page = SimplestTestPage()
 
         with Server(page):
@@ -47,8 +47,6 @@ class TestServer(unittest.TestCase):
         This test ensures that when a path is requested to the server it will
         access subpages (that is, pages that are attributes of other pages).
         """
-        import requests
-
         class RootPage(object):
             def index(self):
                 return 'root'
