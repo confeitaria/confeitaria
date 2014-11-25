@@ -28,5 +28,19 @@ class TestServer(unittest.TestCase):
 
         process.terminate()
 
+    def test_with(self):
+        """
+        The Server object should be compatible with the `with` clause.
+        """
+        import requests
+
+        page = SimplestTestPage()
+
+        with Server(page):
+            request = requests.get('http://localhost:8080/')
+            self.assertEquals(u'simplest test server', request.text)
+            self.assertEquals(200, request.status_code)
+            self.assertEquals('text/html', request.headers['content-type'])
+
 if __name__ == "__main__":
     unittest.main()
