@@ -71,18 +71,18 @@ class Server(object):
         headers = [('Content-type', 'text/html')]
         start_response(status, headers)
 
-        try:
-            return page.index()
-        except TypeError:
-            if (type(page) is type and callable(getattr(page, 'index', None))):
-                message = ('{p} is not a page object'
-                    ' (did you forget to instantiate it?)').format(p=page)
-            else:
-                 message = '{p} is not a page object.'.format(p=page)
-            raise NotPageError(message)
-        except AttributeError:
+        if hasattr(page, 'index'):
+            try:
+                return page.index()
+            except TypeError as te:
+                if (type(page) is type and callable(getattr(page, 'index', None))):
+                    raise NotPageError(('{p} is not a page object'
+                        ' (did you forget to instantiate it?)').format(p=page))
+                else:
+                     raise te
+        else:
             raise NotPageError(('{p} is not a page object,'
-                    ' has no index() method.').format(p=page))
+                ' has no index() method.').format(p=page))
 
     def __enter__(self):
         self._process = multiprocessing.Process(target=self.run)
