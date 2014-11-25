@@ -43,6 +43,14 @@ class Server(object):
         'text/html'
 
         >>> p.terminate()
+
+        You can also, mostly for testing purposes, start up a server through a
+        `with` statement:
+
+        >>> with Server(TestPage()):
+        ...     r = requests.get("http://localhost:8080")
+        ...     r.text
+        u'This is a test'
         """
         httpd = simple_server.make_server('', self.port, self._run_app)
         print "Serving on port 8000..."
