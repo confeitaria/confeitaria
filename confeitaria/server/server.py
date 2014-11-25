@@ -4,7 +4,7 @@ import wsgiref.simple_server as simple_server
 
 class Server(object):
     """
-    The `Server` objects listen to HTTP requests and serve responses according
+    The ``Server`` objects listen to HTTP requests and serve responses according
     to the page object returned values.
     """
 
@@ -15,14 +15,14 @@ class Server(object):
 
     def run(self):
         """
-       This method starts the server up serving the given page.
+        This method starts the server up serving the given page.
         A page is an object of a class as the one below:
 
         >>> class TestPage(object):
         ...     def index(self):
         ...         return "This is a test"
 
-        To run it, just call `confeitaria.run()`, as in:
+        To run it, just call `Server.run()`, as in:
 
         >>> s = Server(TestPage())
 
@@ -45,7 +45,7 @@ class Server(object):
         >>> p.terminate()
 
         You can also, mostly for testing purposes, start up a server through a
-        `with` statement:
+        ``with`` statement:
 
         >>> with Server(TestPage()):
         ...     r = requests.get("http://localhost:8080")

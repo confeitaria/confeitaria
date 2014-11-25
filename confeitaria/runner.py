@@ -18,7 +18,7 @@ def page_server(page, environ, start_response):
 def run(page, config=None):
     """
     This is the simplest way so far of running a Confeitaria site.
-    `confeitaria.run()`Starts up a server to serve the output of a page.
+    ``confeitaria.run()`` starts up a server to serve the output of a page.
 
     A page is an object of a class as the one below:
 
