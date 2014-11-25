@@ -1,3 +1,5 @@
+import multiprocessing
+import time
 import wsgiref.simple_server as simple_server
 
 class Server(object):
@@ -9,6 +11,7 @@ class Server(object):
     def __init__(self, page, port=8080):
         self.page = page
         self.port = port
+        self._process = None
 
     def run(self):
         """
@@ -51,3 +54,12 @@ class Server(object):
         start_response(status, headers)
 
         return self.page.index()
+
+    def __enter__(self):
+        self._process = multiprocessing.Process(target=self.run)
+        self._process.start()
+        time.sleep(1)
+
+    def __exit__(self, type, value, traceback):
+        self._process.terminate()
+        self._process = None
