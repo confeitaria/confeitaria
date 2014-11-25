@@ -57,11 +57,21 @@ class Server(object):
         httpd.serve_forever()
 
     def _run_app(self, environ, start_response):
+        path_info = environ.get('PATH_INFO', '')
+        components = (c for c in path_info.split('/') if c)
+        page = self.page
+
+        for c in components:
+            try:
+                page = getattr(page, c)
+            except AttributeError:
+                break
+
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
         start_response(status, headers)
 
-        return self.page.index()
+        return page.index()
 
     def __enter__(self):
         self._process = multiprocessing.Process(target=self.run)
