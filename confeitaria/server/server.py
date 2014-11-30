@@ -1,5 +1,8 @@
+import inspect
 import multiprocessing
 import time
+
+import cgi
 import wsgiref.simple_server as simple_server
 
 class Server(object):
@@ -69,11 +72,29 @@ class Server(object):
 
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
+        query_parameters = cgi.parse_qs(environ.get('QUERY_STRING', ''))
+        for key, value in query_parameters.items():
+            if isinstance(value, list) and len(value) == 1:
+                query_parameters[key] = value[0]
+
         start_response(status, headers)
 
         if hasattr(page, 'index'):
             try:
-                return page.index()
+                names, _, _, values = inspect.getargspec(page.index)
+                values = values if values is not None else []
+                names = names[1:]
+
+                page_parameters = {
+                    name: value
+                    for name, value in zip(reversed(names), reversed(values))
+                }
+                merged_parameters = {
+                    name: query_parameters.get(name, value)
+                    for name, value in page_parameters.items()
+                }
+
+                return page.index(**merged_parameters)
             except TypeError as te:
                 if (type(page) is type and callable(getattr(page, 'index', None))):
                     raise NotPageError(('{p} is not a page object'
