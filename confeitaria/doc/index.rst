@@ -99,6 +99,27 @@ below::
     a subpage
     another subpage
 
+Query string parameters
+-----------------------
+
+The index method can have optional arguments, as below::
+
+    >>> class HelloWorldPage(object):
+    ...    def index(self, greeting='Hello', greeted='World'):
+    ...        return greeting + " " + greeted + "!"
+
+If so, they will be filled with values from the query string parameters::
+
+    >>> with Server(HelloWorldPage()):
+    ...     print requests.get('http://localhost:8080/').text
+    ...     print requests.get('http://localhost:8080/?greeting=Hi').text
+    ...     print requests.get(
+    ...         'http://localhost:8080/?greeting=Hi&greeted=Earth').text
+    Hello World!
+    Hi World!
+    Hi Earth!
+
+
 Principles
 ==========
 
