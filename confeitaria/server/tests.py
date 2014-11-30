@@ -4,7 +4,6 @@ import requests
 
 from ..server import Server
 
-
 class SimplestTestPage(object):
 
     def index(self):
@@ -70,6 +69,20 @@ class TestServer(unittest.TestCase):
             self.assertEquals(u'a subpage', r.text)
             r = requests.get('http://localhost:8080/sub/another')
             self.assertEquals(u'another subpage', r.text)
+
+    def test_index_parameters_from_request(self):
+        """
+        This test ensures that an index() method with parameters (other than
+        ``self``) will get these parameters from the query string. These
+        arguments should have default values.
+        """
+        class TestPage(object):
+            def index(self, content=None):
+                return 'The content is ' + content
+
+        with Server(TestPage()):
+            r = requests.get('http://localhost:8080/?content=example')
+            self.assertEquals('The content is example', r.text)
 
 if __name__ == "__main__":
     unittest.main()
