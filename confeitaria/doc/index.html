@@ -431,6 +431,26 @@ a subpage
 another subpage
 </pre>
 </div>
+<div class="section" id="query-string-parameters">
+<h2>Query string parameters</h2>
+<p>The index method can have optional arguments, as below:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class HelloWorldPage(object):
+...    def index(self, greeting='Hello', greeted='World'):
+...        return greeting + &quot; &quot; + greeted + &quot;!&quot;
+</pre>
+<p>If so, they will be filled with values from the query string parameters:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; with Server(HelloWorldPage()):
+...     print requests.get('http://localhost:8080/').text
+...     print requests.get('http://localhost:8080/?greeting=Hi').text
+...     print requests.get(
+...         'http://localhost:8080/?greeting=Hi&amp;greeted=Earth').text
+Hello World!
+Hi World!
+Hi Earth!
+</pre>
+</div>
 </div>
 <div class="section" id="principles">
 <h1>Principles</h1>
