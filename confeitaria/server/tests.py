@@ -121,5 +121,29 @@ class TestServer(unittest.TestCase):
             r = requests.get('http://localhost:8080/3/;/2')
             self.assertEquals('The result of 3;2 is undefined', r.text)
 
+    def test_index_parameters_from_path_and_query_args(self):
+        """
+        This test ensures that positional parameters will  be get from query
+        path and the optional ones will be get from the query string
+        """
+        class TestPage(object):
+            def index(self, arg1, arg2, kwarg1=None, kwarg2=None):
+                result = 'arg1={0}; arg2={1}'.format(arg1, arg2)
+                if kwarg1 is not None:
+                    result += '; kwarg1={2}'
+                if kwarg2 is not None:
+                    result += '; kwarg2={3}'
+                return result.format(arg1, arg2, kwarg1, kwarg2)
+
+        with Server(TestPage()):
+            r = requests.get('http://localhost:8080/one/cake')
+            self.assertEquals('arg1=one; arg2=cake', r.text)
+            r = requests.get(
+                'http://localhost:8080/this/pie?kwarg2=tasty&kwarg1=is'
+            )
+            self.assertEquals(
+                'arg1=this; arg2=pie; kwarg1=is; kwarg2=tasty', r.text
+            )
+
 if __name__ == "__main__":
     unittest.main()
