@@ -97,5 +97,29 @@ class TestServer(unittest.TestCase):
             r = requests.get('http://localhost:8080/example')
             self.assertEquals('The positional parameter is example', r.text)
 
+    def test_index_parameters_from_path_more_than_one(self):
+        """
+        This test ensures that all non-optional parameters from index will be
+        get from the query path.
+        """
+        class TestPage(object):
+            def index(self, n1, operation, n2):
+                if operation == "+":
+                    result = int(n1) + int(n2)
+                elif operation == "-":
+                    result = int(n1) - int(n2)
+                else:
+                    result = 'undefined'
+                return 'The result of {0}{1}{2} is {3}'.format(
+                    n1, operation, n2, result)
+
+        with Server(TestPage()):
+            r = requests.get('http://localhost:8080/3/+/2')
+            self.assertEquals('The result of 3+2 is 5', r.text)
+            r = requests.get('http://localhost:8080/3/-/2')
+            self.assertEquals('The result of 3-2 is 1', r.text)
+            r = requests.get('http://localhost:8080/3/;/2')
+            self.assertEquals('The result of 3;2 is undefined', r.text)
+
 if __name__ == "__main__":
     unittest.main()
