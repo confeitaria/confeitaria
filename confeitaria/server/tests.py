@@ -84,5 +84,18 @@ class TestServer(unittest.TestCase):
             r = requests.get('http://localhost:8080/?content=example')
             self.assertEquals('The content is example', r.text)
 
+    def test_index_parameters_from_path(self):
+        """
+        This test ensures that an index method with non-optional parameters
+        other than ``self`` can have they filled by the query path'.
+        """
+        class TestPage(object):
+            def index(self, positional_param):
+                return 'The positional parameter is ' + positional_param
+
+        with Server(TestPage()):
+            r = requests.get('http://localhost:8080/example')
+            self.assertEquals('The positional parameter is example', r.text)
+
 if __name__ == "__main__":
     unittest.main()
