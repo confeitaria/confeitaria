@@ -62,13 +62,7 @@ class Server(object):
     def _run_app(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
         components = (c for c in path_info.split('/') if c)
-        page = self.page
-
-        for c in components:
-            try:
-                page = getattr(page, c)
-            except AttributeError:
-                break
+        page, args = self._get_page(components)
 
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
@@ -89,12 +83,12 @@ class Server(object):
                     name: value
                     for name, value in zip(reversed(names), reversed(values))
                 }
-                merged_parameters = {
+                kwargs = {
                     name: query_parameters.get(name, value)
                     for name, value in page_parameters.items()
                 }
 
-                return page.index(**merged_parameters)
+                return page.index(*args, **kwargs)
             except TypeError as te:
                 if (type(page) is type and callable(getattr(page, 'index', None))):
                     raise NotPageError(('{p} is not a page object'
@@ -105,6 +99,21 @@ class Server(object):
             raise NotPageError(('{p} is not a page object,'
                 ' has no index() method.').format(p=page))
 
+    def _get_page(self, components, page=None):
+        page = self.page if page is None else page
+
+        try:
+            component = next(components)
+            attr = getattr(page, component, None)
+
+            if is_page(attr):
+                return self._get_page(components, attr)
+            else:
+                return page, [component] + list(components)
+        except StopIteration:
+            return page, []
+
+
     def __enter__(self):
         self._process = multiprocessing.Process(target=self.run)
         self._process.start()
@@ -114,5 +123,9 @@ class Server(object):
         self._process.terminate()
         self._process = None
 
+def is_page(obj):
+    return hasattr(obj, 'index') and inspect.ismethod(obj.index)
+
 class NotPageError(Exception):
     pass
+
