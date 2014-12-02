@@ -431,16 +431,37 @@ a subpage
 another subpage
 </pre>
 </div>
-<div class="section" id="query-string-parameters">
-<h2>Query string parameters</h2>
-<p>The index method can have optional arguments, as below:</p>
+<div class="section" id="index-method-arguments">
+<h2>Index method arguments</h2>
+<p>Naturally, most pages should get information from the browser. This information
+can be passed to the index method by arguments. The values for the arguments are
+retrieved from the HTTP request parameters. It can be done in two ways:</p>
+<dl class="docutils">
+<dt>Query path parameters</dt>
+<dd><blockquote class="first">
+<p>If the index function has mandatory arguments, their values will come
+from the query path, as below:</p>
 <pre class="literal-block">
+&gt;&gt;&gt; class SumPage(object):
+...    def index(self, p1, p2):
+...        v1, v2 = int(p1), int(p2)
+...        return &quot;{0} + {1} = {2}&quot;.format(v1, v2, v1 + v2)
+&gt;&gt;&gt; with Server(SumPage()):
+...     print requests.get('http://localhost:8080/3/2').text
+...     print requests.get('http://localhost:8080/-2/3').text
+3 + 2 = 5
+-2 + 3 = 1
+</pre>
+</blockquote>
+<p class="last">Note that the query path values are always strings.</p>
+</dd>
+<dt>Query string parameters</dt>
+<dd><p class="first">If the index function has optional arguments, their values will come
+from the query string parameters, as below:</p>
+<pre class="last literal-block">
 &gt;&gt;&gt; class HelloWorldPage(object):
 ...    def index(self, greeting='Hello', greeted='World'):
 ...        return greeting + &quot; &quot; + greeted + &quot;!&quot;
-</pre>
-<p>If so, they will be filled with values from the query string parameters:</p>
-<pre class="literal-block">
 &gt;&gt;&gt; with Server(HelloWorldPage()):
 ...     print requests.get('http://localhost:8080/').text
 ...     print requests.get('http://localhost:8080/?greeting=Hi').text
@@ -450,6 +471,24 @@ Hello World!
 Hi World!
 Hi Earth!
 </pre>
+</dd>
+</dl>
+<p>Which one to use is up to the developer. We believe mandatory arguments are
+good to pass mandatory identifiers, such as database primary keys and usernames,
+as in <tt class="docutils literal"><span class="pre">http://example.com/report/1081</span></tt> or <tt class="docutils literal"><span class="pre">http://example.com/user/juju</span></tt>.
+Optional parameters are nice in most other cases, such as when executing
+operations (as in <tt class="docutils literal"><span class="pre">http://example.com/user/update?id=324&amp;username=Ju</span></tt>)
+or giving extra options (as in <tt class="docutils literal"><span class="pre">http://example.com/report/1081?pages=all</span></tt>).</p>
+<blockquote>
+<strong>Advanced warning</strong>: what if one wants to give the values for mandatory
+arguments with query string parameters (e.g. using the URL
+<tt class="docutils literal"><span class="pre">http://localhost:8080/?p2=3&amp;p1=2</span></tt> to hit <tt class="docutils literal">SumPage</tt>) or optional
+arguments with path components (generating a URL such as
+<tt class="docutils literal"><span class="pre">http://localhost:8080/hello/world</span></tt> to access <tt class="docutils literal">HelloWorldPage</tt>)? This
+behavior is undefined on purpose. Confeitaria should play well with many
+other frameworks and the best behavior can vary between them. In our
+reference implementation, it fails, and we don't think it is a good practice
+anyway.</blockquote>
 </div>
 </div>
 <div class="section" id="principles">
