@@ -99,26 +99,61 @@ below::
     a subpage
     another subpage
 
+Index method arguments
+----------------------
+
+Naturally, most pages should get information from the browser. This information
+can be passed to the index method by arguments. The values for the arguments are
+retrieved from the HTTP request parameters. It can be done in two ways:
+
+Query path parameters
+     If the index function has mandatory arguments, their values will come
+     from the query path, as below::
+
+        >>> class SumPage(object):
+        ...    def index(self, p1, p2):
+        ...        v1, v2 = int(p1), int(p2)
+        ...        return "{0} + {1} = {2}".format(v1, v2, v1 + v2)
+        >>> with Server(SumPage()):
+        ...     print requests.get('http://localhost:8080/3/2').text
+        ...     print requests.get('http://localhost:8080/-2/3').text
+        3 + 2 = 5
+        -2 + 3 = 1
+
+    Note that the query path values are always strings.
+
 Query string parameters
------------------------
+    If the index function has optional arguments, their values will come
+    from the query string parameters, as below::
 
-The index method can have optional arguments, as below::
+        >>> class HelloWorldPage(object):
+        ...    def index(self, greeting='Hello', greeted='World'):
+        ...        return greeting + " " + greeted + "!"
+        >>> with Server(HelloWorldPage()):
+        ...     print requests.get('http://localhost:8080/').text
+        ...     print requests.get('http://localhost:8080/?greeting=Hi').text
+        ...     print requests.get(
+        ...         'http://localhost:8080/?greeting=Hi&greeted=Earth').text
+        Hello World!
+        Hi World!
+        Hi Earth!
 
-    >>> class HelloWorldPage(object):
-    ...    def index(self, greeting='Hello', greeted='World'):
-    ...        return greeting + " " + greeted + "!"
+Which one to use is up to the developer. We believe mandatory arguments are
+good to pass mandatory identifiers, such as database primary keys and usernames,
+as in ``http://example.com/report/1081`` or ``http://example.com/user/juju``.
+Optional parameters are nice in most other cases, such as when executing
+operations (as in ``http://example.com/user/update?id=324&username=Ju``)
+or giving extra options (as in ``http://example.com/report/1081?pages=all``).
 
-If so, they will be filled with values from the query string parameters::
-
-    >>> with Server(HelloWorldPage()):
-    ...     print requests.get('http://localhost:8080/').text
-    ...     print requests.get('http://localhost:8080/?greeting=Hi').text
-    ...     print requests.get(
-    ...         'http://localhost:8080/?greeting=Hi&greeted=Earth').text
-    Hello World!
-    Hi World!
-    Hi Earth!
-
+    **Advanced warning**: what if one wants to give the values for mandatory
+    arguments with query string parameters (e.g. using the URL
+    ``http://localhost:8080/?p2=3&p1=2`` to hit ``SumPage``) or optional
+    arguments with path components (generating a URL such as
+    ``http://localhost:8080/hello/world`` to access ``HelloWorldPage``)? This
+    behavior is undefined on purpose. Confeitaria should play well with many
+    other frameworks and the best behavior can vary between them. In our
+    reference implementation, it fails, and we don't think it is a good practice
+    anyway.
 
 Principles
 ==========
