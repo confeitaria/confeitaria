@@ -77,7 +77,6 @@ class Server(object):
             try:
                 names, _, _, values = inspect.getargspec(page.index)
                 values = values if values is not None else []
-                names = names[1:]
 
                 page_parameters = {
                     name: value
