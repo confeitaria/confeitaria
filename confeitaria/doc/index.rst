@@ -27,8 +27,8 @@ Creating and serving pages
 --------------------------
 
 You would rather show your own page, for sure. In Confeitaria, a page is an
-object with an ``index()`` method. The *instances* of the class below would be
-valid pages::
+object with a bounded method named ``index()`` (henceforward named the *index
+method*). The *instances* of the class below would be valid pages::
 
     >>> class TestPage(object):
     ...    def index(self):
