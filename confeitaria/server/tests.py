@@ -4,18 +4,17 @@ import requests
 
 from ..server import Server
 
-class SimplestTestPage(object):
-
-    def index(self):
-        return 'simplest test server'
-
 class TestServer(unittest.TestCase):
 
     def test_serve_page(self):
         import multiprocessing
         import time
 
-        page = SimplestTestPage()
+        class TestPage(object):
+            def index(self):
+                return 'page content'
+
+        page = TestPage()
         server = Server(page)
 
         process = multiprocessing.Process(target=server.run)
@@ -23,7 +22,7 @@ class TestServer(unittest.TestCase):
         time.sleep(1)
 
         request = requests.get('http://localhost:8080/')
-        self.assertEquals(u'simplest test server', request.text)
+        self.assertEquals('page content', request.text)
         self.assertEquals(200, request.status_code)
         self.assertEquals('text/html', request.headers['content-type'])
 
@@ -33,11 +32,15 @@ class TestServer(unittest.TestCase):
         """
         The Server object should be compatible with the `with` clause.
         """
-        page = SimplestTestPage()
+        class TestPage(object):
+            def index(self):
+                return 'page content'
+
+        page = TestPage()
 
         with Server(page):
             request = requests.get('http://localhost:8080/')
-            self.assertEquals(u'simplest test server', request.text)
+            self.assertEquals('page content', request.text)
             self.assertEquals(200, request.status_code)
             self.assertEquals('text/html', request.headers['content-type'])
 
@@ -48,27 +51,27 @@ class TestServer(unittest.TestCase):
         """
         class RootPage(object):
             def index(self):
-                return 'root'
+                return 'page: root'
 
         class SubPage(object):
             def index(self):
-                return 'a subpage'
+                return 'page: sub'
 
-        class SubSubPage(object):
+        class AnotherSubPage(object):
             def index(self):
-                return 'another subpage'
+                return 'page: another'
 
         root = RootPage()
         root.sub = SubPage()
-        root.sub.another = SubSubPage()
+        root.sub.another = AnotherSubPage()
 
         with Server(root):
             r = requests.get('http://localhost:8080/')
-            self.assertEquals(u'root', r.text)
+            self.assertEquals('page: root', r.text)
             r = requests.get('http://localhost:8080/sub')
-            self.assertEquals(u'a subpage', r.text)
+            self.assertEquals('page: sub', r.text)
             r = requests.get('http://localhost:8080/sub/another')
-            self.assertEquals(u'another subpage', r.text)
+            self.assertEquals('page: another', r.text)
 
     def test_index_parameters_from_request(self):
         """
@@ -77,12 +80,12 @@ class TestServer(unittest.TestCase):
         arguments should have default values.
         """
         class TestPage(object):
-            def index(self, content=None):
-                return 'The content is ' + content
+            def index(self, kwarg=None):
+                return 'kwarg: {0}'.format(kwarg)
 
         with Server(TestPage()):
-            r = requests.get('http://localhost:8080/?content=example')
-            self.assertEquals('The content is example', r.text)
+            r = requests.get('http://localhost:8080/?kwarg=example')
+            self.assertEquals('kwarg: example', r.text)
 
     def test_index_parameters_from_path(self):
         """
@@ -90,12 +93,12 @@ class TestServer(unittest.TestCase):
         other than ``self`` can have they filled by the query path'.
         """
         class TestPage(object):
-            def index(self, positional_param):
-                return 'The positional parameter is ' + positional_param
+            def index(self, arg):
+                return 'arg: {0}'.format(arg)
 
         with Server(TestPage()):
             r = requests.get('http://localhost:8080/example')
-            self.assertEquals('The positional parameter is example', r.text)
+            self.assertEquals('arg: example', r.text)
 
     def test_index_parameters_from_path_more_than_one(self):
         """
@@ -103,23 +106,12 @@ class TestServer(unittest.TestCase):
         get from the query path.
         """
         class TestPage(object):
-            def index(self, n1, operation, n2):
-                if operation == "+":
-                    result = int(n1) + int(n2)
-                elif operation == "-":
-                    result = int(n1) - int(n2)
-                else:
-                    result = 'undefined'
-                return 'The result of {0}{1}{2} is {3}'.format(
-                    n1, operation, n2, result)
+            def index(self, arg1, arg2):
+                return 'arg1: {0}; arg2: {1}'.format(arg1, arg2)
 
         with Server(TestPage()):
-            r = requests.get('http://localhost:8080/3/+/2')
-            self.assertEquals('The result of 3+2 is 5', r.text)
-            r = requests.get('http://localhost:8080/3/-/2')
-            self.assertEquals('The result of 3-2 is 1', r.text)
-            r = requests.get('http://localhost:8080/3/;/2')
-            self.assertEquals('The result of 3;2 is undefined', r.text)
+            r = requests.get('http://localhost:8080/first/second')
+            self.assertEquals('arg1: first; arg2: second', r.text)
 
     def test_index_parameters_from_path_and_query_args(self):
         """
