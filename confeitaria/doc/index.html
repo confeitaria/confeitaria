@@ -360,8 +360,8 @@ $ python -mconfeitaria
 <div class="section" id="creating-and-serving-pages">
 <h2>Creating and serving pages</h2>
 <p>You would rather show your own page, for sure. In Confeitaria, a page is an
-object with an <tt class="docutils literal">index()</tt> method. The <em>instances</em> of the class below would be
-valid pages:</p>
+object with a bounded method named <tt class="docutils literal">index()</tt> (henceforward named the <em>index
+method</em>). The <em>instances</em> of the class below would be valid pages:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class TestPage(object):
 ...    def index(self):
