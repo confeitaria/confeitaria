@@ -490,6 +490,49 @@ other frameworks and the best behavior can vary between them. In our
 reference implementation, it fails, and we don't think it is a good practice
 anyway.</blockquote>
 </div>
+<div class="section" id="knowing-a-page-url">
+<h2>Knowing a page URL</h2>
+<p>If a page has a bound method named <tt class="docutils literal">set_url()</tt> which receives one argument,
+this method will be called and the parameter value will be the URL of the page.
+This means that each page can know what is its own URL on the server:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class URLAwarePage(object):
+...     def set_url(self, url):
+...         self.url = url
+...     def index(self):
+...         return 'My URL is ' + self.url
+&gt;&gt;&gt; root = URLAwarePage()
+&gt;&gt;&gt; root.sub = URLAwarePage()
+&gt;&gt;&gt; with Server(root):
+...     print requests.get('http://localhost:8080/').text
+...     print requests.get('http://localhost:8080/sub').text
+My URL is /
+My URL is /sub
+</pre>
+<p>This URL is immutable, it is set in the server start up. This means that a page
+can even know the URL of its subpages:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class RootPage(object):
+...     def __init__(self):
+...         self.sub = URLAwarePage()
+...     def index(self):
+...         return (
+...             'Subpage is at {0}. '
+...             '&lt;a href=&quot;{0}&quot;&gt;Go there!&lt;/a&gt;'.format(self.sub.url)
+...         )
+&gt;&gt;&gt; with Server(RootPage()):
+...     print requests.get('http://localhost:8080/').text
+Subpage is at /sub. &lt;a href=&quot;/sub&quot;&gt;Go there!&lt;/a&gt;
+</pre>
+<!--  -->
+<blockquote>
+<strong>Note</strong>: one could argue that the &quot;URLs&quot; in these examples are actually
+just paths, not full URLs. We hope, however, to make it possible to a page
+to have a totally different URL, even in another domain. We do not have
+this feature now; yet, assuming that the URLs defined with <tt class="docutils literal">set_url()</tt>
+can be more complex than paths is the way to go - even if the current
+examples are quite simple.</blockquote>
+</div>
 </div>
 <div class="section" id="principles">
 <h1>Principles</h1>
