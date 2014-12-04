@@ -80,6 +80,9 @@ class Server(object):
 
         names, _, _, values = inspect.getargspec(page.index)
         values = values if values is not None else []
+        args_count = len(names) - len(values) -1
+        missing_args_count = args_count - len(args)
+        args += [None] * missing_args_count
 
         page_parameters = {
             name: value
