@@ -120,16 +120,15 @@ class TestServer(unittest.TestCase):
         """
         class TestPage(object):
             def index(self, arg1, arg2, kwarg1=None, kwarg2=None):
-                result = 'arg1={0}; arg2={1}'.format(arg1, arg2)
-                if kwarg1 is not None:
-                    result += '; kwarg1={2}'
-                if kwarg2 is not None:
-                    result += '; kwarg2={3}'
-                return result.format(arg1, arg2, kwarg1, kwarg2)
+                return 'arg1={0}; arg2={1}; kwarg1={2}; kwarg2={3}'.format(
+                    arg1, arg2, kwarg1, kwarg2
+                )
 
         with Server(TestPage()):
             r = requests.get('http://localhost:8080/one/cake')
-            self.assertEquals('arg1=one; arg2=cake', r.text)
+            self.assertEquals(
+                'arg1=one; arg2=cake; kwarg1=None; kwarg2=None', r.text
+            )
             r = requests.get(
                 'http://localhost:8080/this/pie?kwarg2=tasty&kwarg1=is'
             )
