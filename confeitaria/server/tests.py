@@ -137,5 +137,30 @@ class TestServer(unittest.TestCase):
                 'arg1=this; arg2=pie; kwarg1=is; kwarg2=tasty', r.text
             )
 
+    def test_page_with_set_url_knows_its_path(self):
+        """
+        This test ensures that a page which has a ``set_url()`` method, the
+        method will be called passing the URL of the page. This way, the page
+        can have access to its own URL.
+        """
+        class TestPage(object):
+            def index(self):
+                return 'url: {0}'.format(self.url)
+            def set_url(self, url):
+                self.url = url
+
+
+        root = TestPage()
+        root.sub = TestPage()
+        root.sub.another = TestPage()
+
+        with Server(root):
+            r = requests.get('http://localhost:8080/')
+            self.assertEquals('url: /', r.text)
+            r = requests.get('http://localhost:8080/sub')
+            self.assertEquals('url: /sub', r.text)
+            r = requests.get('http://localhost:8080/sub/another')
+            self.assertEquals('url: /sub/another', r.text)
+
 if __name__ == "__main__":
     unittest.main()
