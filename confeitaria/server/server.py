@@ -12,7 +12,11 @@ class Server(object):
     """
 
     def __init__(self, page, port=8080):
-        self.page = page
+        self.linkmap = self._get_linkmap(page)
+        urls = list(self.linkmap.keys())
+        urls.sort()
+        urls.reverse()
+        self.urls = urls
         self.port = port
         self._process = None
 
@@ -61,8 +65,9 @@ class Server(object):
 
     def _run_app(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
-        components = (c for c in path_info.split('/') if c)
-        page, args = self._get_page(components)
+        url = find_longest_prefix(path_info, self.urls)
+        page = self.linkmap[url]
+        args = [a for a in path_info.replace(url, '').split('/') if a]
 
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
@@ -98,20 +103,18 @@ class Server(object):
             raise NotPageError(('{p} is not a page object,'
                 ' has no index() method.').format(p=page))
 
-    def _get_page(self, components, page=None):
-        page = self.page if page is None else page
+    def _get_linkmap(self, page, path=None, linkmap=None):
+        linkmap = {} if linkmap is None else linkmap
+        path = '' if path is None else path
 
-        try:
-            component = next(components)
-            attr = getattr(page, component, None)
+        linkmap[path] = page
 
+        for attr_name in dir(page):
+            attr = getattr(page, attr_name)
             if is_page(attr):
-                return self._get_page(components, attr)
-            else:
-                return page, [component] + list(components)
-        except StopIteration:
-            return page, []
+                self._get_linkmap(attr, '/'.join((path, attr_name)), linkmap)
 
+        return linkmap
 
     def __enter__(self):
         self._process = multiprocessing.Process(target=self.run)
@@ -123,7 +126,21 @@ class Server(object):
         self._process = None
 
 def is_page(obj):
-    return hasattr(obj, 'index') and inspect.ismethod(obj.index)
+    return (
+        not inspect.isclass(obj) and
+        hasattr(obj, 'index') and
+        inspect.ismethod(obj.index)
+    )
+
+def find_longest_prefix(string, prefixes):
+    longest = ""
+
+    for prefix in prefixes:
+        if string.startswith(prefix):
+            longest = prefix
+            break
+
+    return longest
 
 class NotPageError(Exception):
     pass
