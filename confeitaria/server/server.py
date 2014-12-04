@@ -103,6 +103,12 @@ class Server(object):
             if is_page(attr):
                 self._get_linkmap(attr, '/'.join((path, attr_name)), linkmap)
 
+        try:
+            page_url = path if path != '' else '/'
+            page.set_url(page_url)
+        except:
+            pass
+
         return linkmap
 
     def __enter__(self):
