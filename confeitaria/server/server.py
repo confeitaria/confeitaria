@@ -78,30 +78,19 @@ class Server(object):
 
         start_response(status, headers)
 
-        if hasattr(page, 'index'):
-            try:
-                names, _, _, values = inspect.getargspec(page.index)
-                values = values if values is not None else []
+        names, _, _, values = inspect.getargspec(page.index)
+        values = values if values is not None else []
 
-                page_parameters = {
-                    name: value
-                    for name, value in zip(reversed(names), reversed(values))
-                }
-                kwargs = {
-                    name: query_parameters.get(name, value)
-                    for name, value in page_parameters.items()
-                }
+        page_parameters = {
+            name: value
+            for name, value in zip(reversed(names), reversed(values))
+        }
+        kwargs = {
+            name: query_parameters.get(name, value)
+            for name, value in page_parameters.items()
+        }
 
-                return page.index(*args, **kwargs)
-            except TypeError as te:
-                if (type(page) is type and callable(getattr(page, 'index', None))):
-                    raise NotPageError(('{p} is not a page object'
-                        ' (did you forget to instantiate it?)').format(p=page))
-                else:
-                     raise te
-        else:
-            raise NotPageError(('{p} is not a page object,'
-                ' has no index() method.').format(p=page))
+        return page.index(*args, **kwargs)
 
     def _get_linkmap(self, page, path=None, linkmap=None):
         linkmap = {} if linkmap is None else linkmap
@@ -141,7 +130,3 @@ def find_longest_prefix(string, prefixes):
             break
 
     return longest
-
-class NotPageError(Exception):
-    pass
-
