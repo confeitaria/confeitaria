@@ -155,6 +155,50 @@ or giving extra options (as in ``http://example.com/report/1081?pages=all``).
     reference implementation, it fails, and we don't think it is a good practice
     anyway.
 
+Knowing a page URL
+------------------
+
+If a page has a bound method named ``set_url()`` which receives one argument,
+this method will be called and the parameter value will be the URL of the page.
+This means that each page can know what is its own URL on the server::
+
+    >>> class URLAwarePage(object):
+    ...     def set_url(self, url):
+    ...         self.url = url
+    ...     def index(self):
+    ...         return 'My URL is ' + self.url
+    >>> root = URLAwarePage()
+    >>> root.sub = URLAwarePage()
+    >>> with Server(root):
+    ...     print requests.get('http://localhost:8080/').text
+    ...     print requests.get('http://localhost:8080/sub').text
+    My URL is /
+    My URL is /sub
+
+This URL is immutable, it is set in the server start up. This means that a page
+can even know the URL of its subpages::
+
+    >>> class RootPage(object):
+    ...     def __init__(self):
+    ...         self.sub = URLAwarePage()
+    ...     def index(self):
+    ...         return (
+    ...             'Subpage is at {0}. '
+    ...             '<a href="{0}">Go there!</a>'.format(self.sub.url)
+    ...         )
+    >>> with Server(RootPage()):
+    ...     print requests.get('http://localhost:8080/').text
+    Subpage is at /sub. <a href="/sub">Go there!</a>
+
+..
+
+    **Note**: one could argue that the "URLs" in these examples are actually
+    just paths, not full URLs. We hope, however, to make it possible to a page
+    to have a totally different URL, even in another domain. We do not have
+    this feature now; yet, assuming that the URLs defined with ``set_url()``
+    can be more complex than paths is the way to go - even if the current
+    examples are quite simple.
+
 Principles
 ==========
 
