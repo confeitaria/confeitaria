@@ -187,5 +187,24 @@ class TestServer(unittest.TestCase):
                 'self.sub url: /sub; self.sub.another url: /sub/another', r.text
             )
 
+    def test_index_parameters_should_have_none_value(self):
+        """
+        This test ensures that mandatory parameters from index will receive
+        ``None`` as their values if no value is found in the path.
+        """
+        class TestPage(object):
+            def index(self, arg):
+                if arg is not None:
+                    result = 'arg: {0}'.format(arg)
+                else:
+                    result = 'no arg'
+                return result
+
+        with Server(TestPage()):
+            r = requests.get('http://localhost:8080/')
+            self.assertEquals('no arg', r.text)
+            r = requests.get('http://localhost:8080/example')
+            self.assertEquals('arg: example', r.text)
+
 if __name__ == "__main__":
     unittest.main()
