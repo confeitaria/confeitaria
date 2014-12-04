@@ -162,5 +162,31 @@ class TestServer(unittest.TestCase):
             r = requests.get('http://localhost:8080/sub/another')
             self.assertEquals('url: /sub/another', r.text)
 
+    def test_page_knows_subpages_path(self):
+        """
+        This test ensures that a page with supbages providing a compatible
+        ``set_url()`` method will know its subpages URLs.
+        """
+        class RootPage(object):
+            def __init__(self):
+                self.sub = SubPage()
+                self.sub.another = SubPage()
+            def index(self):
+                return 'self.sub url: {0}; self.sub.another url: {1}'.format(
+                    self.sub.url, self.sub.another.url
+                )
+
+        class SubPage(object):
+            def index(self):
+                return ''
+            def set_url(self, url):
+                self.url = url
+
+        with Server(RootPage()):
+            r = requests.get('http://localhost:8080/')
+            self.assertEquals(
+                'self.sub url: /sub; self.sub.another url: /sub/another', r.text
+            )
+
 if __name__ == "__main__":
     unittest.main()
