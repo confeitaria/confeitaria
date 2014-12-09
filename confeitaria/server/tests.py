@@ -206,5 +206,24 @@ class TestServer(unittest.TestCase):
             r = requests.get('http://localhost:8080/example')
             self.assertEquals('arg: example', r.text)
 
+    def test_too_many_index_parameters_results_in_404(self):
+        """
+        This test ensures that a page reached with more positional parameters
+        than its index method expect will return 404 error code. This is so
+        because these parameters, being part of the path, are supposed to
+        represent a specific entity. Having too many of them is equivalent of
+        trying to reach a non-existent document.
+        """
+        class TestPage(object):
+            def index(self, arg):
+                return 'irrelevant content'
+
+        with Server(TestPage()):
+            r = requests.get('http://localhost:8080/sub')
+            self.assertEquals(200, r.status_code)
+            r = requests.get('http://localhost:8080/sub/another')
+            self.assertEquals(404, r.status_code)
+
+
 if __name__ == "__main__":
     unittest.main()
