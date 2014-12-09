@@ -453,7 +453,16 @@ from the query path, as below:</p>
 -2 + 3 = 1
 </pre>
 </blockquote>
-<p class="last">Note that the query path values are always strings.</p>
+<p>If the URL path does not a value for the given parameter, the index method
+will still be called, having <tt class="docutils literal">None</tt> as its parameter value:</p>
+<pre class="last literal-block">
+&gt;&gt;&gt; class NonePage(object):
+...    def index(self, arg):
+...        return &quot;arg: {0}, arg type: {1}&quot;.format(arg, type(arg))
+&gt;&gt;&gt; with Server(NonePage()):
+...     print requests.get('http://localhost:8080/').text
+arg: None, arg type: &lt;type 'NoneType'&gt;
+</pre>
 </dd>
 <dt>Query string parameters</dt>
 <dd><p class="first">If the index function has optional arguments, their values will come
