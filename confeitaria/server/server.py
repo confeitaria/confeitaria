@@ -64,14 +64,19 @@ class Server(object):
         query_string = environ.get('QUERY_STRING', '')
         url = path_info + '?' + query_string
 
-        page, args, kwargs = self.url_parser.parse_url(url)
-
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
 
+        try:
+            page, args, kwargs = self.url_parser.parse_url(url)
+            content = page.index(*args, **kwargs)
+        except urlparser.HTTP404NotFound as e:
+            status = '404 Not Found'
+            content = e.message
+
         start_response(status, headers)
 
-        return page.index(*args, **kwargs)
+        return content
 
     def __enter__(self):
         self._process = multiprocessing.Process(target=self.run)

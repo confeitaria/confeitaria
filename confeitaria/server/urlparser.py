@@ -29,9 +29,11 @@ class ObjectPublisherURLParser(object):
         args_count = len(args_names) - len(args_values)
         args = path_args
 
-        missing_args_count = len(args_names) - len(path_args)
+        missing_args_count = len(args_names) - len(path_args) -1
         if missing_args_count > 0:
             args += [None] * missing_args_count
+        elif missing_args_count < 0:
+            raise HTTP404NotFound('{0} not found'.format(extra_path))
 
         return args[:args_count-1]
 
@@ -89,3 +91,6 @@ def find_longest_prefix(string, prefixes):
             break
 
     return longest
+
+class HTTP404NotFound(Exception):
+    pass
