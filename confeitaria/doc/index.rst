@@ -120,7 +120,15 @@ Query path parameters
         3 + 2 = 5
         -2 + 3 = 1
 
-    Note that the query path values are always strings.
+    If the URL path does not a value for the given parameter, the index method
+    will still be called, having ``None`` as its parameter value::
+
+        >>> class NonePage(object):
+        ...    def index(self, arg):
+        ...        return "arg: {0}, arg type: {1}".format(arg, type(arg))
+        >>> with Server(NonePage()):
+        ...     print requests.get('http://localhost:8080/').text
+        arg: None, arg type: <type 'NoneType'>
 
 Query string parameters
     If the index function has optional arguments, their values will come
