@@ -130,6 +130,17 @@ Query path parameters
         ...     print requests.get('http://localhost:8080/').text
         arg: None, arg type: <type 'NoneType'>
 
+
+    If the URL path has more values than the number of index method's mandatory
+    parameters, a 404 Not Found error should be the result::
+
+        >>> class NonePage(object):
+        ...    def index(self, arg):
+        ...        return "arg: {0} arg type: {1}".format(arg, type(arg))
+        >>> with Server(NonePage()):
+        ...     print requests.get('http://localhost:8080/a/b').status_code
+        404
+
 Query string parameters
     If the index function has optional arguments, their values will come
     from the query string parameters, as below::
