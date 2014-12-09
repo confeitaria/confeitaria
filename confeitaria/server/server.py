@@ -76,11 +76,17 @@ class Server(object):
             if isinstance(value, list) and len(value) == 1:
                 query_parameters[key] = value[0]
 
-        start_response(status, headers)
-
         names, _, _, values = inspect.getargspec(page.index)
         values = values if values is not None else []
         args_count = len(names) - len(values) -1
+
+        if len(args) > args_count:
+            status = '404 Not found'
+            start_response(status, headers)
+            return '<html><body><h1>{0} not found</h1></body></html>'.format(
+                path_info
+            )
+
         missing_args_count = args_count - len(args)
         args += [None] * missing_args_count
 
@@ -92,6 +98,8 @@ class Server(object):
             name: query_parameters.get(name, value)
             for name, value in page_parameters.items()
         }
+
+        start_response(status, headers)
 
         return page.index(*args, **kwargs)
 
