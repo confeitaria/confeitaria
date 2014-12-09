@@ -1,9 +1,9 @@
-import inspect
 import multiprocessing
 import time
 
-import cgi
 import wsgiref.simple_server as simple_server
+
+import urlparser
 
 class Server(object):
     """
@@ -12,11 +12,7 @@ class Server(object):
     """
 
     def __init__(self, page, port=8080):
-        self.linkmap = self._get_linkmap(page)
-        urls = list(self.linkmap.keys())
-        urls.sort()
-        urls.reverse()
-        self.urls = urls
+        self.url_parser = urlparser.ObjectPublisherURLParser(page)
         self.port = port
         self._process = None
 
@@ -65,62 +61,17 @@ class Server(object):
 
     def _run_app(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
-        url = find_longest_prefix(path_info, self.urls)
-        page = self.linkmap[url]
-        args = [a for a in path_info.replace(url, '').split('/') if a]
+        query_string = environ.get('QUERY_STRING', '')
+        url = path_info + '?' + query_string
+
+        page, args, kwargs = self.url_parser.parse_url(url)
 
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
-        query_parameters = cgi.parse_qs(environ.get('QUERY_STRING', ''))
-        for key, value in query_parameters.items():
-            if isinstance(value, list) and len(value) == 1:
-                query_parameters[key] = value[0]
-
-        names, _, _, values = inspect.getargspec(page.index)
-        values = values if values is not None else []
-        args_count = len(names) - len(values) -1
-
-        if len(args) > args_count:
-            status = '404 Not found'
-            start_response(status, headers)
-            return '<html><body><h1>{0} not found</h1></body></html>'.format(
-                path_info
-            )
-
-        missing_args_count = args_count - len(args)
-        args += [None] * missing_args_count
-
-        page_parameters = {
-            name: value
-            for name, value in zip(reversed(names), reversed(values))
-        }
-        kwargs = {
-            name: query_parameters.get(name, value)
-            for name, value in page_parameters.items()
-        }
 
         start_response(status, headers)
 
         return page.index(*args, **kwargs)
-
-    def _get_linkmap(self, page, path=None, linkmap=None):
-        linkmap = {} if linkmap is None else linkmap
-        path = '' if path is None else path
-
-        linkmap[path] = page
-
-        for attr_name in dir(page):
-            attr = getattr(page, attr_name)
-            if is_page(attr):
-                self._get_linkmap(attr, '/'.join((path, attr_name)), linkmap)
-
-        try:
-            page_url = path if path != '' else '/'
-            page.set_url(page_url)
-        except:
-            pass
-
-        return linkmap
 
     def __enter__(self):
         self._process = multiprocessing.Process(target=self.run)
@@ -131,19 +82,3 @@ class Server(object):
         self._process.terminate()
         self._process = None
 
-def is_page(obj):
-    return (
-        not inspect.isclass(obj) and
-        hasattr(obj, 'index') and
-        inspect.ismethod(obj.index)
-    )
-
-def find_longest_prefix(string, prefixes):
-    longest = ""
-
-    for prefix in prefixes:
-        if string.startswith(prefix):
-            longest = prefix
-            break
-
-    return longest
