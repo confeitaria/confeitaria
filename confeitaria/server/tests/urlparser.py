@@ -32,8 +32,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        with self.assertRaises(HTTP404NotFound):    
-            _, _, _ = url_parser.parse_url('/nosub')
+
+        with self.assertRaises(HTTP404NotFound):
+            url_parser.parse_url('/nosub')
 
     def test_not_subpage_404(self):
         """
@@ -47,8 +48,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         page = TestPage()
         page.nosub = object()
         url_parser = ObjectPublisherURLParser(page)
-        with self.assertRaises(HTTP404NotFound):    
-            _, _, _ = url_parser.parse_url('/nosub')
+
+        with self.assertRaises(HTTP404NotFound):
+            url_parser.parse_url('/nosub')
 
     def test_path_parameters(self):
         """
@@ -60,9 +62,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        page, args, kwargs = url_parser.parse_url('/value')
+        p, args, kwargs = url_parser.parse_url('/value')
 
-        self.assertEquals(page, page)
+        self.assertEquals(page, p)
         self.assertEquals(['value'], args)
         self.assertEquals({}, kwargs)
 
@@ -78,9 +80,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        page, args, kwargs = url_parser.parse_url('/')
+        p, args, kwargs = url_parser.parse_url('/')
 
-        self.assertEquals(page, page)
+        self.assertEquals(page, p)
         self.assertEquals([None], args)
         self.assertEquals({}, kwargs)
 
@@ -90,7 +92,7 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         expects arguments, but the number of parameters in the path is larger
         than the number of arguments in the index method, then a 404 Not Found
         response will follow
-        
+
         """
         class TestPage(object):
             def index(self, arg):
@@ -98,13 +100,13 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        page, args, kwargs = url_parser.parse_url('/value')
+        p, args, kwargs = url_parser.parse_url('/value')
 
-        self.assertEquals(page, page)
+        self.assertEquals(page, p)
         self.assertEquals(['value'], args)
         self.assertEquals({}, kwargs)
 
-        with self.assertRaises(HTTP404NotFound):    
+        with self.assertRaises(HTTP404NotFound):
             _, _, _ = url_parser.parse_url('/value/excess')
 
 
@@ -114,7 +116,7 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         expects arguments, but the number of parameters in the path is larger
         than the number of arguments in the index method, then a 404 Not Found
         response will follow
-        
+
         """
         class TestPage(object):
             def index(self, kwarg1=None, kwarg2=None):
@@ -122,9 +124,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        page, args, kwargs = url_parser.parse_url('/?kwarg2=value')
+        p, args, kwargs = url_parser.parse_url('/?kwarg2=value')
 
-        self.assertEquals(page, page)
+        self.assertEquals(page, p)
         self.assertEquals([], args)
         self.assertEquals({'kwarg1': None, 'kwarg2': 'value'}, kwargs)
 
@@ -134,7 +136,7 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         expects arguments, but the number of parameters in the path is larger
         than the number of arguments in the index method, then a 404 Not Found
         response will follow
-        
+
         """
         class TestPage(object):
             def index(self, arg1, arg2, kwarg1=None, kwarg2=None):
@@ -142,9 +144,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        page, args, kwargs = url_parser.parse_url('/value1?kwarg2=kwvalue2')
+        p, args, kwargs = url_parser.parse_url('/value1?kwarg2=kwvalue2')
 
-        self.assertEquals(page, page)
+        self.assertEquals(page, p)
         self.assertEquals(['value1', None], args)
         self.assertEquals({'kwarg1': None, 'kwarg2': 'kwvalue2'}, kwargs)
 
