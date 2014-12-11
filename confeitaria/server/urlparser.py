@@ -2,7 +2,194 @@ import inspect
 import urlparse
 
 class ObjectPublisherURLParser(object):
+    """
+    ``ObjectPublisherURLParser`` is an implemetation of the URL parser protocol.
+
+    The URL parser protocol
+    -----------------------
+
+    URL parsers are objects with a ``parse_url()`` method. This method should
+    receive a string as an argument and return a tuple with three values. The
+    first one is a page object; the second one is a list of strings and the
+    third one is a dictionary::
+
+        >>> # ObjectPublisherURLParser requires such a page to work
+        >>> class TestPage(object):
+        ...     def index(self, arg, kwarg=None):
+        ...         return ''
+        >>> url_parser = ObjectPublisherURLParser(TestPage())
+        >>> page, args, kwargs = url_parser.parse_url('')
+        >>> hasattr(page, "index")
+        True
+        >>> isinstance(args, list)
+        True
+        >>> isinstance(kwargs, dict)
+        True
+
+    It is mandatory that the page index method should be called having the list
+    expanded to fill its mandatory arguments, as well as the dict expanded to
+    fill its optional arguments:
+
+        >>> page.index(*args, **kwargs)
+        ''
+
+    The ``parse_url()`` method can eventually also throw exceptions representing
+    HTTP status codes.
+
+    The ``ObjectPublisherURLParser`` implemetation
+    ----------------------------------------------
+
+    ``ObjectPublisherURLParser`` implements the URL parser protocol mapping URLs
+    to a tree of objects, following the so called *object publisher* pattern.
+
+    Suppose we have the following page classes::
+
+        >>> class RootPage(object):
+        ...     def index(self):
+        ...         return 'Welcome to the ROOT PAGE'
+        >>> class SubPage(object):
+        ...     def index(self):
+        ...         return 'Welcome to the SUBPAGE'
+        >>> class SubSubPage(object):
+        ...     def index(self):
+        ...         return 'Welcome to the SUBPAGE of the SUBPAGE'
+
+    Then, we build the following object with them::
+
+        >>> page = RootPage()
+        >>> page.sub = SubPage()
+        >>> page.sub.another = SubSubPage()
+
+    We can build ``ObjectPublisherURLParser`` passing it as an argument::
+
+        >>> url_parser = ObjectPublisherURLParser(page)
+
+    ...and now URL paths should be mapped to the pages of the object. The root
+    path is mapped to the root page::
+
+        >>> p, _, _ = url_parser.parse_url('/')
+        >>> p == page
+        True
+
+    If the path has one more compoment, ``ObjectPublisherURLParser`` tries to
+    get a page from the attribute (of the root page) with the same name of the
+    path component::
+
+        >>> p, _, _ = url_parser.parse_url('/sub')
+        >>> p == page.sub
+        True
+
+    If the path has yet another component, then the URL parser tries to get an
+    attribute from the previous subpage, and so on::
+
+        >>> p, _, _ = url_parser.parse_url('/sub/another')
+        >>> p == page.sub.another
+        True
+
+    On the other hand, if some of the pages do not have an attribute with the
+    same name as the next compoment, then an ``HTTP404NotFound`` exception is
+    raised to signalize that the page was not found::
+
+        >>> url_parser.parse_url('/nopage')
+        Traceback (most recent call last):
+          ...
+        HTTP404NotFound: /nopage not found
+        >>> url_parser.parse_url('/sub/nopage')
+        Traceback (most recent call last):
+          ...
+        HTTP404NotFound: /nopage not found
+
+    The same happens when an attribute is found but it is not a page::
+
+        >>> page.attr = object()
+        >>> url_parser.parse_url('/attr')
+        Traceback (most recent call last):
+          ...
+        HTTP404NotFound: /attr not found
+
+    Positional arguments
+    --------------------
+
+    There is, however, a situation where the path has compoments that does not
+    map to attributes and yet ``parse_url()`` returns a tuple. It happens when
+    the last found page's ``index()`` method expects arguments, and the path
+    has at most the same number of compoments remaining as the number of
+    arguments of ``index()``.
+
+    An example can make it clearer. Consider the following page::
+
+        >>> class HelloPage(object):
+        ...     def index(self, who):
+        ...         return 'Hello {0}'.format(who)
+        >>> page = HelloPage()
+        >>> url_parser = ObjectPublisherURLParser(page)
+
+    Since the ``index()`` method expects parameters, we can pass one more
+    component in the path::
+
+        >>> p, args, _ = url_parser.parse_url('/world')
+        >>> p == page
+        True
+        >>> args
+        ['world']
+        >>> p.index(*args)
+        'Hello world'
+
+    Yet, we cannot pass more path compoment than the number of arguments in the
+    method::
+
+        >>> url_parser.parse_url('/world/again')
+        Traceback (most recent call last):
+          ...
+        HTTP404NotFound: /world/again not found
+
+    (If we pass no parameter, however, the corresponding value in the list of
+    arguments will be ``None``.)
+
+    ::
+        >>> p, args, _ = url_parser.parse_url('/')
+        >>> p == page
+        True
+        >>> args
+        [None]
+        >>> p.index(*args)
+        'Hello None'
+
+    Optional parameters
+    -------------------
+
+    Index methods can also have optional arguments. Those are expected to be
+    filled with the dict returned by the URL parser. In the case of the
+    ``ObjectPublisherURLParser``, these values comes from the query string.
+
+    Given for instance the page below::
+
+        >>> class HelloPage(object):
+        ...     def index(self, greeting='Hello', greeted='World'):
+        ...         return '{0} {1}'.format(greeting, greeted)
+        >>> page = HelloPage()
+        >>> url_parser = ObjectPublisherURLParser(page)
+
+    ...``ObjectPublisherURLParser`` will behave this way::
+
+        >>> p, args, kwargs = url_parser.parse_url(
+        ...     '/?greeting=Hi&greeted=Earth'
+        ... )
+        >>> p == page
+        True
+        >>> args
+        []
+        >>> kwargs
+        {'greeting': 'Hi', 'greeted': 'Earth'}
+        >>> page.index(*args, **kwargs)
+        'Hi Earth'
+    """
+
     def __init__(self, page):
+        """
+        ``ObjectPublisherURLParser`` expects as its constructor argument a page
+        (probably with subpages) to which to map URLs.
+        """
         self.linkmap = self._get_linkmap(page)
         urls = list(self.linkmap.keys())
         urls.sort()
@@ -53,8 +240,6 @@ class ObjectPublisherURLParser(object):
             name: query_args.get(name, value)
             for name, value in page_kwargs.items()
         }
-
-
 
     def _get_linkmap(self, page, path=None, linkmap=None):
         linkmap = {} if linkmap is None else linkmap
