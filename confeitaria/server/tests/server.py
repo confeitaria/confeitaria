@@ -223,7 +223,3 @@ class TestServer(unittest.TestCase):
             self.assertEquals(200, r.status_code)
             r = requests.get('http://localhost:8080/sub/another')
             self.assertEquals(404, r.status_code)
-
-
-if __name__ == "__main__":
-    unittest.main()
