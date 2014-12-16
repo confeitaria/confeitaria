@@ -150,5 +150,37 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         self.assertEquals(['value1', None], args)
         self.assertEquals({'kwarg1': None, 'kwarg2': 'kwvalue2'}, kwargs)
 
+    def test_attribute_has_precedence_over_path_parameters(self):
+        """
+        If a page has both an index method with arguments and an attribute, the
+        attribute should have precedence over the arguments when parsing path
+        parameters.
+        """
+        class RootPage(object):
+            def index(self, arg):
+                return 'page: root, arg: {0}'.format(arg)
+        class AttributePage(object):
+            def index(self):
+                return 'page: attribute'
+
+        page = RootPage()
+        page.attribute = AttributePage()
+        url_parser = ObjectPublisherURLParser(page)
+
+        p, args, kwargs = url_parser.parse_url('/value')
+
+        self.assertEquals(page, p)
+        self.assertEquals(['value'], args)
+        self.assertEquals({}, kwargs)
+        self.assertEquals('page: root, arg: value', p.index(*args, **kwargs))
+
+        p, args, kwargs = url_parser.parse_url('/attribute')
+
+        self.assertEquals(page.attribute, p)
+        self.assertEquals([], args)
+        self.assertEquals({}, kwargs)
+        self.assertEquals('page: attribute', p.index(*args, **kwargs))
+
+
 if __name__ == "__main__":
     unittest.main()
