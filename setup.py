@@ -12,7 +12,7 @@ setup(
 
     packages = find_packages(),
     package_data = {
-        '': ['*.rst', '*.html']
+        'confeitaria': ['doc/*.rst', 'doc/*.html']
     },
 
     test_suite = 'confeitaria.server.tests',
