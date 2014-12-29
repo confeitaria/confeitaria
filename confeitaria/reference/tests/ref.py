@@ -3,10 +3,24 @@ import unittest
 import requests
 
 class TestReference(unittest.TestCase):
+    """
+    This test case provides some tests for behaviors that any Confeitaria
+    implementation is supposed to support. Implementations are supposed to
+    extend this class; the extending test case can have its own test methods
+    as well.
+
+    Any sublcass of ``TestReference`` should implement the ``get_server()``
+    method. This method should expect a page object as its argument, and return
+    some object that respect the ``with`` protocol in a way that:
+
+    * in the ``__enter__()`` method, an HTTP server is asynchronously started at
+      port 8080, running the Confeitaria implementation being tested; and
+    * in the ``__exit__()`` method, the HTTP server is stopped.
+    """
 
     def test_attributes_as_subpages(self):
         """
-        This test ensures that when a path is requested to the server it will
+        This test ensures that when a path is requested to Confeitaria it will
         access subpages (that is, pages that are attributes of other pages).
         """
         class RootPage(object):
