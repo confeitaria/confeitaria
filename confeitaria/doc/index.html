@@ -438,8 +438,7 @@ can be passed to the index method by arguments. The values for the arguments are
 retrieved from the HTTP request parameters. It can be done in two ways:</p>
 <dl class="docutils">
 <dt>Query path parameters</dt>
-<dd><blockquote class="first">
-<p>If the index function has mandatory arguments, their values will come
+<dd><p class="first">If the index function has mandatory arguments, their values will come
 from the query path, as below:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class SumPage(object):
@@ -452,7 +451,6 @@ from the query path, as below:</p>
 3 + 2 = 5
 -2 + 3 = 1
 </pre>
-</blockquote>
 <p>If the URL path does not a value for the given parameter, the index method
 will still be called, having <tt class="docutils literal">None</tt> as its parameter value:</p>
 <pre class="literal-block">
@@ -558,7 +556,6 @@ examples are quite simple.</blockquote>
 <p>In Confeitaria, we try to follow some principles as much as possible. We do not
 know how much they are feasible or advantageus, they are not necessarily
 original and we are not saying you have to follow them. We will try, however.</p>
-<blockquote>
 <dl class="docutils">
 <dt>Principle 1: <em>The customer should get only the desired piece.</em></dt>
 <dd>Confeitaria should provide many applications, each in its own package. They
@@ -599,7 +596,6 @@ many frameworks as possible - such as Django, CherryPy, CGI... This WSGI
 implementation is actually a reference implementation - other modules should
 not depend on it!</dd>
 </dl>
-</blockquote>
 <p>We may add more principles, or give up some of them - that is acceptable. The
 main objective here, after all, is to discover what is possible to do.</p>
 </div>
