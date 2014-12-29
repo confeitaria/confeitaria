@@ -2,20 +2,20 @@
 from setuptools import setup, find_packages
 
 setup(
-    name = "confeitaria",
-    version = "0.1dev",
-    author = 'Adam Victor Brandizzi',
-    author_email = 'adam@brandizzi.com.br',
-    description = 'Confeitaria is a Python web framework testing hypothesis',
-    license = 'LGPLv3',
-    url = 'http://bitbucket.com/brandizzi/confeitaria',
+    name="confeitaria",
+    version="0.1dev",
+    author='Adam Victor Brandizzi',
+    author_email='adam@brandizzi.com.br',
+    description='Confeitaria is a Python web framework',
+    license='LGPLv3',
+    url='http://bitbucket.com/brandizzi/confeitaria',
 
-    packages = find_packages(),
-    package_data = {
+    packages=find_packages(),
+    package_data={
         'confeitaria': ['doc/*.rst', 'doc/*.html']
     },
 
-    test_suite = 'confeitaria.server.tests',
-    test_loader = 'unittest:TestLoader',
-    tests_require=['requests'],
+    test_suite='confeitaria.server.tests',
+    test_loader='unittest:TestLoader',
+    tests_require=['requests']
 )
