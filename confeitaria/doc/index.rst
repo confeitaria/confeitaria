@@ -107,8 +107,8 @@ can be passed to the index method by arguments. The values for the arguments are
 retrieved from the HTTP request parameters. It can be done in two ways:
 
 Query path parameters
-     If the index function has mandatory arguments, their values will come
-     from the query path, as below::
+    If the index function has mandatory arguments, their values will come
+    from the query path, as below::
 
         >>> class SumPage(object):
         ...    def index(self, p1, p2):
@@ -225,24 +225,24 @@ In Confeitaria, we try to follow some principles as much as possible. We do not
 know how much they are feasible or advantageus, they are not necessarily
 original and we are not saying you have to follow them. We will try, however.
 
- Principle 1: *The customer should get only the desired piece.*
+Principle 1: *The customer should get only the desired piece.*
     Confeitaria should provide many applications, each in its own package. They
     should be as independent as possible so the developer may use only what is
     needed.
 
- Principle 2: *To use a page should be a piece of cake.*
+Principle 2: *To use a page should be a piece of cake.*
     An application should be pages that can be instatiated many times, maybe
     with some pages. The pages should be as flexible as any simple object, not
     requiring any setup other than being called by ``confeitaria.run()`` (but
     being open to more, optional configuration0.
 
- Principle 3: *A cake should be useful without more cooking.*
+Principle 3: *A cake should be useful without more cooking.*
     Whenever possible, a Confeitaria package should be usable by only calling
     it with the Python interpreter's ``-m`` flag. For example, the reference
     confeitaria module does provide a feature: it displays this same
     documenation.
 
- Principle 4: *The layered cake should be edible without the frosting.*
+Principle 4: *The layered cake should be edible without the frosting.*
     The Confeitaria pages should have tiers, and the lower one cannot depend on
     the higher one. In special, any Confeitaria page should be usable even
     without CSS and JavaScript (the "frosting"). CSS and JavaScript should be
@@ -250,22 +250,22 @@ original and we are not saying you have to follow them. We will try, however.
     ensure this is that *any task should be executed only using ``curl`` or the
     ``requests`` module*.
 
- Principle 5: *The dough should be tested at each step.*
+Principle 5: *The dough should be tested at each step.*
    We should test as much as possible. Each commit set should contain a new
    test. We should have unit tests, integration tests, functional tests without
    JavaScript and functional tests with JavaScript - probably even JavaScript
    tests.
 
- Principle 6: *The recipes should be written down.*
+Principle 6: *The recipes should be written down.*
     We should document how to use Confeitaria. Each public method should have a
     docstring. Each application page should have a separate document explaining
     it. Examples should be doctests.
 
- Principle 7: *Each order should be written down.*
+Principle 7: *Each order should be written down.*
     Each change in the code base should be preceded by a ticket in the issue
     tracker.
 
- Principle 8: *The dough should harmonize with any flavor.*
+Principle 8: *The dough should harmonize with any flavor.*
     It should be possible to run add a Confeitaria page to applications in as
     many frameworks as possible - such as Django, CherryPy, CGI... This WSGI
     implementation is actually a reference implementation - other modules should
