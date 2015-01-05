@@ -604,8 +604,7 @@ examples are quite simple.</blockquote>
 <p>HTTP redirect responses are a common need. For example, you may want to redirect
 the browser to another URL to where the looked upon content was moved. You just
 need to raise the <tt class="docutils literal">confeitaria.responses.MovedPermanently</tt> exception:</p>
-<blockquote>
-<pre class="doctest-block">
+<pre class="literal-block">
 &gt;&gt;&gt; import confeitaria.responses
 &gt;&gt;&gt; class OldPage(object):
 ...     def index(self):
@@ -628,7 +627,6 @@ need to raise the <tt class="docutils literal">confeitaria.responses.MovedPerman
 200
 page: new
 </pre>
-</blockquote>
 <p>If, however, one wants to implement the POST-REDIRECT-GET pattern, it is better
 to use the <tt class="docutils literal">SeeOther</tt> response:</p>
 <pre class="literal-block">
