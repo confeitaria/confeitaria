@@ -196,13 +196,19 @@ class ObjectPublisherURLParser(object):
         urls.reverse()
         self.urls = urls
 
-    def parse_url(self, url):
+    def parse_url(self, url, body=None):
         _, _, path, _, query, _ = urlparse.urlparse(url)
 
         prefix = find_longest_prefix(path, self.urls)
         page = self.linkmap[prefix]
 
-        args_names, _, _, args_values = inspect.getargspec(page.index)
+        if body is None:
+            page_method = page.index
+        else:
+            page_method = page.action
+            query = body
+
+        args_names, _, _, args_values = inspect.getargspec(page_method)
         args_values = args_values if args_values is not None else []
 
         args = self._get_args(path.replace(prefix, ''), args_names, args_values)
@@ -261,11 +267,16 @@ class ObjectPublisherURLParser(object):
         return linkmap
 
 def is_page(obj):
-    return (
-        not inspect.isclass(obj) and
-        hasattr(obj, 'index') and
-        inspect.ismethod(obj.index)
-    )
+    if not inspect.isclass(obj):
+        return (
+            hasattr(obj, 'index') and
+            inspect.ismethod(obj.index)
+        ) or (
+            hasattr(obj, 'action') and
+            inspect.ismethod(obj.action)
+        )
+    else:
+        return False
 
 def find_longest_prefix(string, prefixes):
     longest = ""
