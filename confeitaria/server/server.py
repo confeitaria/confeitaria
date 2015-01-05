@@ -5,6 +5,8 @@ import wsgiref.simple_server as simple_server
 
 import urlparser
 
+import confeitaria.responses
+
 class Server(object):
     """
     The ``Server`` objects listen to HTTP requests and serve responses according
@@ -80,6 +82,9 @@ class Server(object):
         except urlparser.HTTP404NotFound as e:
             status = '404 Not Found'
             content = e.message
+        except confeitaria.responses.Response as e:
+            status = e.status_code
+            headers = e.headers
 
         start_response(status, headers)
 
