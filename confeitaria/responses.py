@@ -83,3 +83,15 @@ class SeeOther(Response):
         headers = {'Location': location}
         Response.__init__(self, SeeOther.status_code, headers, *args, **kwargs)
         self.location = location
+
+class NotFound(Response):
+    """
+    This response indicates the requested resource could not be found::
+
+        >>> r = NotFound()
+        >>> r.status_code
+        '404 Not Found'
+    """
+    status_code = '404 Not Found'
+    def __init__(self, *args, **kwargs):
+        Response.__init__(self, NotFound.status_code, None, *args, **kwargs)

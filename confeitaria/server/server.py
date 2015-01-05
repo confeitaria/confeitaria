@@ -79,9 +79,6 @@ class Server(object):
                 content = page.index(*args, **kwargs)
             elif environ['REQUEST_METHOD'] == 'POST':
                 page.action(*args, **kwargs)
-        except urlparser.HTTP404NotFound as e:
-            status = '404 Not Found'
-            content = e.message
         except confeitaria.responses.Response as e:
             status = e.status_code
             headers = e.headers
