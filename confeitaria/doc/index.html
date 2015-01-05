@@ -361,7 +361,8 @@ $ python -mconfeitaria
 <h2>Creating and serving pages</h2>
 <p>You would rather show your own page, for sure. In Confeitaria, a page is an
 object with a bounded method named <tt class="docutils literal">index()</tt> (henceforward named the <em>index
-method</em>). The <em>instances</em> of the class below would be valid pages:</p>
+method</em>) or a bounded method named <tt class="docutils literal">action()</tt> (the <em>action method</em>). The
+<em>instances</em> of the class below would be valid pages:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class TestPage(object):
 ...    def index(self):
@@ -506,6 +507,54 @@ behavior is undefined on purpose. Confeitaria should play well with many
 other frameworks and the best behavior can vary between them. In our
 reference implementation, it fails, and we don't think it is a good practice
 anyway.</blockquote>
+</div>
+<div class="section" id="action-methods">
+<h2>Action methods</h2>
+<p>Index methods only handle GET requests. If a request uses the POST HTTP method,
+it should be handled by an action method.</p>
+<p>Action methods are not expected to return HTML documents, they are only called
+for their side effects. Any relevant content should be returned by an index
+method.</p>
+<p>Consider, for example, the following mock of an authetication page:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class AuthenticationPage(object):
+...     username = None
+...     def action(self, username=None):
+...         AuthenticationPage.username = username
+</pre>
+<p>It could be a subpage of a root page as the one below:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class MainPage(object):
+...     def index(self):
+...         if AuthenticationPage.username:
+...             return 'You are logged in as {0}.'.format(
+...                 AuthenticationPage.username
+...             )
+...         else:
+...             return 'You are not logged in.'
+</pre>
+<p>So we would have this tree:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; page = MainPage()
+&gt;&gt;&gt; page.auth = AuthenticationPage()
+</pre>
+<p>By default, nobody would be authenticated:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; with Server(page):
+...     print requests.get('http://localhost:8080/').text
+You are not logged in.
+</pre>
+<p>We can, however, send a POST request for log in:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; with Server(page):
+...     print requests.get('http://localhost:8080/').text
+...     _ = requests.post(
+...         'http://localhost:8080/auth', data={'username': 'alice'}
+...     )
+...     print requests.get('http://localhost:8080/').text
+You are not logged in.
+You are logged in as alice.
+</pre>
 </div>
 <div class="section" id="knowing-a-page-url">
 <h2>Knowing a page URL</h2>
