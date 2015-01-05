@@ -68,8 +68,15 @@ class Server(object):
         headers = [('Content-type', 'text/html')]
 
         try:
-            page, args, kwargs = self.url_parser.parse_url(url)
-            content = page.index(*args, **kwargs)
+            content = ''
+            page, args, kwargs = self.url_parser.parse_url(
+                url, self._get_body_content(environ)
+            )
+
+            if environ['REQUEST_METHOD'] == 'GET':
+                content = page.index(*args, **kwargs)
+            elif environ['REQUEST_METHOD'] == 'POST':
+                page.action(*args, **kwargs)
         except urlparser.HTTP404NotFound as e:
             status = '404 Not Found'
             content = e.message
@@ -77,6 +84,16 @@ class Server(object):
         start_response(status, headers)
 
         return content
+
+    def _get_body_content(self, environ):
+        if environ['REQUEST_METHOD'] != 'POST':
+            return None
+        try:
+            body_size = int(environ.get('CONTENT_LENGTH', 0))
+        except (ValueError):
+            body_size = 0
+
+        return environ['wsgi.input'].read(body_size)
 
     def __enter__(self):
         self._process = multiprocessing.Process(target=self.run)
