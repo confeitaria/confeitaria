@@ -219,3 +219,61 @@ class TestReference(unittest.TestCase):
             )
             r = requests.get('http://localhost:8080/')
             self.assertEquals('post_parameter: example', r.text)
+
+    def test_raising_redirect_moved_permanently(self):
+        """
+        Raising the ``MovedPermanently`` exception should result in a redirect.
+        """
+        import confeitaria.responses
+
+        class TestPage(object):
+            def index(self):
+                raise confeitaria.responses.MovedPermanently('/sub')
+
+        page = TestPage()
+
+        with self.get_server(page):
+            r = requests.get('http://localhost:8080/', allow_redirects=False)
+            self.assertEquals(301, r.status_code)
+            self.assertEquals('/sub', r.headers['location'])
+
+
+    def test_raising_redirect_see_other(self):
+        """
+        Raising the ``SeeOther`` exception should result in a redirect.
+        """
+        import confeitaria.responses
+
+        class TestPage(object):
+            def index(self):
+                raise confeitaria.responses.SeeOther('/sub')
+
+        page = TestPage()
+
+        with self.get_server(page):
+            r = requests.get('http://localhost:8080/', allow_redirects=False)
+            self.assertEquals(303, r.status_code)
+            self.assertEquals('/sub', r.headers['location'])
+
+    def test_raising_redirect_see_other_from_action(self):
+        """
+        Raising the ``SeeOther`` exception should result in a redirect,
+        specially from an action method.
+        """
+        import confeitaria.responses
+
+        class TestPage(object):
+            post_parameter = None
+            def index(self):
+                return 'post_parameter: {0}'.format(TestPage.post_parameter)
+            def action(self, kwarg=None):
+                TestPage.post_parameter = kwarg
+                raise confeitaria.responses.SeeOther('/')
+
+        with self.get_server(TestPage()):
+            r = requests.post(
+                'http://localhost:8080/', data={'kwarg': 'example'}
+            )
+            r = requests.get('http://localhost:8080/')
+            self.assertEquals(200, r.status_code)
+            self.assertEquals('post_parameter: example', r.text)
