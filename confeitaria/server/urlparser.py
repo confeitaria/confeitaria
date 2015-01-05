@@ -26,15 +26,35 @@ class ObjectPublisherURLParser(object):
         >>> isinstance(kwargs, dict)
         True
 
-    It is mandatory that the page index method should be called having the list
-    expanded to fill its mandatory arguments, as well as the dict expanded to
-    fill its optional arguments:
+    It is mandatory that the page index or action method should be called having
+    the list expanded to fill its mandatory arguments, as well as the dict
+    expanded to fill its optional arguments:
 
         >>> page.index(*args, **kwargs)
         ''
 
     The ``parse_url()`` method can eventually also throw exceptions representing
     HTTP status codes.
+
+    Parsing POST requests
+    ---------------------
+
+    ``parse_url()`` can also receive a second argument, which should be the body
+    of a POST request. In this case, the body will be passed as a string and its
+    parameters will be returned in the dict::
+
+        >>> class ActionPage(object):
+        ...     def action(self, kwarg=None):
+        ...         return ''
+        >>> url_parser = ObjectPublisherURLParser(ActionPage())
+        >>> action_page, args, kwargs = url_parser.parse_url('', 'kwarg=example')
+        >>> hasattr(action_page, "action")
+        True
+        >>> isinstance(args, list)
+        True
+        >>> isinstance(kwargs, dict)
+        True
+
 
     The ``ObjectPublisherURLParser`` implemetation
     ----------------------------------------------
@@ -183,6 +203,24 @@ class ObjectPublisherURLParser(object):
         {'greeting': 'Hi', 'greeted': 'Earth'}
         >>> page.index(*args, **kwargs)
         'Hi Earth'
+
+    If ``parse_url()`` received the second argument, then the optional
+    parameters should come from this argument, not from the URL query string.
+    This second argument is expected to be a body of a POST request as a
+    string::
+
+        >>> class ActionPage(object):
+        ...     def action(self, kwarg=None):
+        ...         return ''
+        >>> page = ActionPage()
+        >>> url_parser = ObjectPublisherURLParser(page)
+        >>> p, args, kwargs = url_parser.parse_url('', 'kwarg=example')
+        >>> p == page
+        True
+        >>> args
+        []
+        >>> kwargs
+        {'kwarg': 'example'}
     """
 
     def __init__(self, page):
