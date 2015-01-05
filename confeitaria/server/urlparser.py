@@ -1,6 +1,8 @@
 import inspect
 import urlparse
 
+import confeitaria.responses
+
 class ObjectPublisherURLParser(object):
     """
     ``ObjectPublisherURLParser`` is an implemetation of the URL parser protocol.
@@ -107,17 +109,17 @@ class ObjectPublisherURLParser(object):
         True
 
     On the other hand, if some of the pages do not have an attribute with the
-    same name as the next compoment, then an ``HTTP404NotFound`` exception is
-    raised to signalize that the page was not found::
+    same name as the next compoment, then an ``confeitaria.responses.NotFound``
+    exception is raised to signalize that the page was not found::
 
         >>> url_parser.parse_url('/nopage')
         Traceback (most recent call last):
           ...
-        HTTP404NotFound: /nopage not found
+        NotFound: /nopage not found
         >>> url_parser.parse_url('/sub/nopage')
         Traceback (most recent call last):
           ...
-        HTTP404NotFound: /nopage not found
+        NotFound: /nopage not found
 
     The same happens when an attribute is found but it is not a page::
 
@@ -125,7 +127,7 @@ class ObjectPublisherURLParser(object):
         >>> url_parser.parse_url('/attr')
         Traceback (most recent call last):
           ...
-        HTTP404NotFound: /attr not found
+        NotFound: /attr not found
 
     Positional arguments
     --------------------
@@ -161,7 +163,7 @@ class ObjectPublisherURLParser(object):
         >>> url_parser.parse_url('/world/again')
         Traceback (most recent call last):
           ...
-        HTTP404NotFound: /world/again not found
+        NotFound: /world/again not found
 
     (If we pass no parameter, however, the corresponding value in the list of
     arguments will be ``None``.)
@@ -264,7 +266,9 @@ class ObjectPublisherURLParser(object):
         if missing_args_count > 0:
             args += [None] * missing_args_count
         elif missing_args_count < 0:
-            raise HTTP404NotFound('{0} not found'.format(extra_path))
+            raise confeitaria.responses.NotFound(
+                '{0} not found'.format(extra_path)
+            )
 
         return args[:args_count-1]
 
@@ -325,6 +329,3 @@ def find_longest_prefix(string, prefixes):
             break
 
     return longest
-
-class HTTP404NotFound(Exception):
-    pass

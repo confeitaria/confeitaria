@@ -2,7 +2,8 @@ import unittest
 
 import requests
 
-from ..urlparser import ObjectPublisherURLParser, HTTP404NotFound
+from ..urlparser import ObjectPublisherURLParser
+from confeitaria.responses import NotFound
 
 class TestObjectPublisherURLParser(unittest.TestCase):
 
@@ -33,7 +34,7 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
 
-        with self.assertRaises(HTTP404NotFound):
+        with self.assertRaises(NotFound):
             url_parser.parse_url('/nosub')
 
     def test_not_subpage_404(self):
@@ -49,7 +50,7 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         page.nosub = object()
         url_parser = ObjectPublisherURLParser(page)
 
-        with self.assertRaises(HTTP404NotFound):
+        with self.assertRaises(NotFound):
             url_parser.parse_url('/nosub')
 
     def test_path_parameters(self):
@@ -106,7 +107,7 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         self.assertEquals(['value'], args)
         self.assertEquals({}, kwargs)
 
-        with self.assertRaises(HTTP404NotFound):
+        with self.assertRaises(NotFound):
             _, _, _ = url_parser.parse_url('/value/excess')
 
 
