@@ -269,6 +269,60 @@ can even know the URL of its subpages::
     can be more complex than paths is the way to go - even if the current
     examples are quite simple.
 
+Redirecting
+-----------
+
+HTTP redirect responses are a common need. For example, you may want to redirect
+the browser to another URL to where the looked upon content was moved. You just
+need to raise the ``confeitaria.responses.MovedPermanently`` exception:
+
+    >>> import confeitaria.responses
+    >>> class OldPage(object):
+    ...     def index(self):
+    ...         raise confeitaria.responses.MovedPermanently('/new')
+    >>> class NewPage(object):
+    ...     def index(self):
+    ...         return 'page: new'
+    >>> page = OldPage()
+    >>> page.new = NewPage()
+    >>> with Server(page):
+    ...     r = requests.get('http://localhost:8080/', allow_redirects=False)
+    ...     print r.status_code
+    ...     print r.headers['location']
+    301
+    /new
+    >>> with Server(page):
+    ...     r = requests.get('http://localhost:8080/')
+    ...     print r.status_code
+    ...     print r.text
+    200
+    page: new
+
+If, however, one wants to implement the POST-REDIRECT-GET pattern, it is better
+to use the ``SeeOther`` response::
+
+    >>> class LoginPage(object):
+    ...     username = None
+    ...     def index(self):
+    ...         if LoginPage.username is None:
+    ...             return 'Nobody is logged in.'
+    ...         else:
+    ...             return '{0} is logged in.'.format(LoginPage.username)
+    ...     def action(self, username=None):
+    ...         LoginPage.username = username
+    ...         raise confeitaria.responses.SeeOther('/')
+    >>> with Server(LoginPage()):
+    ...     r = requests.get('http://localhost:8080/')
+    ...     print r.text
+    ...     r = requests.post(
+    ...         'http://localhost:8080/', data={'username': 'bob'}
+    ...     )
+    ...     print r.status_code
+    ...     print r.text
+    Nobody is logged in.
+    200
+    bob is logged in.
+
 Principles
 ==========
 
