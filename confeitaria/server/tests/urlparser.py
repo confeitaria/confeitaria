@@ -181,6 +181,44 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         self.assertEquals({}, kwargs)
         self.assertEquals('page: attribute', p.index(*args, **kwargs))
 
+    def test_action_method_creates_page(self):
+        """
+        If an object has an ``action()`` bound method, the object is a page -
+        one that only handles POST requests.
+        """
+        class RootPage(object):
+            def index(self, arg):
+                return 'page: root, arg: {0}'.format(arg)
+        class ActionPage(object):
+            def action(self):
+                pass
+
+        page = RootPage()
+        page.sub = ActionPage()
+        url_parser = ObjectPublisherURLParser(page)
+
+        p, args, kwargs = url_parser.parse_url('/sub', '')
+
+        self.assertEquals(p, page.sub)
+
+    def test_action_method_returns_parsed_body(self):
+        """
+        The contents of a POST request should be parsed.
+        """
+        class RootPage(object):
+            def index(self, arg):
+                return 'page: root, arg: {0}'.format(arg)
+        class ActionPage(object):
+            def action(self, kwarg=None):
+                pass
+
+        page = RootPage()
+        page.sub = ActionPage()
+        url_parser = ObjectPublisherURLParser(page)
+
+        p, args, kwargs = url_parser.parse_url('/sub', 'kwarg=example')
+
+        self.assertEquals({'kwarg': 'example'}, kwargs)
 
 if __name__ == "__main__":
     unittest.main()
