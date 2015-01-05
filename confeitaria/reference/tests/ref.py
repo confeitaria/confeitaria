@@ -197,3 +197,25 @@ class TestReference(unittest.TestCase):
             self.assertEquals(200, r.status_code)
             r = requests.get('http://localhost:8080/sub/another')
             self.assertEquals(404, r.status_code)
+
+    def test_post_method(self):
+        """
+        A Confeitaria page can have a method ``action()`` for handling POST
+        requests. Its behavior should be somewhat similar to the ``index()``
+        method when it comes to handling parameters. Yet, it is not supposed
+        to return an HTML document. How a document will - or will not - be
+        returned is a issue to be defined in other tests.
+        """
+        class TestPage(object):
+            post_parameter = None
+            def action(self, kwarg=None):
+                TestPage.post_parameter = kwarg
+            def index(self):
+                return 'post_parameter: {0}'.format(TestPage.post_parameter)
+
+        with self.get_server(TestPage()):
+            requests.post(
+                'http://localhost:8080/', data={'kwarg': 'example'}
+            )
+            r = requests.get('http://localhost:8080/')
+            self.assertEquals('post_parameter: example', r.text)
