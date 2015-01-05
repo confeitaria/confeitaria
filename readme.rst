@@ -274,7 +274,7 @@ Redirecting
 
 HTTP redirect responses are a common need. For example, you may want to redirect
 the browser to another URL to where the looked upon content was moved. You just
-need to raise the ``confeitaria.responses.MovedPermanently`` exception:
+need to raise the ``confeitaria.responses.MovedPermanently`` exception::
 
     >>> import confeitaria.responses
     >>> class OldPage(object):
