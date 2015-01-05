@@ -28,7 +28,8 @@ Creating and serving pages
 
 You would rather show your own page, for sure. In Confeitaria, a page is an
 object with a bounded method named ``index()`` (henceforward named the *index
-method*). The *instances* of the class below would be valid pages::
+method*) or a bounded method named ``action()`` (the *action method*). The
+*instances* of the class below would be valid pages::
 
     >>> class TestPage(object):
     ...    def index(self):
@@ -173,6 +174,56 @@ or giving extra options (as in ``http://example.com/report/1081?pages=all``).
     other frameworks and the best behavior can vary between them. In our
     reference implementation, it fails, and we don't think it is a good practice
     anyway.
+
+Action methods
+--------------
+
+Index methods only handle GET requests. If a request uses the POST HTTP method,
+it should be handled by an action method.
+
+Action methods are not expected to return HTML documents, they are only called
+for their side effects. Any relevant content should be returned by an index
+method.
+
+Consider, for example, the following mock of an authetication page::
+
+        >>> class AuthenticationPage(object):
+        ...     username = None
+        ...     def action(self, username=None):
+        ...         AuthenticationPage.username = username
+
+It could be a subpage of a root page as the one below::
+
+        >>> class MainPage(object):
+        ...     def index(self):
+        ...         if AuthenticationPage.username:
+        ...             return 'You are logged in as {0}.'.format(
+        ...                 AuthenticationPage.username
+        ...             )
+        ...         else:
+        ...             return 'You are not logged in.'
+
+So we would have this tree::
+
+        >>> page = MainPage()
+        >>> page.auth = AuthenticationPage()
+
+By default, nobody would be authenticated::
+
+        >>> with Server(page):
+        ...     print requests.get('http://localhost:8080/').text
+        You are not logged in.
+
+We can, however, send a POST request for log in::
+
+        >>> with Server(page):
+        ...     print requests.get('http://localhost:8080/').text
+        ...     _ = requests.post(
+        ...         'http://localhost:8080/auth', data={'username': 'alice'}
+        ...     )
+        ...     print requests.get('http://localhost:8080/').text
+        You are not logged in.
+        You are logged in as alice.
 
 Knowing a page URL
 ------------------
