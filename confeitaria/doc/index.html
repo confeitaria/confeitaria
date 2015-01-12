@@ -424,12 +424,12 @@ below:</p>
 <p>... then we should expect the following responses:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; with Server(root):
-...    print requests.get('http://localhost:8080/').text
-...    print requests.get('http://localhost:8080/sub').text
-...    print requests.get('http://localhost:8080/sub/another').text
-root
-a subpage
-another subpage
+...    requests.get('http://localhost:8080/').text
+...    requests.get('http://localhost:8080/sub').text
+...    requests.get('http://localhost:8080/sub/another').text
+u'root'
+u'a subpage'
+u'another subpage'
 </pre>
 </div>
 <div class="section" id="index-method-arguments">
@@ -447,10 +447,10 @@ from the query path, as below:</p>
 ...        v1, v2 = int(p1), int(p2)
 ...        return &quot;{0} + {1} = {2}&quot;.format(v1, v2, v1 + v2)
 &gt;&gt;&gt; with Server(SumPage()):
-...     print requests.get('http://localhost:8080/3/2').text
-...     print requests.get('http://localhost:8080/-2/3').text
-3 + 2 = 5
--2 + 3 = 1
+...     requests.get('http://localhost:8080/3/2').text
+...     requests.get('http://localhost:8080/-2/3').text
+u'3 + 2 = 5'
+u'-2 + 3 = 1'
 </pre>
 <p>If the URL path does not a value for the given parameter, the index method
 will still be called, having <tt class="docutils literal">None</tt> as its parameter value:</p>
@@ -459,8 +459,8 @@ will still be called, having <tt class="docutils literal">None</tt> as its param
 ...    def index(self, arg):
 ...        return &quot;arg: {0}, arg type: {1}&quot;.format(arg, type(arg))
 &gt;&gt;&gt; with Server(NonePage()):
-...     print requests.get('http://localhost:8080/').text
-arg: None, arg type: &lt;type 'NoneType'&gt;
+...     requests.get('http://localhost:8080/').text
+u&quot;arg: None, arg type: &lt;type 'NoneType'&gt;&quot;
 </pre>
 <p>If the URL path has more values than the number of index method's mandatory
 parameters, a 404 Not Found error should be the result:</p>
@@ -469,7 +469,7 @@ parameters, a 404 Not Found error should be the result:</p>
 ...    def index(self, arg):
 ...        return &quot;arg: {0} arg type: {1}&quot;.format(arg, type(arg))
 &gt;&gt;&gt; with Server(NonePage()):
-...     print requests.get('http://localhost:8080/a/b').status_code
+...     requests.get('http://localhost:8080/a/b').status_code
 404
 </pre>
 </dd>
@@ -481,13 +481,13 @@ from the query string parameters, as below:</p>
 ...    def index(self, greeting='Hello', greeted='World'):
 ...        return greeting + &quot; &quot; + greeted + &quot;!&quot;
 &gt;&gt;&gt; with Server(HelloWorldPage()):
-...     print requests.get('http://localhost:8080/').text
-...     print requests.get('http://localhost:8080/?greeting=Hi').text
-...     print requests.get(
+...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8080/?greeting=Hi').text
+...     requests.get(
 ...         'http://localhost:8080/?greeting=Hi&amp;greeted=Earth').text
-Hello World!
-Hi World!
-Hi Earth!
+u'Hello World!'
+u'Hi World!'
+u'Hi Earth!'
 </pre>
 </dd>
 </dl>
@@ -541,19 +541,19 @@ method.</p>
 <p>By default, nobody would be authenticated:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; with Server(page):
-...     print requests.get('http://localhost:8080/').text
-You are not logged in.
+...     requests.get('http://localhost:8080/').text
+u'You are not logged in.'
 </pre>
 <p>We can, however, send a POST request for log in:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; with Server(page):
-...     print requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8080/').text
 ...     _ = requests.post(
 ...         'http://localhost:8080/auth', data={'username': 'alice'}
 ...     )
-...     print requests.get('http://localhost:8080/').text
-You are not logged in.
-You are logged in as alice.
+...     requests.get('http://localhost:8080/').text
+u'You are not logged in.'
+u'You are logged in as alice.'
 </pre>
 </div>
 <div class="section" id="knowing-a-page-url">
@@ -570,10 +570,10 @@ This means that each page can know what is its own URL on the server:</p>
 &gt;&gt;&gt; root = URLAwarePage()
 &gt;&gt;&gt; root.sub = URLAwarePage()
 &gt;&gt;&gt; with Server(root):
-...     print requests.get('http://localhost:8080/').text
-...     print requests.get('http://localhost:8080/sub').text
-My URL is /
-My URL is /sub
+...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8080/sub').text
+u'My URL is /'
+u'My URL is /sub'
 </pre>
 <p>This URL is immutable, it is set in the server start up. This means that a page
 can even know the URL of its subpages:</p>
@@ -587,8 +587,8 @@ can even know the URL of its subpages:</p>
 ...             '&lt;a href=&quot;{0}&quot;&gt;Go there!&lt;/a&gt;'.format(self.sub.url)
 ...         )
 &gt;&gt;&gt; with Server(RootPage()):
-...     print requests.get('http://localhost:8080/').text
-Subpage is at /sub. &lt;a href=&quot;/sub&quot;&gt;Go there!&lt;/a&gt;
+...     requests.get('http://localhost:8080/').text
+u'Subpage is at /sub. &lt;a href=&quot;/sub&quot;&gt;Go there!&lt;/a&gt;'
 </pre>
 <!--  -->
 <blockquote>
@@ -617,16 +617,16 @@ need to raise the <tt class="docutils literal">confeitaria.responses.MovedPerman
 &gt;&gt;&gt; page.new = NewPage()
 &gt;&gt;&gt; with Server(page):
 ...     r = requests.get('http://localhost:8080/', allow_redirects=False)
-...     print r.status_code
-...     print r.headers['location']
+...     r.status_code
+...     r.headers['location']
 301
-/new
+'/new'
 &gt;&gt;&gt; with Server(page):
 ...     r = requests.get('http://localhost:8080/')
-...     print r.status_code
-...     print r.text
+...     r.status_code
+...     r.text
 200
-page: new
+u'page: new'
 </pre>
 </blockquote>
 <p>If, however, one wants to implement the POST-REDIRECT-GET pattern, it is better
@@ -643,16 +643,15 @@ to use the <tt class="docutils literal">SeeOther</tt> response:</p>
 ...         LoginPage.username = username
 ...         raise confeitaria.responses.SeeOther('/')
 &gt;&gt;&gt; with Server(LoginPage()):
-...     r = requests.get('http://localhost:8080/')
-...     print r.text
+...     requests.get('http://localhost:8080/').text
 ...     r = requests.post(
 ...         'http://localhost:8080/', data={'username': 'bob'}
 ...     )
-...     print r.status_code
-...     print r.text
-Nobody is logged in.
+...     r.status_code
+...     r.text
+u'Nobody is logged in.'
 200
-bob is logged in.
+u'bob is logged in.'
 </pre>
 </div>
 </div>
