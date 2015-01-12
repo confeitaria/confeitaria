@@ -93,12 +93,12 @@ below::
 ... then we should expect the following responses::
 
     >>> with Server(root):
-    ...    print requests.get('http://localhost:8080/').text
-    ...    print requests.get('http://localhost:8080/sub').text
-    ...    print requests.get('http://localhost:8080/sub/another').text
-    root
-    a subpage
-    another subpage
+    ...    requests.get('http://localhost:8080/').text
+    ...    requests.get('http://localhost:8080/sub').text
+    ...    requests.get('http://localhost:8080/sub/another').text
+    u'root'
+    u'a subpage'
+    u'another subpage'
 
 Index method arguments
 ----------------------
@@ -116,10 +116,10 @@ Query path parameters
         ...        v1, v2 = int(p1), int(p2)
         ...        return "{0} + {1} = {2}".format(v1, v2, v1 + v2)
         >>> with Server(SumPage()):
-        ...     print requests.get('http://localhost:8080/3/2').text
-        ...     print requests.get('http://localhost:8080/-2/3').text
-        3 + 2 = 5
-        -2 + 3 = 1
+        ...     requests.get('http://localhost:8080/3/2').text
+        ...     requests.get('http://localhost:8080/-2/3').text
+        u'3 + 2 = 5'
+        u'-2 + 3 = 1'
 
     If the URL path does not a value for the given parameter, the index method
     will still be called, having ``None`` as its parameter value::
@@ -128,8 +128,8 @@ Query path parameters
         ...    def index(self, arg):
         ...        return "arg: {0}, arg type: {1}".format(arg, type(arg))
         >>> with Server(NonePage()):
-        ...     print requests.get('http://localhost:8080/').text
-        arg: None, arg type: <type 'NoneType'>
+        ...     requests.get('http://localhost:8080/').text
+        u"arg: None, arg type: <type 'NoneType'>"
 
 
     If the URL path has more values than the number of index method's mandatory
@@ -139,7 +139,7 @@ Query path parameters
         ...    def index(self, arg):
         ...        return "arg: {0} arg type: {1}".format(arg, type(arg))
         >>> with Server(NonePage()):
-        ...     print requests.get('http://localhost:8080/a/b').status_code
+        ...     requests.get('http://localhost:8080/a/b').status_code
         404
 
 Query string parameters
@@ -150,13 +150,13 @@ Query string parameters
         ...    def index(self, greeting='Hello', greeted='World'):
         ...        return greeting + " " + greeted + "!"
         >>> with Server(HelloWorldPage()):
-        ...     print requests.get('http://localhost:8080/').text
-        ...     print requests.get('http://localhost:8080/?greeting=Hi').text
-        ...     print requests.get(
+        ...     requests.get('http://localhost:8080/').text
+        ...     requests.get('http://localhost:8080/?greeting=Hi').text
+        ...     requests.get(
         ...         'http://localhost:8080/?greeting=Hi&greeted=Earth').text
-        Hello World!
-        Hi World!
-        Hi Earth!
+        u'Hello World!'
+        u'Hi World!'
+        u'Hi Earth!'
 
 Which one to use is up to the developer. We believe mandatory arguments are
 good to pass mandatory identifiers, such as database primary keys and usernames,
@@ -211,19 +211,19 @@ So we would have this tree::
 By default, nobody would be authenticated::
 
         >>> with Server(page):
-        ...     print requests.get('http://localhost:8080/').text
-        You are not logged in.
+        ...     requests.get('http://localhost:8080/').text
+        u'You are not logged in.'
 
 We can, however, send a POST request for log in::
 
         >>> with Server(page):
-        ...     print requests.get('http://localhost:8080/').text
+        ...     requests.get('http://localhost:8080/').text
         ...     _ = requests.post(
         ...         'http://localhost:8080/auth', data={'username': 'alice'}
         ...     )
-        ...     print requests.get('http://localhost:8080/').text
-        You are not logged in.
-        You are logged in as alice.
+        ...     requests.get('http://localhost:8080/').text
+        u'You are not logged in.'
+        u'You are logged in as alice.'
 
 Knowing a page URL
 ------------------
@@ -240,10 +240,10 @@ This means that each page can know what is its own URL on the server::
     >>> root = URLAwarePage()
     >>> root.sub = URLAwarePage()
     >>> with Server(root):
-    ...     print requests.get('http://localhost:8080/').text
-    ...     print requests.get('http://localhost:8080/sub').text
-    My URL is /
-    My URL is /sub
+    ...     requests.get('http://localhost:8080/').text
+    ...     requests.get('http://localhost:8080/sub').text
+    u'My URL is /'
+    u'My URL is /sub'
 
 This URL is immutable, it is set in the server start up. This means that a page
 can even know the URL of its subpages::
@@ -257,8 +257,8 @@ can even know the URL of its subpages::
     ...             '<a href="{0}">Go there!</a>'.format(self.sub.url)
     ...         )
     >>> with Server(RootPage()):
-    ...     print requests.get('http://localhost:8080/').text
-    Subpage is at /sub. <a href="/sub">Go there!</a>
+    ...     requests.get('http://localhost:8080/').text
+    u'Subpage is at /sub. <a href="/sub">Go there!</a>'
 
 ..
 
@@ -287,16 +287,16 @@ need to raise the ``confeitaria.responses.MovedPermanently`` exception::
     >>> page.new = NewPage()
     >>> with Server(page):
     ...     r = requests.get('http://localhost:8080/', allow_redirects=False)
-    ...     print r.status_code
-    ...     print r.headers['location']
+    ...     r.status_code
+    ...     r.headers['location']
     301
-    /new
+    '/new'
     >>> with Server(page):
     ...     r = requests.get('http://localhost:8080/')
-    ...     print r.status_code
-    ...     print r.text
+    ...     r.status_code
+    ...     r.text
     200
-    page: new
+    u'page: new'
 
 If, however, one wants to implement the POST-REDIRECT-GET pattern, it is better
 to use the ``SeeOther`` response::
@@ -312,16 +312,15 @@ to use the ``SeeOther`` response::
     ...         LoginPage.username = username
     ...         raise confeitaria.responses.SeeOther('/')
     >>> with Server(LoginPage()):
-    ...     r = requests.get('http://localhost:8080/')
-    ...     print r.text
+    ...     requests.get('http://localhost:8080/').text
     ...     r = requests.post(
     ...         'http://localhost:8080/', data={'username': 'bob'}
     ...     )
-    ...     print r.status_code
-    ...     print r.text
-    Nobody is logged in.
+    ...     r.status_code
+    ...     r.text
+    u'Nobody is logged in.'
     200
-    bob is logged in.
+    u'bob is logged in.'
 
 Principles
 ==========
