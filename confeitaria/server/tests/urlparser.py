@@ -221,5 +221,21 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         self.assertEquals({'kwarg': 'example'}, kwargs)
 
+    def test_returned_tuple_is_request_object(self):
+        """
+        The tuple returned by the parser should also be a request object.
+        """
+        class TestPage(object):
+            def index(self, kwarg=None):
+                return ''
+
+        page = TestPage()
+        url_parser = ObjectPublisherURLParser(page)
+        request = url_parser.parse_url('/?kwarg=value&kwarg1=example')
+
+        self.assertEquals(
+            {'kwarg': 'value', 'kwarg1': 'example'}, request.query_parameters
+        )
+
 if __name__ == "__main__":
     unittest.main()
