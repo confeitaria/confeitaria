@@ -241,6 +241,7 @@ class ObjectPublisherURLParser(object):
 
         prefix = find_longest_prefix(path, self.urls)
         page = self.linkmap[prefix]
+        query_parameters = self._get_query_parameters(query)
 
         if body is None:
             page_method = page.index
@@ -254,7 +255,9 @@ class ObjectPublisherURLParser(object):
         args = self._get_args(path.replace(prefix, ''), args_names, args_values)
         kwargs = self._get_kwargs(query, args_names, args_values)
 
-        return page, args, kwargs
+        return confeitaria.request.Request(
+            page, args, kwargs, query_parameters=query_parameters
+        )
 
     def _get_args(self, extra_path, args_names, args_values):
         path_args = [a for a in extra_path.split('/') if a]
@@ -307,6 +310,15 @@ class ObjectPublisherURLParser(object):
             pass
 
         return linkmap
+
+    def _get_query_parameters(self, query):
+        query_parameters = urlparse.parse_qs(query)
+
+        for key, value in query_parameters.items():
+            if isinstance(value, list) and len(value) == 1:
+                query_parameters[key] = value[0]
+
+        return query_parameters
 
 def is_page(obj):
     if not inspect.isclass(obj):
