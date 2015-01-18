@@ -1,10 +1,12 @@
 import multiprocessing
 import time
+import urlparse
 
 import wsgiref.simple_server as simple_server
 
 import urlparser
 
+import confeitaria.request
 import confeitaria.responses
 
 class Server(object):
@@ -74,6 +76,17 @@ class Server(object):
             page, args, kwargs = self.url_parser.parse_url(
                 url, self._get_body_content(environ)
             )
+
+            if hasattr(page, 'set_request'):
+                _, _, _, _, query, _ = urlparse.urlparse(url)
+                url_parameters = urlparse.parse_qs(query)
+                for key, value in url_parameters.items():
+                    if isinstance(value, list) and len(value) == 1:
+                        url_parameters[key] = value[0]
+                request = confeitaria.request.Request(
+                    url_parameters=url_parameters
+                )
+                page.set_request(request)
 
             if environ['REQUEST_METHOD'] == 'GET':
                 content = page.index(*args, **kwargs)
