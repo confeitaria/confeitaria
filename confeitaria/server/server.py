@@ -79,12 +79,12 @@ class Server(object):
 
             if hasattr(page, 'set_request'):
                 _, _, _, _, query, _ = urlparse.urlparse(url)
-                url_parameters = urlparse.parse_qs(query)
-                for key, value in url_parameters.items():
+                query_parameters = urlparse.parse_qs(query)
+                for key, value in query_parameters.items():
                     if isinstance(value, list) and len(value) == 1:
-                        url_parameters[key] = value[0]
+                        query_parameters[key] = value[0]
                 request = confeitaria.request.Request(
-                    url_parameters=url_parameters
+                    query_parameters=query_parameters
                 )
                 page.set_request(request)
 
