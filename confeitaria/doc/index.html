@@ -599,6 +599,26 @@ this feature now; yet, assuming that the URLs defined with <tt class="docutils l
 can be more complex than paths is the way to go - even if the current
 examples are quite simple.</blockquote>
 </div>
+<div class="section" id="getting-the-request">
+<h2>Getting the request</h2>
+<p>If a page has a bound method named <tt class="docutils literal">set_requests()</tt> with one argument, this
+method will be called and the argument value will be an object representing the
+HTTP request being processed. This request object can given information, for
+example, about query parameters:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class ActionPage(object):
+...     def set_request(self, request):
+...         self.request = request
+...     def index(self):
+...         return (
+...             'The action is ' + self.request.query_parameters['action']
+...         )
+&gt;&gt;&gt; page = ActionPage()
+&gt;&gt;&gt; with Server(page):
+...     requests.get('http://localhost:8080/?action=update').text
+u'The action is update'
+</pre>
+</div>
 <div class="section" id="redirecting">
 <h2>Redirecting</h2>
 <p>HTTP redirect responses are a common need. For example, you may want to redirect

@@ -269,6 +269,26 @@ can even know the URL of its subpages::
     can be more complex than paths is the way to go - even if the current
     examples are quite simple.
 
+Getting the request
+-------------------
+
+If a page has a bound method named ``set_requests()`` with one argument, this
+method will be called and the argument value will be an object representing the
+HTTP request being processed. This request object can given information, for
+example, about query parameters::
+
+    >>> class ActionPage(object):
+    ...     def set_request(self, request):
+    ...         self.request = request
+    ...     def index(self):
+    ...         return (
+    ...             'The action is ' + self.request.query_parameters['action']
+    ...         )
+    >>> page = ActionPage()
+    >>> with Server(page):
+    ...     requests.get('http://localhost:8080/?action=update').text
+    u'The action is update'
+
 Redirecting
 -----------
 
