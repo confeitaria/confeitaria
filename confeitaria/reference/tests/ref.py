@@ -288,7 +288,7 @@ class TestReference(unittest.TestCase):
             def set_request(self, request):
                 self.req = request
             def index(self):
-                return 'param: {0}'.format(self.req.url_parameters['param'])
+                return 'param: {0}'.format(self.req.query_parameters['param'])
 
         with self.get_server(TestPage()):
             r = requests.get('http://localhost:8080/?param=example')
