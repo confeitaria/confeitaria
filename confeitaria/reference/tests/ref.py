@@ -277,3 +277,19 @@ class TestReference(unittest.TestCase):
             r = requests.get('http://localhost:8080/')
             self.assertEquals(200, r.status_code)
             self.assertEquals('post_parameter: example', r.text)
+
+    def test_get_request(self):
+        """
+        If a page has a ``set_request()`` method expecting an argument, then
+        it should be called with an request object. This request object should
+        give access to request parameters.
+        """
+        class TestPage(object):
+            def set_request(self, request):
+                self.req = request
+            def index(self):
+                return 'param: {0}'.format(self.req.url_parameters['param'])
+
+        with self.get_server(TestPage()):
+            r = requests.get('http://localhost:8080/?param=example')
+            self.assertEquals('param: example', r.text)
