@@ -294,11 +294,7 @@ class ObjectPublisherURLParser(object):
         return args[:args_count-1]
 
     def _get_kwargs(self, query, args_names, args_values):
-        query_args = urlparse.parse_qs(query)
-
-        for key, value in query_args.items():
-            if isinstance(value, list) and len(value) == 1:
-                query_args[key] = value[0]
+        query_args = self._get_query_parameters(query)
 
         page_kwargs = {
             name: value
