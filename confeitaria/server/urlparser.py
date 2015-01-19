@@ -11,7 +11,8 @@ class ObjectPublisherURLParser(object):
     -----------------------
 
     URL parsers are objects with a ``parse_url()`` method. This method should
-    receive a string as an argument and return a tuple with three values. The
+    receive a string as an argument and return a request object. This request
+    object behaves as a tuple with three values. The
     first one is a page object; the second one is a list of strings and the
     third one is a dictionary::
 
@@ -223,6 +224,23 @@ class ObjectPublisherURLParser(object):
         []
         >>> kwargs
         {'kwarg': 'example'}
+
+    More ``Request`` attributes
+    ---------------------------
+
+    The returned request is the same that is set into a page following the
+    ``set_request()`` protocol. As such, it is more than a tuple - it has more
+    attributes. For example, we can get the list of query parameters from it::
+
+        >>> class RequestedPage(object):
+        ...     def set_request(self, request):
+        ...         self.req = request
+        ...     def index(self):
+        ...         return ''
+        >>> url_parser = ObjectPublisherURLParser(RequestedPage())
+        >>> request = url_parser.parse_url('/?kwarg1=example&kwarg2=other')
+        >>> request.query_parameters
+        {'kwarg1': 'example', 'kwarg2': 'other'}
     """
 
     def __init__(self, page):
