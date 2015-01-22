@@ -293,3 +293,47 @@ class TestReference(unittest.TestCase):
         with self.get_server(TestPage()):
             r = requests.get('http://localhost:8080/?param=example')
             self.assertEquals('param: example', r.text)
+
+    def test_raising_redirect_see_other_no_location(self):
+        """
+        Raising ``SeeOther`` without location should result in a redirect to the
+        requested URL.
+        """
+        import confeitaria.responses
+
+        class TestPage(object):
+            def index(self):
+                raise confeitaria.responses.SeeOther()
+
+        page = TestPage()
+        page.sub = TestPage()
+
+        with self.get_server(page):
+            r = requests.get('http://localhost:8080/', allow_redirects=False)
+            self.assertEquals(303, r.status_code)
+            self.assertEquals('/', r.headers['location'])
+            r = requests.get('http://localhost:8080/sub', allow_redirects=False)
+            self.assertEquals(303, r.status_code)
+            self.assertEquals('/sub', r.headers['location'])
+
+    def test_raising_redirect_see_other_no_location_from_action(self):
+        """
+        Raising ``SeeOther`` without location should result in a redirect to the
+        requested URL.
+        """
+        import confeitaria.responses
+
+        class TestPage(object):
+            def index(self):
+                raise confeitaria.responses.SeeOther()
+            def action(self):
+                raise confeitaria.responses.SeeOther()
+
+        page = TestPage()
+
+        with self.get_server(page):
+            r = requests.post(
+                'http://localhost:8080/?a=b', allow_redirects=False
+            )
+            self.assertEquals(303, r.status_code)
+            self.assertEquals('/?a=b', r.headers['location'])
