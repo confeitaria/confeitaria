@@ -337,3 +337,23 @@ class TestReference(unittest.TestCase):
             )
             self.assertEquals(303, r.status_code)
             self.assertEquals('/?a=b', r.headers['location'])
+
+    def test_redirect_from_action_by_default(self):
+        """
+        If an action method does not raise a redirect response, the response
+        should redirect to the originally requested URL.
+        """
+        import confeitaria.responses
+
+        class TestPage(object):
+            def action(self):
+                pass
+
+        page = TestPage()
+
+        with self.get_server(page):
+            r = requests.post(
+                'http://localhost:8080/?a=b', allow_redirects=False
+            )
+            self.assertEquals(303, r.status_code)
+            self.assertEquals('/?a=b', r.headers['location'])
