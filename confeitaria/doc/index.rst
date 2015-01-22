@@ -219,7 +219,8 @@ We can, however, send a POST request for log in::
         >>> with Server(page):
         ...     requests.get('http://localhost:8080/').text
         ...     _ = requests.post(
-        ...         'http://localhost:8080/auth', data={'username': 'alice'}
+        ...         'http://localhost:8080/auth', data={'username': 'alice'},
+        ...         allow_redirects=False # Why to do it? We'll see... soon.
         ...     )
         ...     requests.get('http://localhost:8080/').text
         u'You are not logged in.'
@@ -356,6 +357,22 @@ constructor, the browser will be redirected to the originally requested URL::
     ...     r.headers['location']
     303
     '/?a=b'
+
+However, one does not even need to raise the response: if an action method
+returns without raising any response, it will redirect to the original URL by
+default::
+
+    >>> class MagicRedirectPage(object):
+    ...     def action(self, username=None):
+    ...         pass
+    >>> with Server(MagicRedirectPage()):
+    ...     r = requests.post(
+    ...         'http://localhost:8080/?magic=true', allow_redirects=False
+    ...     )
+    ...     r.status_code
+    ...     r.headers['location']
+    303
+    '/?magic=true'
 
 Principles
 ==========
