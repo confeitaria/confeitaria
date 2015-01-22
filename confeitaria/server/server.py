@@ -84,6 +84,7 @@ class Server(object):
                 content = page.index(*args, **kwargs)
             elif environ['REQUEST_METHOD'] == 'POST':
                 page.action(*args, **kwargs)
+                raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as e:
             if e.status_code.startswith('30'):
                 self._replace_none_location(e.headers, url)
