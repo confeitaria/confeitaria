@@ -671,6 +671,21 @@ u'Nobody is logged in.'
 200
 u'bob is logged in.'
 </pre>
+<p>If no parameter is given to the <tt class="docutils literal">SeeOther</tt> or <tt class="docutils literal">MovedPermanently</tt>
+constructor, the browser will be redirected to the originally requested URL:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class RedirectPage(object):
+...     def action(self, username=None):
+...         raise confeitaria.responses.SeeOther()
+&gt;&gt;&gt; with Server(RedirectPage()):
+...     r = requests.post(
+...         'http://localhost:8080/?a=b', allow_redirects=False
+...     )
+...     r.status_code
+...     r.headers['location']
+303
+'/?a=b'
+</pre>
 </div>
 </div>
 <div class="section" id="principles">
