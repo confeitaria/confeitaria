@@ -342,6 +342,21 @@ to use the ``SeeOther`` response::
     200
     u'bob is logged in.'
 
+If no parameter is given to the ``SeeOther`` or ``MovedPermanently``
+constructor, the browser will be redirected to the originally requested URL::
+
+    >>> class RedirectPage(object):
+    ...     def action(self, username=None):
+    ...         raise confeitaria.responses.SeeOther()
+    >>> with Server(RedirectPage()):
+    ...     r = requests.post(
+    ...         'http://localhost:8080/?a=b', allow_redirects=False
+    ...     )
+    ...     r.status_code
+    ...     r.headers['location']
+    303
+    '/?a=b'
+
 Principles
 ==========
 
