@@ -65,7 +65,7 @@ class Server(object):
     def _run_app(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
         query_string = environ.get('QUERY_STRING', '')
-        url = path_info + '?' + query_string
+        url = path_info + ('?' + query_string if query_string else '')
 
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
@@ -85,6 +85,8 @@ class Server(object):
             elif environ['REQUEST_METHOD'] == 'POST':
                 page.action(*args, **kwargs)
         except confeitaria.responses.Response as e:
+            if e.status_code.startswith('30'):
+                self._replace_none_location(e.headers, url)
             status = e.status_code
             headers = e.headers
 
@@ -101,6 +103,11 @@ class Server(object):
             body_size = 0
 
         return environ['wsgi.input'].read(body_size)
+
+    def _replace_none_location(self, headers, location):
+        for i, h in enumerate(headers):
+            if (h[0].lower() == 'location') and (h[1] is None):
+                headers[i] = h[0], location
 
     def __enter__(self):
         self._process = multiprocessing.Process(target=self.run)

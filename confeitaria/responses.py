@@ -60,7 +60,7 @@ class MovedPermanently(Response):
         [('Location', 'http://pudim.com.br')]
     """
     status_code = '301 Moved Permanently'
-    def __init__(self, location, *args, **kwargs):
+    def __init__(self, location=None, *args, **kwargs):
         headers = {'Location': location}
         Response.__init__(
             self, MovedPermanently.status_code, headers, *args, **kwargs
@@ -79,7 +79,7 @@ class SeeOther(Response):
         [('Location', 'http://pudim.com.br')]
     """
     status_code = '303 See Other'
-    def __init__(self, location, *args, **kwargs):
+    def __init__(self, location=None, *args, **kwargs):
         headers = {'Location': location}
         Response.__init__(self, SeeOther.status_code, headers, *args, **kwargs)
         self.location = location
