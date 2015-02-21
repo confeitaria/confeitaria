@@ -3,24 +3,24 @@ import urlparse
 
 import confeitaria.responses
 
-class ObjectPublisherURLParser(object):
+class RequestParser(object):
     """
-    ``ObjectPublisherURLParser`` is an implemetation of the URL parser protocol.
+    ``RequestParser`` is an implemetation of the URL parser protocol.
 
-    The URL parser protocol
-    -----------------------
+    The request parser protocol
+    ---------------------------
 
-    URL parsers are objects with a ``parse_url()`` method. This method should
-    receive a string as an argument and return a request object. This request
-    object should give access to at least three values: a page object a list of
-    strings and a dictionary::
+    Request parsers are objects with a ``parse_request()`` method. This method
+    should receive a string as an argument and return a request object. This
+    request object should give access to at least three values: a page object a
+    list of strings and a dictionary::
 
-        >>> # ObjectPublisherURLParser requires such a page to work
+        >>> # RequestParser requires such a page to work
         >>> class TestPage(object):
         ...     def index(self, arg, kwarg=None):
         ...         return ''
-        >>> url_parser = ObjectPublisherURLParser(TestPage())
-        >>> request =url_parser.parse_url('')
+        >>> request_parser = RequestParser(TestPage())
+        >>> request = request_parser.parse_request('')
         >>> hasattr(request.page, "index")
         True
         >>> isinstance(request.args, list)
@@ -35,21 +35,21 @@ class ObjectPublisherURLParser(object):
         >>> request.page.index(*request.args, **request.kwargs)
         ''
 
-    The ``parse_url()`` method can eventually also throw exceptions representing
-    HTTP status codes.
+    The ``parse_request()`` method can eventually also throw exceptions
+    representing HTTP status codes.
 
     Parsing POST requests
     ---------------------
 
-    ``parse_url()`` can also receive a second argument, which should be the body
-    of a POST request. In this case, the body will be passed as a string and its
-    parameters will be returned in the dict::
+    ``parse_request()`` can also receive a second argument, which should be the
+    body of a POST request. In this case, the body will be passed as a string
+    and its parameters will be returned in the dict::
 
         >>> class ActionPage(object):
         ...     def action(self, kwarg=None):
         ...         return 'kwarg is ' + kwarg
-        >>> url_parser = ObjectPublisherURLParser(ActionPage())
-        >>> request = url_parser.parse_url('', 'kwarg=example')
+        >>> request_parser = RequestParser(ActionPage())
+        >>> request = request_parser.parse_request('', 'kwarg=example')
         >>> hasattr(request.page, "action")
         True
         >>> isinstance(request.args, list)
@@ -59,11 +59,11 @@ class ObjectPublisherURLParser(object):
         >>> request.page.action(*request.args, **request.kwargs)
         'kwarg is example'
 
-    The ``ObjectPublisherURLParser`` implemetation
-    ----------------------------------------------
+    The ``RequestParser`` implemetation
+    -----------------------------------
 
-    ``ObjectPublisherURLParser`` implements the URL parser protocol mapping URLs
-    to a tree of objects, following the so called *object publisher* pattern.
+    ``RequestParser`` implements the request parser protocol mapping URLs to a
+    tree of objects, following the so called *object publisher* pattern.
 
     Suppose we have the following page classes::
 
@@ -83,29 +83,29 @@ class ObjectPublisherURLParser(object):
         >>> page.sub = SubPage()
         >>> page.sub.another = SubSubPage()
 
-    We can build ``ObjectPublisherURLParser`` passing it as an argument::
+    We can build ``RequestParser`` passing it as an argument::
 
-        >>> url_parser = ObjectPublisherURLParser(page)
+        >>> request_parser = RequestParser(page)
 
     ...and now URL paths should be mapped to the pages of the object. The root
     path is mapped to the root page::
 
-        >>> request = url_parser.parse_url('/')
+        >>> request = request_parser.parse_request('/')
         >>> request.page == page
         True
 
-    If the path has one more compoment, ``ObjectPublisherURLParser`` tries to
-    get a page from the attribute (of the root page) with the same name of the
-    path component::
+    If the path has one more compoment, ``RequestParser`` tries to get a page
+    from the attribute (of the root page) with the same name of the path
+    component::
 
-        >>> request = url_parser.parse_url('/sub')
+        >>> request = request_parser.parse_request('/sub')
         >>> request.page == page.sub
         True
 
-    If the path has yet another component, then the URL parser tries to get an
-    attribute from the previous subpage, and so on::
+    If the path has yet another component, then the request parser tries to get
+    an attribute from the previous subpage, and so on::
 
-        >>> request = url_parser.parse_url('/sub/another')
+        >>> request = request_parser.parse_request('/sub/another')
         >>> request.page == page.sub.another
         True
 
@@ -113,11 +113,11 @@ class ObjectPublisherURLParser(object):
     same name as the next compoment, then an ``confeitaria.responses.NotFound``
     exception is raised to signalize that the page was not found::
 
-        >>> url_parser.parse_url('/nopage')
+        >>> request_parser.parse_request('/nopage')
         Traceback (most recent call last):
           ...
         NotFound: /nopage not found
-        >>> url_parser.parse_url('/sub/nopage')
+        >>> request_parser.parse_request('/sub/nopage')
         Traceback (most recent call last):
           ...
         NotFound: /nopage not found
@@ -125,7 +125,7 @@ class ObjectPublisherURLParser(object):
     The same happens when an attribute is found but it is not a page::
 
         >>> page.attr = object()
-        >>> url_parser.parse_url('/attr')
+        >>> request_parser.parse_request('/attr')
         Traceback (most recent call last):
           ...
         NotFound: /attr not found
@@ -134,10 +134,10 @@ class ObjectPublisherURLParser(object):
     --------------------
 
     There is, however, a situation where the path has compoments that does not
-    map to attributes and yet ``parse_url()`` returns a request. It happens when
-    the last found page's ``index()`` method expects arguments, and the path
-    has at most the same number of compoments remaining as the number of
-    arguments of ``index()``.
+    map to attributes and yet ``parse_request()`` returns a request. It happens
+    when the last found page's ``index()`` or ``action()`` method expects
+    arguments, and the path has at most the same number of compoments remaining
+    as the number of arguments of the page method.
 
     An example can make it clearer. Consider the following page::
 
@@ -145,12 +145,12 @@ class ObjectPublisherURLParser(object):
         ...     def index(self, who):
         ...         return 'Hello {0}'.format(who)
         >>> page = HelloPage()
-        >>> url_parser = ObjectPublisherURLParser(page)
+        >>> request_parser = RequestParser(page)
 
     Since the ``index()`` method expects parameters, we can pass one more
     component in the path::
 
-        >>> request = url_parser.parse_url('/world')
+        >>> request = request_parser.parse_request('/world')
         >>> request.page == page
         True
         >>> request.args
@@ -161,7 +161,7 @@ class ObjectPublisherURLParser(object):
     Yet, we cannot pass more path compoment than the number of arguments in the
     method::
 
-        >>> url_parser.parse_url('/world/again')
+        >>> request_parser.parse_request('/world/again')
         Traceback (most recent call last):
           ...
         NotFound: /world/again not found
@@ -170,7 +170,7 @@ class ObjectPublisherURLParser(object):
     arguments will be ``None``.)
 
     ::
-        >>> request = url_parser.parse_url('/')
+        >>> request = request_parser.parse_request('/')
         >>> request.page == page
         True
         >>> request.args
@@ -183,7 +183,7 @@ class ObjectPublisherURLParser(object):
 
     Index methods can also have optional arguments. Those are expected to be
     filled with the dict returned by the URL parser. In the case of the
-    ``ObjectPublisherURLParser``, these values comes from the query string.
+    ``RequestParser``, these values comes from the query string.
 
     Given for instance the page below::
 
@@ -191,11 +191,11 @@ class ObjectPublisherURLParser(object):
         ...     def index(self, greeting='Hello', greeted='World'):
         ...         return '{0} {1}'.format(greeting, greeted)
         >>> page = HelloPage()
-        >>> url_parser = ObjectPublisherURLParser(page)
+        >>> request_parser = RequestParser(page)
 
-    ...``ObjectPublisherURLParser`` will behave this way::
+    ...``RequestParser`` will behave this way::
 
-        >>> request = url_parser.parse_url(
+        >>> request = request_parser.parse_request(
         ...     '/?greeting=Hi&greeted=Earth'
         ... )
         >>> request.page == page
@@ -207,7 +207,7 @@ class ObjectPublisherURLParser(object):
         >>> request.page.index(*request.args, **request.kwargs)
         'Hi Earth'
 
-    If ``parse_url()`` received the second argument, then the optional
+    If ``parse_request()`` received the second argument, then the optional
     parameters should come from this argument, not from the URL query string.
     This second argument is expected to be a body of a POST request as a
     string::
@@ -216,8 +216,8 @@ class ObjectPublisherURLParser(object):
         ...     def action(self, kwarg=None):
         ...         return ''
         >>> page = ActionPage()
-        >>> url_parser = ObjectPublisherURLParser(page)
-        >>> request = url_parser.parse_url('', 'kwarg=example')
+        >>> request_parser = RequestParser(page)
+        >>> request = request_parser.parse_request('', 'kwarg=example')
         >>> request.page == page
         True
         >>> request.args
@@ -237,15 +237,15 @@ class ObjectPublisherURLParser(object):
         ...         self.req = request
         ...     def index(self):
         ...         return ''
-        >>> url_parser = ObjectPublisherURLParser(RequestedPage())
-        >>> request = url_parser.parse_url('/?kwarg1=example&kwarg2=other')
+        >>> request_parser = RequestParser(RequestedPage())
+        >>> request = request_parser.parse_request('/?kwarg1=example&kwarg2=other')
         >>> request.query_parameters
         {'kwarg1': 'example', 'kwarg2': 'other'}
     """
 
     def __init__(self, page):
         """
-        ``ObjectPublisherURLParser`` expects as its constructor argument a page
+        ``RequestParser`` expects as its constructor argument a page
         (probably with subpages) to which to map URLs.
         """
         self.linkmap = self._get_linkmap(page)
@@ -254,7 +254,7 @@ class ObjectPublisherURLParser(object):
         urls.reverse()
         self.urls = urls
 
-    def parse_url(self, url, body=None):
+    def parse_request(self, url, body=None):
         _, _, path, _, query, _ = urlparse.urlparse(url)
 
         prefix = find_longest_prefix(path, self.urls)
