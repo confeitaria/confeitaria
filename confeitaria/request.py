@@ -10,6 +10,3 @@ class Request(object):
         self.args = args
         self.kwargs = kwargs
         self.tuple = (page, args, kwargs)
-
-    def __getitem__(self, key):
-        return self.tuple[key]
