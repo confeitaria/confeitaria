@@ -75,15 +75,15 @@ class Server(object):
             request = self.url_parser.parse_url(
                 url, self._get_body_content(environ)
             )
-            page, args, kwargs = request
+            page = request.page
 
             if hasattr(page, 'set_request'):
                 page.set_request(request)
 
             if environ['REQUEST_METHOD'] == 'GET':
-                content = page.index(*args, **kwargs)
+                content = page.index(*request.args, **request.kwargs)
             elif environ['REQUEST_METHOD'] == 'POST':
-                page.action(*args, **kwargs)
+                page.action(*request.args, **request.kwargs)
                 raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as e:
             if e.status_code.startswith('30'):
