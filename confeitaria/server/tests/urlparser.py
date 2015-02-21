@@ -2,10 +2,10 @@ import unittest
 
 import requests
 
-from ..urlparser import ObjectPublisherURLParser
+from ..urlparser import RequestParser
 from confeitaria.responses import NotFound
 
-class TestObjectPublisherURLParser(unittest.TestCase):
+class TestRequestParser(unittest.TestCase):
 
     def test_get_root(self):
         """
@@ -16,8 +16,8 @@ class TestObjectPublisherURLParser(unittest.TestCase):
                 return ''
 
         page = TestPage()
-        url_parser = ObjectPublisherURLParser(page)
-        request = url_parser.parse_url('/')
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request('/')
         self.assertEquals(page, request.page)
         self.assertEquals([], request.args)
         self.assertEquals({}, request.kwargs)
@@ -32,10 +32,10 @@ class TestObjectPublisherURLParser(unittest.TestCase):
                 return ''
 
         page = TestPage()
-        url_parser = ObjectPublisherURLParser(page)
+        request_parser = RequestParser(page)
 
         with self.assertRaises(NotFound):
-            url_parser.parse_url('/nosub')
+            request_parser.parse_request('/nosub')
 
     def test_not_subpage_404(self):
         """
@@ -48,10 +48,10 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         page.nosub = object()
-        url_parser = ObjectPublisherURLParser(page)
+        request_parser = RequestParser(page)
 
         with self.assertRaises(NotFound):
-            url_parser.parse_url('/nosub')
+            request_parser.parse_request('/nosub')
 
     def test_path_parameters(self):
         """
@@ -62,8 +62,8 @@ class TestObjectPublisherURLParser(unittest.TestCase):
                 return ''
 
         page = TestPage()
-        url_parser = ObjectPublisherURLParser(page)
-        request = url_parser.parse_url('/value')
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request('/value')
 
         self.assertEquals(page, request.page)
         self.assertEquals(['value'], request.args)
@@ -80,8 +80,8 @@ class TestObjectPublisherURLParser(unittest.TestCase):
                 return ''
 
         page = TestPage()
-        url_parser = ObjectPublisherURLParser(page)
-        request = url_parser.parse_url('/')
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request('/')
 
         self.assertEquals(page, request.page)
         self.assertEquals([None], request.args)
@@ -100,15 +100,15 @@ class TestObjectPublisherURLParser(unittest.TestCase):
                 return ''
 
         page = TestPage()
-        url_parser = ObjectPublisherURLParser(page)
-        request = url_parser.parse_url('/value')
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request('/value')
 
         self.assertEquals(page, request.page)
         self.assertEquals(['value'], request.args)
         self.assertEquals({}, request.kwargs)
 
         with self.assertRaises(NotFound):
-            url_parser.parse_url('/value/excess')
+            request_parser.parse_request('/value/excess')
 
 
     def test_query_parameters(self):
@@ -124,8 +124,8 @@ class TestObjectPublisherURLParser(unittest.TestCase):
                 return ''
 
         page = TestPage()
-        url_parser = ObjectPublisherURLParser(page)
-        request = url_parser.parse_url('/?kwarg2=value')
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request('/?kwarg2=value')
 
         self.assertEquals(page, request.page)
         self.assertEquals([], request.args)
@@ -144,8 +144,8 @@ class TestObjectPublisherURLParser(unittest.TestCase):
                 return ''
 
         page = TestPage()
-        url_parser = ObjectPublisherURLParser(page)
-        request = url_parser.parse_url('/value1?kwarg2=kwvalue2')
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request('/value1?kwarg2=kwvalue2')
 
         self.assertEquals(page, request.page)
         self.assertEquals(['value1', None], request.args)
@@ -168,9 +168,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = RootPage()
         page.attribute = AttributePage()
-        url_parser = ObjectPublisherURLParser(page)
+        request_parser = RequestParser(page)
 
-        request = url_parser.parse_url('/value')
+        request = request_parser.parse_request('/value')
 
         self.assertEquals(page, request.page)
         self.assertEquals(['value'], request.args)
@@ -180,7 +180,7 @@ class TestObjectPublisherURLParser(unittest.TestCase):
             request.page.index(*request.args, **request.kwargs)
         )
 
-        request = url_parser.parse_url('/attribute')
+        request = request_parser.parse_request('/attribute')
 
         self.assertEquals(page.attribute, request.page)
         self.assertEquals([], request.args)
@@ -204,9 +204,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = RootPage()
         page.sub = ActionPage()
-        url_parser = ObjectPublisherURLParser(page)
+        request_parser = RequestParser(page)
 
-        request = url_parser.parse_url('/sub', '')
+        request = request_parser.parse_request('/sub', '')
 
         self.assertEquals(page.sub, request.page)
 
@@ -223,9 +223,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = RootPage()
         page.sub = ActionPage()
-        url_parser = ObjectPublisherURLParser(page)
+        request_parser = RequestParser(page)
 
-        request = url_parser.parse_url('/sub', 'kwarg=example')
+        request = request_parser.parse_request('/sub', 'kwarg=example')
 
         self.assertEquals({'kwarg': 'example'}, request.kwargs)
 
@@ -238,8 +238,8 @@ class TestObjectPublisherURLParser(unittest.TestCase):
                 return ''
 
         page = TestPage()
-        url_parser = ObjectPublisherURLParser(page)
-        request = url_parser.parse_url('/?kwarg=value&kwarg1=example')
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request('/?kwarg=value&kwarg1=example')
 
         self.assertEquals(
             {'kwarg': 'value', 'kwarg1': 'example'}, request.query_parameters
@@ -255,10 +255,10 @@ class TestObjectPublisherURLParser(unittest.TestCase):
                 return ''
 
         page = TestPage()
-        url_parser = ObjectPublisherURLParser(page)
+        request_parser = RequestParser(page)
 
         with self.assertRaises(TypeError):
-            _, _, _ = url_parser.parse_url('')
+            _, _, _ = request_parser.parse_request('')
 
 if __name__ == "__main__":
     unittest.main()
