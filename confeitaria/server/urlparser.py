@@ -12,28 +12,27 @@ class ObjectPublisherURLParser(object):
 
     URL parsers are objects with a ``parse_url()`` method. This method should
     receive a string as an argument and return a request object. This request
-    object behaves as a tuple with three values. The
-    first one is a page object; the second one is a list of strings and the
-    third one is a dictionary::
+    object should give access to at least three values: a page object a list of
+    strings and a dictionary::
 
         >>> # ObjectPublisherURLParser requires such a page to work
         >>> class TestPage(object):
         ...     def index(self, arg, kwarg=None):
         ...         return ''
         >>> url_parser = ObjectPublisherURLParser(TestPage())
-        >>> page, args, kwargs = url_parser.parse_url('')
-        >>> hasattr(page, "index")
+        >>> request =url_parser.parse_url('')
+        >>> hasattr(request.page, "index")
         True
-        >>> isinstance(args, list)
+        >>> isinstance(request.args, list)
         True
-        >>> isinstance(kwargs, dict)
+        >>> isinstance(request.kwargs, dict)
         True
 
     It is mandatory that the page index or action method should be called having
     the list expanded to fill its mandatory arguments, as well as the dict
     expanded to fill its optional arguments:
 
-        >>> page.index(*args, **kwargs)
+        >>> request.page.index(*request.args, **request.kwargs)
         ''
 
     The ``parse_url()`` method can eventually also throw exceptions representing
@@ -48,16 +47,17 @@ class ObjectPublisherURLParser(object):
 
         >>> class ActionPage(object):
         ...     def action(self, kwarg=None):
-        ...         return ''
+        ...         return 'kwarg is ' + kwarg
         >>> url_parser = ObjectPublisherURLParser(ActionPage())
-        >>> action_page, args, kwargs = url_parser.parse_url('', 'kwarg=example')
-        >>> hasattr(action_page, "action")
+        >>> request = url_parser.parse_url('', 'kwarg=example')
+        >>> hasattr(request.page, "action")
         True
-        >>> isinstance(args, list)
+        >>> isinstance(request.args, list)
         True
-        >>> isinstance(kwargs, dict)
+        >>> isinstance(request.kwargs, dict)
         True
-
+        >>> request.page.action(*request.args, **request.kwargs)
+        'kwarg is example'
 
     The ``ObjectPublisherURLParser`` implemetation
     ----------------------------------------------
@@ -90,23 +90,23 @@ class ObjectPublisherURLParser(object):
     ...and now URL paths should be mapped to the pages of the object. The root
     path is mapped to the root page::
 
-        >>> p, _, _ = url_parser.parse_url('/')
-        >>> p == page
+        >>> request = url_parser.parse_url('/')
+        >>> request.page == page
         True
 
     If the path has one more compoment, ``ObjectPublisherURLParser`` tries to
     get a page from the attribute (of the root page) with the same name of the
     path component::
 
-        >>> p, _, _ = url_parser.parse_url('/sub')
-        >>> p == page.sub
+        >>> request = url_parser.parse_url('/sub')
+        >>> request.page == page.sub
         True
 
     If the path has yet another component, then the URL parser tries to get an
     attribute from the previous subpage, and so on::
 
-        >>> p, _, _ = url_parser.parse_url('/sub/another')
-        >>> p == page.sub.another
+        >>> request = url_parser.parse_url('/sub/another')
+        >>> request.page == page.sub.another
         True
 
     On the other hand, if some of the pages do not have an attribute with the
@@ -134,7 +134,7 @@ class ObjectPublisherURLParser(object):
     --------------------
 
     There is, however, a situation where the path has compoments that does not
-    map to attributes and yet ``parse_url()`` returns a tuple. It happens when
+    map to attributes and yet ``parse_url()`` returns a request. It happens when
     the last found page's ``index()`` method expects arguments, and the path
     has at most the same number of compoments remaining as the number of
     arguments of ``index()``.
@@ -150,12 +150,12 @@ class ObjectPublisherURLParser(object):
     Since the ``index()`` method expects parameters, we can pass one more
     component in the path::
 
-        >>> p, args, _ = url_parser.parse_url('/world')
-        >>> p == page
+        >>> request = url_parser.parse_url('/world')
+        >>> request.page == page
         True
-        >>> args
+        >>> request.args
         ['world']
-        >>> p.index(*args)
+        >>> request.page.index(*request.args)
         'Hello world'
 
     Yet, we cannot pass more path compoment than the number of arguments in the
@@ -170,12 +170,12 @@ class ObjectPublisherURLParser(object):
     arguments will be ``None``.)
 
     ::
-        >>> p, args, _ = url_parser.parse_url('/')
-        >>> p == page
+        >>> request = url_parser.parse_url('/')
+        >>> request.page == page
         True
-        >>> args
+        >>> request.args
         [None]
-        >>> p.index(*args)
+        >>> request.page.index(*request.args)
         'Hello None'
 
     Optional parameters
@@ -195,16 +195,16 @@ class ObjectPublisherURLParser(object):
 
     ...``ObjectPublisherURLParser`` will behave this way::
 
-        >>> p, args, kwargs = url_parser.parse_url(
+        >>> request = url_parser.parse_url(
         ...     '/?greeting=Hi&greeted=Earth'
         ... )
-        >>> p == page
+        >>> request.page == page
         True
-        >>> args
+        >>> request.args
         []
-        >>> kwargs
+        >>> request.kwargs
         {'greeting': 'Hi', 'greeted': 'Earth'}
-        >>> page.index(*args, **kwargs)
+        >>> request.page.index(*request.args, **request.kwargs)
         'Hi Earth'
 
     If ``parse_url()`` received the second argument, then the optional
@@ -217,20 +217,20 @@ class ObjectPublisherURLParser(object):
         ...         return ''
         >>> page = ActionPage()
         >>> url_parser = ObjectPublisherURLParser(page)
-        >>> p, args, kwargs = url_parser.parse_url('', 'kwarg=example')
-        >>> p == page
+        >>> request = url_parser.parse_url('', 'kwarg=example')
+        >>> request.page == page
         True
-        >>> args
+        >>> request.args
         []
-        >>> kwargs
+        >>> request.kwargs
         {'kwarg': 'example'}
 
     More ``Request`` attributes
     ---------------------------
 
     The returned request is the same that is set into a page following the
-    ``set_request()`` protocol. As such, it is more than a tuple - it has more
-    attributes. For example, we can get the list of query parameters from it::
+    ``set_request()`` protocol. As such, it has more attributes. For example, we
+    can get the list of query parameters from it::
 
         >>> class RequestedPage(object):
         ...     def set_request(self, request):
