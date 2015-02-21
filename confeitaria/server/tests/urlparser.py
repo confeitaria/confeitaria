@@ -15,12 +15,12 @@ class TestObjectPublisherURLParser(unittest.TestCase):
             def index(self):
                 return ''
 
-        root_page = TestPage()
-        url_parser = ObjectPublisherURLParser(root_page)
-        page, args, kwargs = url_parser.parse_url('/')
-        self.assertEquals(root_page, page)
-        self.assertEquals([], args)
-        self.assertEquals({}, kwargs)
+        page = TestPage()
+        url_parser = ObjectPublisherURLParser(page)
+        request = url_parser.parse_url('/')
+        self.assertEquals(page, request.page)
+        self.assertEquals([], request.args)
+        self.assertEquals({}, request.kwargs)
 
     def test_subpage_not_found_404(self):
         """
@@ -63,11 +63,11 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        p, args, kwargs = url_parser.parse_url('/value')
+        request = url_parser.parse_url('/value')
 
-        self.assertEquals(page, p)
-        self.assertEquals(['value'], args)
-        self.assertEquals({}, kwargs)
+        self.assertEquals(page, request.page)
+        self.assertEquals(['value'], request.args)
+        self.assertEquals({}, request.kwargs)
 
     def test_missing_path_parameters_are_none(self):
         """
@@ -81,11 +81,11 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        p, args, kwargs = url_parser.parse_url('/')
+        request = url_parser.parse_url('/')
 
-        self.assertEquals(page, p)
-        self.assertEquals([None], args)
-        self.assertEquals({}, kwargs)
+        self.assertEquals(page, request.page)
+        self.assertEquals([None], request.args)
+        self.assertEquals({}, request.kwargs)
 
     def test_too_many_path_parameters_leads_to_404(self):
         """
@@ -101,14 +101,14 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        p, args, kwargs = url_parser.parse_url('/value')
+        request = url_parser.parse_url('/value')
 
-        self.assertEquals(page, p)
-        self.assertEquals(['value'], args)
-        self.assertEquals({}, kwargs)
+        self.assertEquals(page, request.page)
+        self.assertEquals(['value'], request.args)
+        self.assertEquals({}, request.kwargs)
 
         with self.assertRaises(NotFound):
-            _, _, _ = url_parser.parse_url('/value/excess')
+            url_parser.parse_url('/value/excess')
 
 
     def test_query_parameters(self):
@@ -125,11 +125,11 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        p, args, kwargs = url_parser.parse_url('/?kwarg2=value')
+        request = url_parser.parse_url('/?kwarg2=value')
 
-        self.assertEquals(page, p)
-        self.assertEquals([], args)
-        self.assertEquals({'kwarg1': None, 'kwarg2': 'value'}, kwargs)
+        self.assertEquals(page, request.page)
+        self.assertEquals([], request.args)
+        self.assertEquals({'kwarg1': None, 'kwarg2': 'value'},request.kwargs)
 
     def test_path_and_query_parameters(self):
         """
@@ -145,11 +145,13 @@ class TestObjectPublisherURLParser(unittest.TestCase):
 
         page = TestPage()
         url_parser = ObjectPublisherURLParser(page)
-        p, args, kwargs = url_parser.parse_url('/value1?kwarg2=kwvalue2')
+        request = url_parser.parse_url('/value1?kwarg2=kwvalue2')
 
-        self.assertEquals(page, p)
-        self.assertEquals(['value1', None], args)
-        self.assertEquals({'kwarg1': None, 'kwarg2': 'kwvalue2'}, kwargs)
+        self.assertEquals(page, request.page)
+        self.assertEquals(['value1', None], request.args)
+        self.assertEquals(
+            {'kwarg1': None, 'kwarg2': 'kwvalue2'}, request.kwargs
+        )
 
     def test_attribute_has_precedence_over_path_parameters(self):
         """
@@ -168,19 +170,25 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         page.attribute = AttributePage()
         url_parser = ObjectPublisherURLParser(page)
 
-        p, args, kwargs = url_parser.parse_url('/value')
+        request = url_parser.parse_url('/value')
 
-        self.assertEquals(page, p)
-        self.assertEquals(['value'], args)
-        self.assertEquals({}, kwargs)
-        self.assertEquals('page: root, arg: value', p.index(*args, **kwargs))
+        self.assertEquals(page, request.page)
+        self.assertEquals(['value'], request.args)
+        self.assertEquals({}, request.kwargs)
+        self.assertEquals(
+            'page: root, arg: value',
+            request.page.index(*request.args, **request.kwargs)
+        )
 
-        p, args, kwargs = url_parser.parse_url('/attribute')
+        request = url_parser.parse_url('/attribute')
 
-        self.assertEquals(page.attribute, p)
-        self.assertEquals([], args)
-        self.assertEquals({}, kwargs)
-        self.assertEquals('page: attribute', p.index(*args, **kwargs))
+        self.assertEquals(page.attribute, request.page)
+        self.assertEquals([], request.args)
+        self.assertEquals({}, request.kwargs)
+        self.assertEquals(
+            'page: attribute',
+            request.page.index(*request.args, **request.kwargs)
+        )
 
     def test_action_method_creates_page(self):
         """
@@ -198,9 +206,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         page.sub = ActionPage()
         url_parser = ObjectPublisherURLParser(page)
 
-        p, args, kwargs = url_parser.parse_url('/sub', '')
+        request = url_parser.parse_url('/sub', '')
 
-        self.assertEquals(p, page.sub)
+        self.assertEquals(page.sub, request.page)
 
     def test_action_method_returns_parsed_body(self):
         """
@@ -217,9 +225,9 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         page.sub = ActionPage()
         url_parser = ObjectPublisherURLParser(page)
 
-        p, args, kwargs = url_parser.parse_url('/sub', 'kwarg=example')
+        request = url_parser.parse_url('/sub', 'kwarg=example')
 
-        self.assertEquals({'kwarg': 'example'}, kwargs)
+        self.assertEquals({'kwarg': 'example'}, request.kwargs)
 
     def test_returned_tuple_is_request_object(self):
         """
@@ -236,6 +244,21 @@ class TestObjectPublisherURLParser(unittest.TestCase):
         self.assertEquals(
             {'kwarg': 'value', 'kwarg1': 'example'}, request.query_parameters
         )
+
+    def test_request_not_tuple_anymore(self):
+        """ In the past, the request object used to be a tuple. It proved to
+        be hard to maintain and confusing. As a consequence, we removed this
+        behavior from it. This test registers this change.
+        """
+        class TestPage(object):
+            def index(self):
+                return ''
+
+        page = TestPage()
+        url_parser = ObjectPublisherURLParser(page)
+
+        with self.assertRaises(TypeError):
+            _, _, _ = url_parser.parse_url('')
 
 if __name__ == "__main__":
     unittest.main()
