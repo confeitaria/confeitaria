@@ -3,7 +3,7 @@ import time
 
 import wsgiref.simple_server as simple_server
 
-import urlparser
+import requestparser
 
 import confeitaria.request
 import confeitaria.responses
@@ -15,7 +15,7 @@ class Server(object):
     """
 
     def __init__(self, page, port=8080):
-        self.url_parser = urlparser.RequestParser(page)
+        self.request_parser = requestparser.RequestParser(page)
         self.port = port
         self._process = None
 
@@ -72,7 +72,7 @@ class Server(object):
 
         try:
             content = ''
-            request = self.url_parser.parse_request(
+            request = self.request_parser.parse_request(
                 url, self._get_body_content(environ)
             )
             page = request.page
