@@ -77,12 +77,12 @@ class Server(object):
                 url, self._get_body_content(environ)
             )
             page = request.page
+            cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
 
             if hasattr(page, 'set_request'):
                 page.set_request(request)
 
             if hasattr(page, 'set_cookies'):
-                cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
                 page.set_cookies(cookies)
 
             if environ['REQUEST_METHOD'] == 'GET':
