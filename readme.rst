@@ -290,6 +290,43 @@ example, about query parameters::
     ...     requests.get('http://localhost:8080/?action=update').text
     u'The action is update'
 
+Getting and sending cookies
+---------------------------
+
+Cookies are the most standard way of recalling information between different
+requests from the same browser. Once a server sends instructos for setting
+cookies to a browser, the browser is expected to send this information back
+with each request.
+
+If a page has a bound method named ``set_cookies()`` with one argument, this
+method will be called and the argument value will be an object representing a
+set of cookies. This cookies object should behave as the
+`Cookie.SimpleCookie
+<https://docs.python.org/2/library/cookie.html#Cookie.SimpleCookie>`_::
+
+    >>> class AuthenticationPage(object):
+    ...     def set_cookies(self, cookies):
+    ...         self.cookies = cookies
+    ...     def action(self, username=None):
+    ...         self.cookies['username'] = username
+    ...     def index(self):
+    ...         if 'username' in self.cookies:
+    ...             return 'Hello {0}'.format(self.cookies['username'].value)
+    ...         else:
+    ...             return 'Please log in'
+    >>> page = AuthenticationPage()
+    >>> with Server(page):
+    ...     requests.get('http://localhost:8080/').text
+    ...     r = requests.post(
+    ...         'http://localhost:8080/', data={'username': 'juju'},
+    ...         allow_redirects=False
+    ...     )
+    ...     r.cookies['username']
+    ...     requests.get('http://localhost:8080/', cookies=r.cookies).text
+    u'Please log in'
+    'juju'
+    u'Hello juju'
+
 Redirecting
 -----------
 
