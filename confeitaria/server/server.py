@@ -68,6 +68,7 @@ class Server(object):
         query_string = environ.get('QUERY_STRING', '')
         url = path_info + ('?' + query_string if query_string else '')
 
+        cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
 
@@ -77,7 +78,6 @@ class Server(object):
                 url, self._get_body_content(environ)
             )
             page = request.page
-            cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
 
             if hasattr(page, 'set_request'):
                 page.set_request(request)
@@ -90,12 +90,12 @@ class Server(object):
                 self._add_cookies_to_headers(cookies, headers)
             elif environ['REQUEST_METHOD'] == 'POST':
                 page.action(*request.args, **request.kwargs)
-                self._add_cookies_to_headers(cookies, headers)
                 raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as e:
             if e.status_code.startswith('30'):
                 self._replace_none_location(e.headers, url)
             status = e.status_code
+            self._add_cookies_to_headers(cookies, e.headers)
             headers = e.headers
 
         start_response(status, headers)
