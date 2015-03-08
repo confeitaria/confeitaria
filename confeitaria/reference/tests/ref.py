@@ -357,3 +357,22 @@ class TestReference(unittest.TestCase):
             )
             self.assertEquals(303, r.status_code)
             self.assertEquals('/?a=b', r.headers['location'])
+
+    def test_get_sent_cookies(self):
+        """
+        If a page has a ``set_cookie()`` method expecting an argument, then
+        it should be called with a cookie object. This cookie object should
+        give access to cookie parameters.
+        """
+        class TestPage(object):
+            def set_cookie(self, cookie):
+                self.cookie = cookie
+            def index(self):
+                return 'value: {0}'.format(self.cookie['value'].value)
+
+        with self.get_server(TestPage()):
+            r = requests.get(
+                'http://localhost:8080/', cookies={'value': 'example'}
+            )
+            self.assertEquals('value: example', r.text)
+
