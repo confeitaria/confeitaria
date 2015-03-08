@@ -5,7 +5,7 @@ import confeitaria
 
 
 def load_tests(loader, tests, ignore):
-    tests.addTest(doctest.DocTestSuite(confeitaria.server.urlparser))
+    tests.addTest(doctest.DocTestSuite(confeitaria.server.requestparser))
     tests.addTest(doctest.DocTestSuite(confeitaria.responses))
     tests.addTest(doctest.DocTestSuite(confeitaria.server.server))
     tests.addTest(doctest.DocTestSuite(confeitaria.runner))
