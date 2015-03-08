@@ -360,15 +360,15 @@ class TestReference(unittest.TestCase):
 
     def test_get_sent_cookies(self):
         """
-        If a page has a ``set_cookie()`` method expecting an argument, then
+        If a page has a ``set_cookies()`` method expecting an argument, then
         it should be called with a cookie object. This cookie object should
         give access to cookie parameters.
         """
         class TestPage(object):
-            def set_cookie(self, cookie):
-                self.cookie = cookie
+            def set_cookies(self, cookies):
+                self.cookies = cookies
             def index(self):
-                return 'value: {0}'.format(self.cookie['value'].value)
+                return 'value: {0}'.format(self.cookies['value'].value)
 
         with self.get_server(TestPage()):
             r = requests.get(
@@ -381,10 +381,10 @@ class TestReference(unittest.TestCase):
         The HTTP client should receive the cookies.
         """
         class TestPage(object):
-            def set_cookie(self, cookie):
-                self.cookie = cookie
+            def set_cookies(self, cookies):
+                self.cookies = cookies
             def index(self):
-                self.cookie['value'] = 'example'
+                self.cookies['value'] = 'example'
                 return ''
 
         with self.get_server(TestPage()):

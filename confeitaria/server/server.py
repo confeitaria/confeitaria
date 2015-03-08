@@ -81,16 +81,16 @@ class Server(object):
             if hasattr(page, 'set_request'):
                 page.set_request(request)
 
-            if hasattr(page, 'set_cookie'):
-                cookie = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
-                page.set_cookie(cookie)
+            if hasattr(page, 'set_cookies'):
+                cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
+                page.set_cookies(cookies)
 
             if environ['REQUEST_METHOD'] == 'GET':
                 content = page.index(*request.args, **request.kwargs)
-                self._add_cookies_to_headers(cookie, headers)
+                self._add_cookies_to_headers(cookies, headers)
             elif environ['REQUEST_METHOD'] == 'POST':
                 page.action(*request.args, **request.kwargs)
-                self._add_cookies_to_headers(cookie, headers)
+                self._add_cookies_to_headers(cookies, headers)
                 raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as e:
             if e.status_code.startswith('30'):
@@ -102,8 +102,10 @@ class Server(object):
 
         return content
 
-    def _add_cookies_to_headers(self, cookie, headers):
-        headers.extend(('Set-Cookie', cookie[k].OutputString()) for k in cookie)
+    def _add_cookies_to_headers(self, cookies, headers):
+        headers.extend(
+            ('Set-Cookie', cookies[k].OutputString()) for k in cookies
+        )
 
     def _get_body_content(self, environ):
         if environ['REQUEST_METHOD'] != 'POST':
