@@ -2,6 +2,7 @@ import multiprocessing
 import time
 
 import wsgiref.simple_server as simple_server
+import Cookie
 
 import requestparser
 
@@ -80,10 +81,16 @@ class Server(object):
             if hasattr(page, 'set_request'):
                 page.set_request(request)
 
+            if hasattr(page, 'set_cookie'):
+                cookie = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
+                page.set_cookie(cookie)
+
             if environ['REQUEST_METHOD'] == 'GET':
                 content = page.index(*request.args, **request.kwargs)
+                self._add_cookies_to_headers(cookie, headers)
             elif environ['REQUEST_METHOD'] == 'POST':
                 page.action(*request.args, **request.kwargs)
+                self._add_cookies_to_headers(cookie, headers)
                 raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as e:
             if e.status_code.startswith('30'):
@@ -94,6 +101,9 @@ class Server(object):
         start_response(status, headers)
 
         return content
+
+    def _add_cookies_to_headers(self, cookie, headers):
+        headers.extend(('Set-Cookie', cookie[k].OutputString()) for k in cookie)
 
     def _get_body_content(self, environ):
         if environ['REQUEST_METHOD'] != 'POST':
