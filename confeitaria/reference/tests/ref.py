@@ -392,3 +392,67 @@ class TestReference(unittest.TestCase):
             self.assertIn('value', r.cookies)
             self.assertEqual('example', r.cookies['value'])
 
+    def test_set_header_to_see_other(self):
+        """
+        Raising ``SeeOther`` with ``headers`` argument should not result in
+        error.
+        """
+        import confeitaria.responses
+
+        class TestPage(object):
+            def index(self):
+                return ''
+            def action(self):
+                headers = [('Content-type', 'text/plain')]
+                raise confeitaria.responses.SeeOther(headers=headers)
+
+        page = TestPage()
+
+        with self.get_server(page):
+            r = requests.post('http://localhost:8080/', allow_redirects=False)
+            self.assertEquals(303, r.status_code)
+            self.assertEquals('text/plain', r.headers['content-type'])
+
+    def test_set_header_to_moved_permanently(self):
+        """
+        Raising ``MovedPermanently`` with ``headers`` argument should not result
+        in error.
+        """
+        import confeitaria.responses
+
+        class TestPage(object):
+            def index(self):
+                return ''
+            def action(self):
+                headers = [('Content-type', 'text/plain')]
+                raise confeitaria.responses.MovedPermanently(headers=headers)
+
+        page = TestPage()
+
+        with self.get_server(page):
+            r = requests.post('http://localhost:8080/', allow_redirects=False)
+            self.assertEquals(301, r.status_code)
+            self.assertEquals('text/plain', r.headers['content-type'])
+
+    def test_set_header_to_not_found(self):
+        """
+        Raising ``NotFound`` with ``headers`` argument should not result
+        in error.
+        """
+        import confeitaria.responses
+
+        class TestPage(object):
+            def index(self):
+                return ''
+            def action(self):
+                headers = [('Content-type', 'text/plain')]
+                raise confeitaria.responses.NotFound(headers=headers)
+
+        page = TestPage()
+
+        with self.get_server(page):
+            r = requests.post(
+                'http://localhost:8080/?a=b', allow_redirects=False
+            )
+            self.assertEquals(404, r.status_code)
+            self.assertEquals('text/plain', r.headers['content-type'])
