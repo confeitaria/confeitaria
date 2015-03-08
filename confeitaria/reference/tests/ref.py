@@ -376,3 +376,19 @@ class TestReference(unittest.TestCase):
             )
             self.assertEquals('value: example', r.text)
 
+    def test_send_cookies(self):
+        """
+        The HTTP client should receive the cookies.
+        """
+        class TestPage(object):
+            def set_cookie(self, cookie):
+                self.cookie = cookie
+            def index(self):
+                self.cookie['value'] = 'example'
+                return ''
+
+        with self.get_server(TestPage()):
+            r = requests.get('http://localhost:8080/')
+            self.assertIn('value', r.cookies)
+            self.assertEqual('example', r.cookies['value'])
+
