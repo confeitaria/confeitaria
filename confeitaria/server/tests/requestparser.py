@@ -2,7 +2,7 @@ import unittest
 
 import requests
 
-from ..request import RequestParser
+from ..requestparser import RequestParser
 from confeitaria.responses import NotFound
 
 class TestRequestParser(unittest.TestCase):

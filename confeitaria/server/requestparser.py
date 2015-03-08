@@ -288,7 +288,7 @@ class RequestParser(object):
             args += [None] * missing_args_count
         elif missing_args_count < 0:
             raise confeitaria.responses.NotFound(
-                '{0} not found'.format(extra_path)
+                message='{0} not found'.format(extra_path)
             )
 
         return args[:args_count-1]
