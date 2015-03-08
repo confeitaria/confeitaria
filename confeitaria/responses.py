@@ -39,8 +39,8 @@ class Response(Exception):
         >>> r.headers
         [('Location', 'http://pudim.com.br')]
     """
-    def __init__(self, status_code, headers=None, *args, **kwargs):
-        Exception.__init__(self, *args, **kwargs)
+    def __init__(self, status_code, headers=None, message=None, *args):
+        Exception.__init__(self, message, *args)
 
         self.status_code = status_code
         try:
@@ -60,10 +60,11 @@ class MovedPermanently(Response):
         [('Location', 'http://pudim.com.br')]
     """
     status_code = '301 Moved Permanently'
-    def __init__(self, location=None, *args, **kwargs):
-        headers = {'Location': location}
+    def __init__(self, location=None, headers=None, message=None, *args):
+        headers = [] if not headers else headers
+        headers.append(('Location', location))
         Response.__init__(
-            self, MovedPermanently.status_code, headers, *args, **kwargs
+            self, MovedPermanently.status_code, headers, message, *args
         )
         self.location = location
 
@@ -79,9 +80,10 @@ class SeeOther(Response):
         [('Location', 'http://pudim.com.br')]
     """
     status_code = '303 See Other'
-    def __init__(self, location=None, *args, **kwargs):
-        headers = {'Location': location}
-        Response.__init__(self, SeeOther.status_code, headers, *args, **kwargs)
+    def __init__(self, location=None, headers=None, message=None, *args):
+        headers = [] if not headers else headers
+        headers.append(('Location', location))
+        Response.__init__(self, SeeOther.status_code, headers, message, *args)
         self.location = location
 
 class NotFound(Response):
@@ -93,5 +95,5 @@ class NotFound(Response):
         '404 Not Found'
     """
     status_code = '404 Not Found'
-    def __init__(self, *args, **kwargs):
-        Response.__init__(self, NotFound.status_code, None, *args, **kwargs)
+    def __init__(self, headers=None, message=None, *args):
+        Response.__init__(self, NotFound.status_code, headers, message, *args)
