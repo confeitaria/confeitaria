@@ -456,3 +456,26 @@ class TestReference(unittest.TestCase):
             )
             self.assertEquals(404, r.status_code)
             self.assertEquals('text/plain', r.headers['content-type'])
+
+    def test_urled_page(self):
+        """
+        There should be a class called ``URLedPage`` which implements methods
+        to get and return the current URL.
+        """
+        import confeitaria.interfaces
+
+        class TestPage(confeitaria.interfaces.URLedPage):
+            def index(self):
+                return 'url: {0}'.format(self.get_url())
+
+        root = TestPage()
+        root.sub = TestPage()
+        root.sub.another = TestPage()
+
+        with self.get_server(root):
+            r = requests.get('http://localhost:8080/')
+            self.assertEquals('url: /', r.text)
+            r = requests.get('http://localhost:8080/sub')
+            self.assertEquals('url: /sub', r.text)
+            r = requests.get('http://localhost:8080/sub/another')
+            self.assertEquals('url: /sub/another', r.text)
