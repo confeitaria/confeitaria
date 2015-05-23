@@ -599,6 +599,22 @@ to have a totally different URL, even in another domain. We do not have
 this feature now; yet, assuming that the URLs defined with <tt class="docutils literal">set_url()</tt>
 can be more complex than paths is the way to go - even if the current
 examples are quite simple.</blockquote>
+<p>To save you from typing the same method over and over, we also provide the class
+<tt class="docutils literal">confeitaria.interface.URLedPage</tt>. It implements this protocol and has a
+<tt class="docutils literal">get_url()</tt> method:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; import confeitaria.interfaces
+&gt;&gt;&gt; class MyURLedPage(confeitaria.interfaces.URLedPage):
+...     def index(self):
+...         return 'My URL is ' + self.get_url()
+&gt;&gt;&gt; root = MyURLedPage()
+&gt;&gt;&gt; root.sub = MyURLedPage()
+&gt;&gt;&gt; with Server(root):
+...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8080/sub').text
+u'My URL is /'
+u'My URL is /sub'
+</pre>
 </div>
 <div class="section" id="getting-the-request">
 <h2>Getting the request</h2>
