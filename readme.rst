@@ -270,6 +270,22 @@ can even know the URL of its subpages::
     can be more complex than paths is the way to go - even if the current
     examples are quite simple.
 
+To save you from typing the same method over and over, we also provide the class
+``confeitaria.interface.URLedPage``. It implements this protocol and has a
+``get_url()`` method::
+
+    >>> import confeitaria.interfaces
+    >>> class MyURLedPage(confeitaria.interfaces.URLedPage):
+    ...     def index(self):
+    ...         return 'My URL is ' + self.get_url()
+    >>> root = MyURLedPage()
+    >>> root.sub = MyURLedPage()
+    >>> with Server(root):
+    ...     requests.get('http://localhost:8080/').text
+    ...     requests.get('http://localhost:8080/sub').text
+    u'My URL is /'
+    u'My URL is /sub'
+
 Getting the request
 -------------------
 
