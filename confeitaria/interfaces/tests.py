@@ -48,7 +48,29 @@ class TestURLedPage(unittest.TestCase):
 
         self.assertFalse(interfaces.has_set_url(TestPage()))
 
+    def test_has_set_url_is_false_more_than_one_argument(self):
+        """
+        This tests ensures the ``has_set_url()`` returns ``False`` if its
+        argument has a ``set_url()`` method with more than one required
+        argument.
+        """
+        class TestPage(object):
+            def set_url(self, value1, value2):
+                pass
 
+        self.assertFalse(interfaces.has_set_url(TestPage()))
+
+    def test_has_set_url_is_true_optional_argumets(self):
+        """
+        This tests ensures the ``has_set_url()`` returns ``True`` if its
+        argument has a ``set_url()`` method with one mandatory argument and
+        some optional ones.
+        """
+        class TestPage(object):
+            def set_url(self, value1, value2=None, *args, **kwargs):
+                pass
+
+        self.assertTrue(interfaces.has_set_url(TestPage()))
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestURLedPage)
 test_suite.addTest(doctest.DocTestSuite(interfaces))

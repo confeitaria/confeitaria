@@ -50,12 +50,12 @@ def has_set_url(page):
     if not result:
         return False
 
-    args, varargs, keywords, _ = (
+    args, varargs, keywords, values = (
         a if a else [] for a in inspect.getargspec(page.set_url)
     )
     args.pop()
 
-    if len(args) - (len(varargs) + len(keywords)) != 1:
+    if len(args) - len(values) != 1:
         return False
 
     return True
