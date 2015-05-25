@@ -1,7 +1,14 @@
+import unittest
+import doctest
+
 import requests
 
 from confeitaria.reference.tests import TestReference
 from ..server import Server
+from confeitaria.server import server
+from confeitaria import runner
+
+import confeitaria
 
 class TestServer(TestReference):
 
@@ -46,3 +53,16 @@ class TestServer(TestReference):
     def get_server(self, page):
         return Server(page)
 
+test_suite = unittest.TestLoader().loadTestsFromTestCase(TestServer)
+test_suite.addTest(doctest.DocTestSuite(server))
+test_suite.addTest(doctest.DocTestSuite(runner))
+test_suite.addTest(
+    doctest.DocFileSuite(
+        'doc/index.rst', module_relative=True, package=confeitaria
+    )
+)
+
+def load_tests(loader, tests, ignore):
+    tests.addTest(test_suite)
+
+    return tests
