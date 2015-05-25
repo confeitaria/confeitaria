@@ -1,6 +1,7 @@
 import inspect
 import urlparse
 
+import confeitaria.interfaces
 import confeitaria.responses
 
 class RequestParser(object):
@@ -317,11 +318,9 @@ class RequestParser(object):
             if is_page(attr):
                 self._get_linkmap(attr, '/'.join((path, attr_name)), linkmap)
 
-        try:
+        if confeitaria.interfaces.has_set_url(page):
             page_url = path if path != '' else '/'
             page.set_url(page_url)
-        except:
-            pass
 
         return linkmap
 
