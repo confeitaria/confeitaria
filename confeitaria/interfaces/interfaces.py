@@ -11,18 +11,10 @@ class URLedPage(object):
     >>> class TestPage(URLedPage):
     ...     def index(self):
     ...         return 'url: {0}'.format(self.get_url())
-    >>> root = TestPage()
-    >>> root.sub = TestPage()
-    >>> root.sub.another = TestPage()
-    >>> import confeitaria
-    >>> import requests
-    >>> with confeitaria.Server(root):
-    ...     requests.get('http://localhost:8080/').text
-    ...     requests.get('http://localhost:8080/sub').text
-    ...     requests.get('http://localhost:8080/sub/another').text
-    u'url: /'
-    u'url: /sub'
-    u'url: /sub/another'
+    >>> page = TestPage()
+    >>> page.set_url('/test')
+    >>> page.get_url()
+    '/test'
     """
 
     def set_url(self, url):
