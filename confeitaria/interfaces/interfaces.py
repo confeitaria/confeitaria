@@ -41,6 +41,19 @@ def has_set_url(page):
     ...         pass
     >>> has_set_url(TestPage())
     True
+
+    Note that the setter should have one and only one mandatory argument...
+
+    >>> class NoArgumentTestPage(object):
+    ...     def set_url(self):
+    ...         pass
+    >>> class TwoArgumentsTestPage(object):
+    ...     def set_url(self, url1, url2):
+    ...         pass
+    >>> has_set_url(NoArgumentTestPage())
+    False
+    >>> has_set_url(TwoArgumentsTestPage())
+    False
     """
     result = (
         hasattr(page, 'set_url') and
