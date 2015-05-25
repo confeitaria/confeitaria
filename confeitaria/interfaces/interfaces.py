@@ -33,7 +33,7 @@ class URLedPage(object):
 
 def has_set_url(page):
     """
-    This function returs `True` if the give object has a proper `set_url()`
+    This function returs ``True`` if the give object has a proper ``set_url()``
     method::
 
     >>> class TestPage(object):
