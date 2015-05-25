@@ -29,13 +29,25 @@ class TestURLedPage(unittest.TestCase):
     def test_has_set_url_is_false_no_method(self):
         """
         This tests ensures the ``has_set_url()`` returns ``False`` if its
-        argument has a ``set_url()`` method accepting one mandatory argument.
+        argument has a ``set_url`` attribute that is not a method.
         """
         class TestPage(object):
             def __init__(self):
                 self.set_url = 'string'
 
         self.assertFalse(interfaces.has_set_url(TestPage()))
+
+    def test_has_set_url_is_false_no_argument(self):
+        """
+        This tests ensures the ``has_set_url()`` returns ``False`` if its
+        argument has a ``set_url()`` method accepting no argument.
+        """
+        class TestPage(object):
+            def set_url(self):
+                pass
+
+        self.assertFalse(interfaces.has_set_url(TestPage()))
+
 
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestURLedPage)

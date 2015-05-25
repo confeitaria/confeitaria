@@ -42,7 +42,20 @@ def has_set_url(page):
     >>> has_set_url(TestPage())
     True
     """
-    return (
+    result = (
         hasattr(page, 'set_url') and
         inspect.ismethod(page.set_url)
     )
+
+    if not result:
+        return False
+
+    args, varargs, keywords, _ = (
+        a if a else [] for a in inspect.getargspec(page.set_url)
+    )
+    args.pop()
+
+    if len(args) - (len(varargs) + len(keywords)) != 1:
+        return False
+
+    return True
