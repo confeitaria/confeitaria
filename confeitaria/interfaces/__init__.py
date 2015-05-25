@@ -1,1 +1,1 @@
-from .interfaces import URLedPage
+from .interfaces import URLedPage, has_set_url
