@@ -15,6 +15,17 @@ class TestURLedPage(unittest.TestCase):
 
         self.assertEqual('/test', page.get_url())
 
+    def test_has_set_url_is_false_no_method(self):
+        """
+        This tests ensures the ``has_set_url()`` returns ``False`` if its
+        argument has a ``set_url()`` method accepting one mandatory argument.
+        """
+        class TestPage(object):
+            def set_url(self, value):
+                pass
+
+        self.assertTrue(interfaces.has_set_url(TestPage()))
+
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestURLedPage)
 test_suite.addTest(doctest.DocTestSuite(interfaces))
 
