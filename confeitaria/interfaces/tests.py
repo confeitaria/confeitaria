@@ -15,7 +15,7 @@ class TestURLedPage(unittest.TestCase):
 
         self.assertEqual('/test', page.get_url())
 
-    def test_has_set_url_is_false_no_method(self):
+    def test_has_set_url(self):
         """
         This tests ensures the ``has_set_url()`` returns ``False`` if its
         argument has a ``set_url()`` method accepting one mandatory argument.
