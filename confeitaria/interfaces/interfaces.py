@@ -1,3 +1,5 @@
+import inspect
+
 class URLedPage(object):
     """
     ``URLedPage`` implements the awareness interface to retrieve the current
@@ -28,3 +30,19 @@ class URLedPage(object):
 
     def get_url(self):
         return self.__url
+
+def has_set_url(page):
+    """
+    This function returs `True` if the give object has a proper `set_url()`
+    method::
+
+    >>> class TestPage(object):
+    ...     def set_url(self, url):
+    ...         pass
+    >>> has_set_url(TestPage())
+    True
+    """
+    return (
+        hasattr(page, 'set_url') and
+        inspect.ismethod(page.set_url)
+    )
