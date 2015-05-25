@@ -19,6 +19,4 @@ test_suite = unittest.TestLoader().loadTestsFromTestCase(TestURLedPage)
 test_suite.addTest(doctest.DocTestSuite(interfaces))
 
 def load_tests(loader, tests, ignore):
-    tests.addTest(test_suite)
-
-    return tests
+    return test_suite
