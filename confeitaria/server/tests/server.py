@@ -63,6 +63,4 @@ test_suite.addTest(
 )
 
 def load_tests(loader, tests, ignore):
-    tests.addTest(test_suite)
-
-    return tests
+    return test_suite
