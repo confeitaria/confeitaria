@@ -1,9 +1,12 @@
 import unittest
+import doctest
 
 import requests
 
 from ..requestparser import RequestParser
 from confeitaria.responses import NotFound
+
+import confeitaria.server.requestparser
 
 class TestRequestParser(unittest.TestCase):
 
@@ -259,6 +262,9 @@ class TestRequestParser(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             _, _, _ = request_parser.parse_request('')
+
+test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
+test_suite.addTest(doctest.DocTestSuite(confeitaria.server.requestparser))
 
 if __name__ == "__main__":
     unittest.main()
