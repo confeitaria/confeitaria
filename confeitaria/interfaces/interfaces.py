@@ -1,5 +1,17 @@
 import inspect
 
+def is_page(obj):
+    if not inspect.isclass(obj):
+        return (
+            hasattr(obj, 'index') and
+            inspect.ismethod(obj.index)
+        ) or (
+            hasattr(obj, 'action') and
+            inspect.ismethod(obj.action)
+        )
+    else:
+        return False
+
 class URLedPage(object):
     """
     ``URLedPage`` implements the awareness interface to retrieve the current

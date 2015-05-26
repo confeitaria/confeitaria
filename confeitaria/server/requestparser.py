@@ -333,18 +333,6 @@ class RequestParser(object):
 
         return query_parameters
 
-def is_page(obj):
-    if not inspect.isclass(obj):
-        return (
-            hasattr(obj, 'index') and
-            inspect.ismethod(obj.index)
-        ) or (
-            hasattr(obj, 'action') and
-            inspect.ismethod(obj.action)
-        )
-    else:
-        return False
-
 def find_longest_prefix(string, prefixes):
     longest = ""
 
