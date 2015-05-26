@@ -1,6 +1,25 @@
 import inspect
 
 def is_page(obj):
+    """
+    This function returns ``True`` if its argument has an index method...
+
+    ::
+
+        >>> class ContentPage(object):
+        ...     def index(self):
+        ...         return 'example'
+        >>> is_page(ContentPage())
+        True
+
+    ...or an action method::
+
+        >>> class ActionPage(object):
+        ...     def index(self):
+        ...         return 'example'
+        >>> is_page(ActionPage())
+        True
+    """
     if not inspect.isclass(obj):
         return (
             hasattr(obj, 'index') and
