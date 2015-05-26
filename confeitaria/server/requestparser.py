@@ -315,7 +315,7 @@ class RequestParser(object):
 
         for attr_name in dir(page):
             attr = getattr(page, attr_name)
-            if is_page(attr):
+            if confeitaria.interfaces.is_page(attr):
                 self._get_linkmap(attr, '/'.join((path, attr_name)), linkmap)
 
         if confeitaria.interfaces.has_set_url(page):
