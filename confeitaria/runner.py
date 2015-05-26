@@ -40,7 +40,7 @@ def run(page, config=None):
     Then the server is supposed to serve the content provided by the page:
 
     >>> import requests
-    >>> r = requests.get('http://localhost:8080/')
+    >>> r = requests.get('http://localhost:8000/')
     >>> r.text
     u'This is a test'
     >>> r.status_code

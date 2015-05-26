@@ -27,7 +27,7 @@ class TestServer(TestReference):
         process.start()
         time.sleep(1)
 
-        request = requests.get('http://localhost:8080/')
+        request = requests.get('http://localhost:8000/')
         self.assertEquals('page content', request.text)
         self.assertEquals(200, request.status_code)
         self.assertEquals('text/html', request.headers['content-type'])
@@ -45,7 +45,7 @@ class TestServer(TestReference):
         page = TestPage()
 
         with Server(page):
-            request = requests.get('http://localhost:8080/')
+            request = requests.get('http://localhost:8000/')
             self.assertEquals('page content', request.text)
             self.assertEquals(200, request.status_code)
             self.assertEquals('text/html', request.headers['content-type'])

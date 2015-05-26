@@ -356,7 +356,7 @@ $ pip install confeitaria
 <pre class="literal-block">
 $ python -mconfeitaria
 </pre>
-<p>and access <a class="reference external" href="http://localhost:8080">http://localhost:8080</a>. Voilà! You will see this same documentation.</p>
+<p>and access <a class="reference external" href="http://localhost:8000">http://localhost:8000</a>. Voilà! You will see this same documentation.</p>
 <div class="section" id="creating-and-serving-pages">
 <h2>Creating and serving pages</h2>
 <p>You would rather show your own page, for sure. In Confeitaria, a page is an
@@ -376,7 +376,7 @@ import confeitaria
 page = TestPage()
 confeitaria.run(page)
 </pre>
-<p>If you access <a class="reference external" href="http://localhost:8080">http://localhost:8080</a> after this, you will see <tt class="docutils literal">This is a test</tt>
+<p>If you access <a class="reference external" href="http://localhost:8000">http://localhost:8000</a> after this, you will see <tt class="docutils literal">This is a test</tt>
 in the browser.</p>
 <!-- One can also create a ``Server`` object, which is more flexible. They are
 created and used as below::
@@ -394,7 +394,7 @@ source code and it would bw shut down after everything is done::
     >>> import requests
     >>> page = TestPage()
     >>> with Server(page):
-    ...     requests.get('http://localhost:8080').text
+    ...     requests.get('http://localhost:8000').text
     u'This is a test' -->
 </div>
 <div class="section" id="subpages">
@@ -424,9 +424,9 @@ below:</p>
 <p>... then we should expect the following responses:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; with Server(root):
-...    requests.get('http://localhost:8080/').text
-...    requests.get('http://localhost:8080/sub').text
-...    requests.get('http://localhost:8080/sub/another').text
+...    requests.get('http://localhost:8000/').text
+...    requests.get('http://localhost:8000/sub').text
+...    requests.get('http://localhost:8000/sub/another').text
 u'root'
 u'a subpage'
 u'another subpage'
@@ -447,8 +447,8 @@ from the query path, as below:</p>
 ...        v1, v2 = int(p1), int(p2)
 ...        return &quot;{0} + {1} = {2}&quot;.format(v1, v2, v1 + v2)
 &gt;&gt;&gt; with Server(SumPage()):
-...     requests.get('http://localhost:8080/3/2').text
-...     requests.get('http://localhost:8080/-2/3').text
+...     requests.get('http://localhost:8000/3/2').text
+...     requests.get('http://localhost:8000/-2/3').text
 u'3 + 2 = 5'
 u'-2 + 3 = 1'
 </pre>
@@ -459,7 +459,7 @@ will still be called, having <tt class="docutils literal">None</tt> as its param
 ...    def index(self, arg):
 ...        return &quot;arg: {0}, arg type: {1}&quot;.format(arg, type(arg))
 &gt;&gt;&gt; with Server(NonePage()):
-...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8000/').text
 u&quot;arg: None, arg type: &lt;type 'NoneType'&gt;&quot;
 </pre>
 <p>If the URL path has more values than the number of index method's mandatory
@@ -469,7 +469,7 @@ parameters, a 404 Not Found error should be the result:</p>
 ...    def index(self, arg):
 ...        return &quot;arg: {0} arg type: {1}&quot;.format(arg, type(arg))
 &gt;&gt;&gt; with Server(NonePage()):
-...     requests.get('http://localhost:8080/a/b').status_code
+...     requests.get('http://localhost:8000/a/b').status_code
 404
 </pre>
 </dd>
@@ -481,10 +481,10 @@ from the query string parameters, as below:</p>
 ...    def index(self, greeting='Hello', greeted='World'):
 ...        return greeting + &quot; &quot; + greeted + &quot;!&quot;
 &gt;&gt;&gt; with Server(HelloWorldPage()):
-...     requests.get('http://localhost:8080/').text
-...     requests.get('http://localhost:8080/?greeting=Hi').text
+...     requests.get('http://localhost:8000/').text
+...     requests.get('http://localhost:8000/?greeting=Hi').text
 ...     requests.get(
-...         'http://localhost:8080/?greeting=Hi&amp;greeted=Earth').text
+...         'http://localhost:8000/?greeting=Hi&amp;greeted=Earth').text
 u'Hello World!'
 u'Hi World!'
 u'Hi Earth!'
@@ -500,9 +500,9 @@ or giving extra options (as in <tt class="docutils literal"><span class="pre">ht
 <blockquote>
 <strong>Advanced warning</strong>: what if one wants to give the values for mandatory
 arguments with query string parameters (e.g. using the URL
-<tt class="docutils literal"><span class="pre">http://localhost:8080/?p2=3&amp;p1=2</span></tt> to hit <tt class="docutils literal">SumPage</tt>) or optional
+<tt class="docutils literal"><span class="pre">http://localhost:8000/?p2=3&amp;p1=2</span></tt> to hit <tt class="docutils literal">SumPage</tt>) or optional
 arguments with path components (generating a URL such as
-<tt class="docutils literal"><span class="pre">http://localhost:8080/hello/world</span></tt> to access <tt class="docutils literal">HelloWorldPage</tt>)? This
+<tt class="docutils literal"><span class="pre">http://localhost:8000/hello/world</span></tt> to access <tt class="docutils literal">HelloWorldPage</tt>)? This
 behavior is undefined on purpose. Confeitaria should play well with many
 other frameworks and the best behavior can vary between them. In our
 reference implementation, it fails, and we don't think it is a good practice
@@ -541,18 +541,18 @@ method.</p>
 <p>By default, nobody would be authenticated:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; with Server(page):
-...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8000/').text
 u'You are not logged in.'
 </pre>
 <p>We can, however, send a POST request for log in:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; with Server(page):
-...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8000/').text
 ...     _ = requests.post(
-...         'http://localhost:8080/auth', data={'username': 'alice'},
+...         'http://localhost:8000/auth', data={'username': 'alice'},
 ...         allow_redirects=False # Why to do it? We'll see... soon.
 ...     )
-...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8000/').text
 u'You are not logged in.'
 u'You are logged in as alice.'
 </pre>
@@ -571,8 +571,8 @@ This means that each page can know what is its own URL on the server:</p>
 &gt;&gt;&gt; root = URLAwarePage()
 &gt;&gt;&gt; root.sub = URLAwarePage()
 &gt;&gt;&gt; with Server(root):
-...     requests.get('http://localhost:8080/').text
-...     requests.get('http://localhost:8080/sub').text
+...     requests.get('http://localhost:8000/').text
+...     requests.get('http://localhost:8000/sub').text
 u'My URL is /'
 u'My URL is /sub'
 </pre>
@@ -588,7 +588,7 @@ can even know the URL of its subpages:</p>
 ...             '&lt;a href=&quot;{0}&quot;&gt;Go there!&lt;/a&gt;'.format(self.sub.url)
 ...         )
 &gt;&gt;&gt; with Server(RootPage()):
-...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8000/').text
 u'Subpage is at /sub. &lt;a href=&quot;/sub&quot;&gt;Go there!&lt;/a&gt;'
 </pre>
 <!--  -->
@@ -610,8 +610,8 @@ examples are quite simple.</blockquote>
 &gt;&gt;&gt; root = MyURLedPage()
 &gt;&gt;&gt; root.sub = MyURLedPage()
 &gt;&gt;&gt; with Server(root):
-...     requests.get('http://localhost:8080/').text
-...     requests.get('http://localhost:8080/sub').text
+...     requests.get('http://localhost:8000/').text
+...     requests.get('http://localhost:8000/sub').text
 u'My URL is /'
 u'My URL is /sub'
 </pre>
@@ -632,7 +632,7 @@ example, about query parameters:</p>
 ...         )
 &gt;&gt;&gt; page = ActionPage()
 &gt;&gt;&gt; with Server(page):
-...     requests.get('http://localhost:8080/?action=update').text
+...     requests.get('http://localhost:8000/?action=update').text
 u'The action is update'
 </pre>
 </div>
@@ -659,13 +659,13 @@ set of cookies. This cookies object should behave as the
 ...             return 'Please log in'
 &gt;&gt;&gt; page = AuthenticationPage()
 &gt;&gt;&gt; with Server(page):
-...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8000/').text
 ...     r = requests.post(
-...         'http://localhost:8080/', data={'username': 'juju'},
+...         'http://localhost:8000/', data={'username': 'juju'},
 ...         allow_redirects=False
 ...     )
 ...     r.cookies['username']
-...     requests.get('http://localhost:8080/', cookies=r.cookies).text
+...     requests.get('http://localhost:8000/', cookies=r.cookies).text
 u'Please log in'
 'juju'
 u'Hello juju'
@@ -687,13 +687,13 @@ need to raise the <tt class="docutils literal">confeitaria.responses.MovedPerman
 &gt;&gt;&gt; page = OldPage()
 &gt;&gt;&gt; page.new = NewPage()
 &gt;&gt;&gt; with Server(page):
-...     r = requests.get('http://localhost:8080/', allow_redirects=False)
+...     r = requests.get('http://localhost:8000/', allow_redirects=False)
 ...     r.status_code
 ...     r.headers['location']
 301
 '/new'
 &gt;&gt;&gt; with Server(page):
-...     r = requests.get('http://localhost:8080/')
+...     r = requests.get('http://localhost:8000/')
 ...     r.status_code
 ...     r.text
 200
@@ -713,9 +713,9 @@ to use the <tt class="docutils literal">SeeOther</tt> response:</p>
 ...         LoginPage.username = username
 ...         raise confeitaria.responses.SeeOther('/')
 &gt;&gt;&gt; with Server(LoginPage()):
-...     requests.get('http://localhost:8080/').text
+...     requests.get('http://localhost:8000/').text
 ...     r = requests.post(
-...         'http://localhost:8080/', data={'username': 'bob'}
+...         'http://localhost:8000/', data={'username': 'bob'}
 ...     )
 ...     r.status_code
 ...     r.text
@@ -731,7 +731,7 @@ constructor, the browser will be redirected to the originally requested URL:</p>
 ...         raise confeitaria.responses.SeeOther()
 &gt;&gt;&gt; with Server(RedirectPage()):
 ...     r = requests.post(
-...         'http://localhost:8080/?a=b', allow_redirects=False
+...         'http://localhost:8000/?a=b', allow_redirects=False
 ...     )
 ...     r.status_code
 ...     r.headers['location']
@@ -747,7 +747,7 @@ default:</p>
 ...         pass
 &gt;&gt;&gt; with Server(MagicRedirectPage()):
 ...     r = requests.post(
-...         'http://localhost:8080/?magic=true', allow_redirects=False
+...         'http://localhost:8000/?magic=true', allow_redirects=False
 ...     )
 ...     r.status_code
 ...     r.headers['location']

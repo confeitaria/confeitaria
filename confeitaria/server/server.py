@@ -15,7 +15,7 @@ class Server(object):
     to the page object returned values.
     """
 
-    def __init__(self, page, port=8080):
+    def __init__(self, page, port=8000):
         self.request_parser = requestparser.RequestParser(page)
         self.port = port
         self._process = None
@@ -41,7 +41,7 @@ class Server(object):
         Then the server is supposed to serve the content provided by the page:
 
         >>> import requests
-        >>> r = requests.get('http://localhost:8080/')
+        >>> r = requests.get('http://localhost:8000/')
         >>> r.text
         u'This is a test'
         >>> r.status_code
@@ -55,7 +55,7 @@ class Server(object):
         ``with`` statement:
 
         >>> with Server(TestPage()):
-        ...     r = requests.get("http://localhost:8080")
+        ...     r = requests.get("http://localhost:8000")
         ...     r.text
         u'This is a test'
         """
