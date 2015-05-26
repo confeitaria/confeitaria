@@ -14,7 +14,7 @@ class TestReference(unittest.TestCase):
     some object that respect the ``with`` protocol in a way that:
 
     * in the ``__enter__()`` method, an HTTP server is asynchronously started at
-      port 8080, running the Confeitaria implementation being tested; and
+      port 8000, running the Confeitaria implementation being tested; and
     * in the ``__exit__()`` method, the HTTP server is stopped.
     """
 
@@ -40,11 +40,11 @@ class TestReference(unittest.TestCase):
         root.sub.another = AnotherSubPage()
 
         with self.get_server(root):
-            r = requests.get('http://localhost:8080/')
+            r = requests.get('http://localhost:8000/')
             self.assertEquals('page: root', r.text)
-            r = requests.get('http://localhost:8080/sub')
+            r = requests.get('http://localhost:8000/sub')
             self.assertEquals('page: sub', r.text)
-            r = requests.get('http://localhost:8080/sub/another')
+            r = requests.get('http://localhost:8000/sub/another')
             self.assertEquals('page: another', r.text)
 
     def test_index_parameters_from_request(self):
@@ -58,7 +58,7 @@ class TestReference(unittest.TestCase):
                 return 'kwarg: {0}'.format(kwarg)
 
         with self.get_server(TestPage()):
-            r = requests.get('http://localhost:8080/?kwarg=example')
+            r = requests.get('http://localhost:8000/?kwarg=example')
             self.assertEquals('kwarg: example', r.text)
 
     def test_index_parameters_from_path(self):
@@ -71,7 +71,7 @@ class TestReference(unittest.TestCase):
                 return 'arg: {0}'.format(arg)
 
         with self.get_server(TestPage()):
-            r = requests.get('http://localhost:8080/example')
+            r = requests.get('http://localhost:8000/example')
             self.assertEquals('arg: example', r.text)
 
     def test_index_parameters_from_path_more_than_one(self):
@@ -84,7 +84,7 @@ class TestReference(unittest.TestCase):
                 return 'arg1: {0}; arg2: {1}'.format(arg1, arg2)
 
         with self.get_server(TestPage()):
-            r = requests.get('http://localhost:8080/first/second')
+            r = requests.get('http://localhost:8000/first/second')
             self.assertEquals('arg1: first; arg2: second', r.text)
 
     def test_index_parameters_from_path_and_query_args(self):
@@ -99,12 +99,12 @@ class TestReference(unittest.TestCase):
                 )
 
         with self.get_server(TestPage()):
-            r = requests.get('http://localhost:8080/one/cake')
+            r = requests.get('http://localhost:8000/one/cake')
             self.assertEquals(
                 'arg1=one; arg2=cake; kwarg1=None; kwarg2=None', r.text
             )
             r = requests.get(
-                'http://localhost:8080/this/pie?kwarg2=tasty&kwarg1=is'
+                'http://localhost:8000/this/pie?kwarg2=tasty&kwarg1=is'
             )
             self.assertEquals(
                 'arg1=this; arg2=pie; kwarg1=is; kwarg2=tasty', r.text
@@ -128,11 +128,11 @@ class TestReference(unittest.TestCase):
         root.sub.another = TestPage()
 
         with self.get_server(root):
-            r = requests.get('http://localhost:8080/')
+            r = requests.get('http://localhost:8000/')
             self.assertEquals('url: /', r.text)
-            r = requests.get('http://localhost:8080/sub')
+            r = requests.get('http://localhost:8000/sub')
             self.assertEquals('url: /sub', r.text)
-            r = requests.get('http://localhost:8080/sub/another')
+            r = requests.get('http://localhost:8000/sub/another')
             self.assertEquals('url: /sub/another', r.text)
 
     def test_page_knows_subpages_path(self):
@@ -156,7 +156,7 @@ class TestReference(unittest.TestCase):
                 self.url = url
 
         with self.get_server(RootPage()):
-            r = requests.get('http://localhost:8080/')
+            r = requests.get('http://localhost:8000/')
             self.assertEquals(
                 'self.sub url: /sub; self.sub.another url: /sub/another', r.text
             )
@@ -175,9 +175,9 @@ class TestReference(unittest.TestCase):
                 return result
 
         with self.get_server(TestPage()):
-            r = requests.get('http://localhost:8080/')
+            r = requests.get('http://localhost:8000/')
             self.assertEquals('no arg', r.text)
-            r = requests.get('http://localhost:8080/example')
+            r = requests.get('http://localhost:8000/example')
             self.assertEquals('arg: example', r.text)
 
     def test_too_many_index_parameters_results_in_404(self):
@@ -193,9 +193,9 @@ class TestReference(unittest.TestCase):
                 return 'irrelevant content'
 
         with self.get_server(TestPage()):
-            r = requests.get('http://localhost:8080/sub')
+            r = requests.get('http://localhost:8000/sub')
             self.assertEquals(200, r.status_code)
-            r = requests.get('http://localhost:8080/sub/another')
+            r = requests.get('http://localhost:8000/sub/another')
             self.assertEquals(404, r.status_code)
 
     def test_post_method(self):
@@ -215,9 +215,9 @@ class TestReference(unittest.TestCase):
 
         with self.get_server(TestPage()):
             requests.post(
-                'http://localhost:8080/', data={'kwarg': 'example'}
+                'http://localhost:8000/', data={'kwarg': 'example'}
             )
-            r = requests.get('http://localhost:8080/')
+            r = requests.get('http://localhost:8000/')
             self.assertEquals('post_parameter: example', r.text)
 
     def test_raising_redirect_moved_permanently(self):
@@ -233,7 +233,7 @@ class TestReference(unittest.TestCase):
         page = TestPage()
 
         with self.get_server(page):
-            r = requests.get('http://localhost:8080/', allow_redirects=False)
+            r = requests.get('http://localhost:8000/', allow_redirects=False)
             self.assertEquals(301, r.status_code)
             self.assertEquals('/sub', r.headers['location'])
 
@@ -251,7 +251,7 @@ class TestReference(unittest.TestCase):
         page = TestPage()
 
         with self.get_server(page):
-            r = requests.get('http://localhost:8080/', allow_redirects=False)
+            r = requests.get('http://localhost:8000/', allow_redirects=False)
             self.assertEquals(303, r.status_code)
             self.assertEquals('/sub', r.headers['location'])
 
@@ -272,9 +272,9 @@ class TestReference(unittest.TestCase):
 
         with self.get_server(TestPage()):
             r = requests.post(
-                'http://localhost:8080/', data={'kwarg': 'example'}
+                'http://localhost:8000/', data={'kwarg': 'example'}
             )
-            r = requests.get('http://localhost:8080/')
+            r = requests.get('http://localhost:8000/')
             self.assertEquals(200, r.status_code)
             self.assertEquals('post_parameter: example', r.text)
 
@@ -291,7 +291,7 @@ class TestReference(unittest.TestCase):
                 return 'param: {0}'.format(self.req.query_parameters['param'])
 
         with self.get_server(TestPage()):
-            r = requests.get('http://localhost:8080/?param=example')
+            r = requests.get('http://localhost:8000/?param=example')
             self.assertEquals('param: example', r.text)
 
     def test_raising_redirect_see_other_no_location(self):
@@ -309,10 +309,10 @@ class TestReference(unittest.TestCase):
         page.sub = TestPage()
 
         with self.get_server(page):
-            r = requests.get('http://localhost:8080/', allow_redirects=False)
+            r = requests.get('http://localhost:8000/', allow_redirects=False)
             self.assertEquals(303, r.status_code)
             self.assertEquals('/', r.headers['location'])
-            r = requests.get('http://localhost:8080/sub', allow_redirects=False)
+            r = requests.get('http://localhost:8000/sub', allow_redirects=False)
             self.assertEquals(303, r.status_code)
             self.assertEquals('/sub', r.headers['location'])
 
@@ -333,7 +333,7 @@ class TestReference(unittest.TestCase):
 
         with self.get_server(page):
             r = requests.post(
-                'http://localhost:8080/?a=b', allow_redirects=False
+                'http://localhost:8000/?a=b', allow_redirects=False
             )
             self.assertEquals(303, r.status_code)
             self.assertEquals('/?a=b', r.headers['location'])
@@ -353,7 +353,7 @@ class TestReference(unittest.TestCase):
 
         with self.get_server(page):
             r = requests.post(
-                'http://localhost:8080/?a=b', allow_redirects=False
+                'http://localhost:8000/?a=b', allow_redirects=False
             )
             self.assertEquals(303, r.status_code)
             self.assertEquals('/?a=b', r.headers['location'])
@@ -372,7 +372,7 @@ class TestReference(unittest.TestCase):
 
         with self.get_server(TestPage()):
             r = requests.get(
-                'http://localhost:8080/', cookies={'value': 'example'}
+                'http://localhost:8000/', cookies={'value': 'example'}
             )
             self.assertEquals('value: example', r.text)
 
@@ -388,7 +388,7 @@ class TestReference(unittest.TestCase):
                 return ''
 
         with self.get_server(TestPage()):
-            r = requests.get('http://localhost:8080/')
+            r = requests.get('http://localhost:8000/')
             self.assertIn('value', r.cookies)
             self.assertEqual('example', r.cookies['value'])
 
@@ -409,7 +409,7 @@ class TestReference(unittest.TestCase):
         page = TestPage()
 
         with self.get_server(page):
-            r = requests.post('http://localhost:8080/', allow_redirects=False)
+            r = requests.post('http://localhost:8000/', allow_redirects=False)
             self.assertEquals(303, r.status_code)
             self.assertEquals('text/plain', r.headers['content-type'])
 
@@ -430,7 +430,7 @@ class TestReference(unittest.TestCase):
         page = TestPage()
 
         with self.get_server(page):
-            r = requests.post('http://localhost:8080/', allow_redirects=False)
+            r = requests.post('http://localhost:8000/', allow_redirects=False)
             self.assertEquals(301, r.status_code)
             self.assertEquals('text/plain', r.headers['content-type'])
 
@@ -452,7 +452,7 @@ class TestReference(unittest.TestCase):
 
         with self.get_server(page):
             r = requests.post(
-                'http://localhost:8080/?a=b', allow_redirects=False
+                'http://localhost:8000/?a=b', allow_redirects=False
             )
             self.assertEquals(404, r.status_code)
             self.assertEquals('text/plain', r.headers['content-type'])
@@ -473,9 +473,9 @@ class TestReference(unittest.TestCase):
         root.sub.another = TestPage()
 
         with self.get_server(root):
-            r = requests.get('http://localhost:8080/')
+            r = requests.get('http://localhost:8000/')
             self.assertEquals('url: /', r.text)
-            r = requests.get('http://localhost:8080/sub')
+            r = requests.get('http://localhost:8000/sub')
             self.assertEquals('url: /sub', r.text)
-            r = requests.get('http://localhost:8080/sub/another')
+            r = requests.get('http://localhost:8000/sub/another')
             self.assertEquals('url: /sub/another', r.text)

@@ -21,7 +21,7 @@ Now, just run
 
     $ python -mconfeitaria
 
-and access http://localhost:8080. Voilà! You will see this same documentation.
+and access http://localhost:8000. Voilà! You will see this same documentation.
 
 Creating and serving pages
 --------------------------
@@ -43,7 +43,7 @@ The simplest way so far of running a Confeitaria object is to use
     page = TestPage()
     confeitaria.run(page)
 
-If you access http://localhost:8080 after this, you will see ``This is a test``
+If you access http://localhost:8000 after this, you will see ``This is a test``
 in the browser.
 
 .. One can also create a ``Server`` object, which is more flexible. They are
@@ -62,7 +62,7 @@ in the browser.
        >>> import requests
        >>> page = TestPage()
        >>> with Server(page):
-       ...     requests.get('http://localhost:8080').text
+       ...     requests.get('http://localhost:8000').text
        u'This is a test'
 
 Subpages
@@ -93,9 +93,9 @@ below::
 ... then we should expect the following responses::
 
     >>> with Server(root):
-    ...    requests.get('http://localhost:8080/').text
-    ...    requests.get('http://localhost:8080/sub').text
-    ...    requests.get('http://localhost:8080/sub/another').text
+    ...    requests.get('http://localhost:8000/').text
+    ...    requests.get('http://localhost:8000/sub').text
+    ...    requests.get('http://localhost:8000/sub/another').text
     u'root'
     u'a subpage'
     u'another subpage'
@@ -116,8 +116,8 @@ Query path parameters
         ...        v1, v2 = int(p1), int(p2)
         ...        return "{0} + {1} = {2}".format(v1, v2, v1 + v2)
         >>> with Server(SumPage()):
-        ...     requests.get('http://localhost:8080/3/2').text
-        ...     requests.get('http://localhost:8080/-2/3').text
+        ...     requests.get('http://localhost:8000/3/2').text
+        ...     requests.get('http://localhost:8000/-2/3').text
         u'3 + 2 = 5'
         u'-2 + 3 = 1'
 
@@ -128,7 +128,7 @@ Query path parameters
         ...    def index(self, arg):
         ...        return "arg: {0}, arg type: {1}".format(arg, type(arg))
         >>> with Server(NonePage()):
-        ...     requests.get('http://localhost:8080/').text
+        ...     requests.get('http://localhost:8000/').text
         u"arg: None, arg type: <type 'NoneType'>"
 
 
@@ -139,7 +139,7 @@ Query path parameters
         ...    def index(self, arg):
         ...        return "arg: {0} arg type: {1}".format(arg, type(arg))
         >>> with Server(NonePage()):
-        ...     requests.get('http://localhost:8080/a/b').status_code
+        ...     requests.get('http://localhost:8000/a/b').status_code
         404
 
 Query string parameters
@@ -150,10 +150,10 @@ Query string parameters
         ...    def index(self, greeting='Hello', greeted='World'):
         ...        return greeting + " " + greeted + "!"
         >>> with Server(HelloWorldPage()):
-        ...     requests.get('http://localhost:8080/').text
-        ...     requests.get('http://localhost:8080/?greeting=Hi').text
+        ...     requests.get('http://localhost:8000/').text
+        ...     requests.get('http://localhost:8000/?greeting=Hi').text
         ...     requests.get(
-        ...         'http://localhost:8080/?greeting=Hi&greeted=Earth').text
+        ...         'http://localhost:8000/?greeting=Hi&greeted=Earth').text
         u'Hello World!'
         u'Hi World!'
         u'Hi Earth!'
@@ -167,9 +167,9 @@ or giving extra options (as in ``http://example.com/report/1081?pages=all``).
 
     **Advanced warning**: what if one wants to give the values for mandatory
     arguments with query string parameters (e.g. using the URL
-    ``http://localhost:8080/?p2=3&p1=2`` to hit ``SumPage``) or optional
+    ``http://localhost:8000/?p2=3&p1=2`` to hit ``SumPage``) or optional
     arguments with path components (generating a URL such as
-    ``http://localhost:8080/hello/world`` to access ``HelloWorldPage``)? This
+    ``http://localhost:8000/hello/world`` to access ``HelloWorldPage``)? This
     behavior is undefined on purpose. Confeitaria should play well with many
     other frameworks and the best behavior can vary between them. In our
     reference implementation, it fails, and we don't think it is a good practice
@@ -211,18 +211,18 @@ So we would have this tree::
 By default, nobody would be authenticated::
 
         >>> with Server(page):
-        ...     requests.get('http://localhost:8080/').text
+        ...     requests.get('http://localhost:8000/').text
         u'You are not logged in.'
 
 We can, however, send a POST request for log in::
 
         >>> with Server(page):
-        ...     requests.get('http://localhost:8080/').text
+        ...     requests.get('http://localhost:8000/').text
         ...     _ = requests.post(
-        ...         'http://localhost:8080/auth', data={'username': 'alice'},
+        ...         'http://localhost:8000/auth', data={'username': 'alice'},
         ...         allow_redirects=False # Why to do it? We'll see... soon.
         ...     )
-        ...     requests.get('http://localhost:8080/').text
+        ...     requests.get('http://localhost:8000/').text
         u'You are not logged in.'
         u'You are logged in as alice.'
 
@@ -241,8 +241,8 @@ This means that each page can know what is its own URL on the server::
     >>> root = URLAwarePage()
     >>> root.sub = URLAwarePage()
     >>> with Server(root):
-    ...     requests.get('http://localhost:8080/').text
-    ...     requests.get('http://localhost:8080/sub').text
+    ...     requests.get('http://localhost:8000/').text
+    ...     requests.get('http://localhost:8000/sub').text
     u'My URL is /'
     u'My URL is /sub'
 
@@ -258,7 +258,7 @@ can even know the URL of its subpages::
     ...             '<a href="{0}">Go there!</a>'.format(self.sub.url)
     ...         )
     >>> with Server(RootPage()):
-    ...     requests.get('http://localhost:8080/').text
+    ...     requests.get('http://localhost:8000/').text
     u'Subpage is at /sub. <a href="/sub">Go there!</a>'
 
 ..
@@ -281,8 +281,8 @@ To save you from typing the same method over and over, we also provide the class
     >>> root = MyURLedPage()
     >>> root.sub = MyURLedPage()
     >>> with Server(root):
-    ...     requests.get('http://localhost:8080/').text
-    ...     requests.get('http://localhost:8080/sub').text
+    ...     requests.get('http://localhost:8000/').text
+    ...     requests.get('http://localhost:8000/sub').text
     u'My URL is /'
     u'My URL is /sub'
 
@@ -303,7 +303,7 @@ example, about query parameters::
     ...         )
     >>> page = ActionPage()
     >>> with Server(page):
-    ...     requests.get('http://localhost:8080/?action=update').text
+    ...     requests.get('http://localhost:8000/?action=update').text
     u'The action is update'
 
 Getting and sending cookies
@@ -332,13 +332,13 @@ set of cookies. This cookies object should behave as the
     ...             return 'Please log in'
     >>> page = AuthenticationPage()
     >>> with Server(page):
-    ...     requests.get('http://localhost:8080/').text
+    ...     requests.get('http://localhost:8000/').text
     ...     r = requests.post(
-    ...         'http://localhost:8080/', data={'username': 'juju'},
+    ...         'http://localhost:8000/', data={'username': 'juju'},
     ...         allow_redirects=False
     ...     )
     ...     r.cookies['username']
-    ...     requests.get('http://localhost:8080/', cookies=r.cookies).text
+    ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
     u'Please log in'
     'juju'
     u'Hello juju'
@@ -360,13 +360,13 @@ need to raise the ``confeitaria.responses.MovedPermanently`` exception::
     >>> page = OldPage()
     >>> page.new = NewPage()
     >>> with Server(page):
-    ...     r = requests.get('http://localhost:8080/', allow_redirects=False)
+    ...     r = requests.get('http://localhost:8000/', allow_redirects=False)
     ...     r.status_code
     ...     r.headers['location']
     301
     '/new'
     >>> with Server(page):
-    ...     r = requests.get('http://localhost:8080/')
+    ...     r = requests.get('http://localhost:8000/')
     ...     r.status_code
     ...     r.text
     200
@@ -386,9 +386,9 @@ to use the ``SeeOther`` response::
     ...         LoginPage.username = username
     ...         raise confeitaria.responses.SeeOther('/')
     >>> with Server(LoginPage()):
-    ...     requests.get('http://localhost:8080/').text
+    ...     requests.get('http://localhost:8000/').text
     ...     r = requests.post(
-    ...         'http://localhost:8080/', data={'username': 'bob'}
+    ...         'http://localhost:8000/', data={'username': 'bob'}
     ...     )
     ...     r.status_code
     ...     r.text
@@ -404,7 +404,7 @@ constructor, the browser will be redirected to the originally requested URL::
     ...         raise confeitaria.responses.SeeOther()
     >>> with Server(RedirectPage()):
     ...     r = requests.post(
-    ...         'http://localhost:8080/?a=b', allow_redirects=False
+    ...         'http://localhost:8000/?a=b', allow_redirects=False
     ...     )
     ...     r.status_code
     ...     r.headers['location']
@@ -420,7 +420,7 @@ default::
     ...         pass
     >>> with Server(MagicRedirectPage()):
     ...     r = requests.post(
-    ...         'http://localhost:8080/?magic=true', allow_redirects=False
+    ...         'http://localhost:8000/?magic=true', allow_redirects=False
     ...     )
     ...     r.status_code
     ...     r.headers['location']
