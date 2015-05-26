@@ -3,6 +3,40 @@ import unittest
 
 import interfaces
 
+class TestIsPage(unittest.TestCase):
+
+    def test_is_page_true_index_method(self):
+        """
+        ``is_page()`` should return ``True`` if its argument has an ``index()``
+        bound method.
+        """
+        class TestPage(object):
+            def index(self):
+                return ''
+
+        self.assertTrue(interfaces.is_page(TestPage()))
+
+    def test_is_page_true_action_method(self):
+        """
+        ``is_page()`` should return ``True`` if its argument has an ``action()``
+        bound method.
+        """
+        class TestPage(object):
+            def action(self):
+                return ''
+
+        self.assertTrue(interfaces.is_page(TestPage()))
+
+    def test_is_page_false_no_method(self):
+        """
+        ``is_page()`` should return ``True`` if its argument has neither
+        ``index()`` nor an ``action()`` bound method.
+        """
+        class TestObject(object):
+            pass
+
+        self.assertFalse(interfaces.is_page(TestObject()))
+
 class TestURLedPage(unittest.TestCase):
 
     def test_set_url_to_get_url(self):
@@ -72,7 +106,11 @@ class TestURLedPage(unittest.TestCase):
 
         self.assertTrue(interfaces.has_set_url(TestPage()))
 
-test_suite = unittest.TestLoader().loadTestsFromTestCase(TestURLedPage)
+test_suite = unittest.TestSuite()
+test_suite.addTest(
+    unittest.defaultTestLoader.loadTestsFromTestCase(TestURLedPage))
+test_suite.addTest(
+    unittest.defaultTestLoader.loadTestsFromTestCase(TestIsPage))
 test_suite.addTest(doctest.DocTestSuite(interfaces))
 
 def load_tests(loader, tests, ignore):
