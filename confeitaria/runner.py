@@ -4,7 +4,7 @@ import wsgiref.simple_server as simple_server
 from server import Server
 
 DEFAULT_CONFIG = {
-    'port': 8080
+    'port': 8000
 }
 
 def page_server(page, environ, start_response):
