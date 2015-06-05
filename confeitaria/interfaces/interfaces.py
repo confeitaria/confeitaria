@@ -80,7 +80,8 @@ def has_set_url(page):
     """
     result = (
         hasattr(page, 'set_url') and
-        inspect.ismethod(page.set_url)
+        inspect.ismethod(page.set_url) and
+        page.set_url.im_self
     )
 
     if not result:
