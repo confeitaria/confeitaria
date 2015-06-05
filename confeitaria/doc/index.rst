@@ -343,6 +343,44 @@ set of cookies. This cookies object should behave as the
     'juju'
     u'Hello juju'
 
+Using sessions
+--------------
+
+If your page needs to preserve state between requests, you can use sessions. To
+get a session, just add a ``set_session()`` method to your page - as usual, it
+should receive an argument, which will be a dict-like session object::
+
+    >>> class SessionAuthenticationPage(object):
+    ...     def set_session(self, session):
+    ...         self.session = session
+    ...     def action(self, username=None):
+    ...         self.session['username'] = username
+    ...     def index(self):
+    ...         if 'username' in self.session:
+    ...             return 'User: {0}'.format(self.session['username'])
+    ...         else:
+    ...             return 'Not authenticated'
+
+The received session is preserved between requests. The default implementation
+saves the session variables in memory only and preserve the session through
+cookies::
+
+    >>> page = SessionAuthenticationPage()
+    >>> with Server(page):
+    ...     r = requests.get('http://localhost:8000/')
+    ...     r.text
+    ...     r = requests.post(
+    ...         'http://localhost:8000/', data={'username': 'juju'},
+    ...         cookies=r.cookies, allow_redirects=False
+    ...     )
+    ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
+    u'Not authenticated'
+    u'User: juju'
+
+Note that there is no need to handle the cookies directly: in the server,
+Confeitaria takes care of this; in the client, the browser should handle it by
+itself.
+
 Redirecting
 -----------
 
