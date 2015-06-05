@@ -106,6 +106,18 @@ class TestURLedPage(unittest.TestCase):
 
         self.assertTrue(interfaces.has_set_url(TestPage()))
 
+    def test_has_set_url_is_false_to_unbound_method(self):
+        """
+        This tests ensures the ``has_set_url()`` returns ``False`` if its
+        argument has a ``set_url()`` method but it is not bound. (For example,
+        it is a page class.)
+        """
+        class TestPage(object):
+            def set_url(self, value1, value2=None, *args, **kwargs):
+                pass
+
+        self.assertFalse(interfaces.has_set_url(TestPage))
+
 test_suite = unittest.TestSuite()
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestURLedPage))
