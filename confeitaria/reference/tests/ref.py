@@ -479,3 +479,95 @@ class TestReference(unittest.TestCase):
             self.assertEquals('url: /sub', r.text)
             r = requests.get('http://localhost:8000/sub/another')
             self.assertEquals('url: /sub/another', r.text)
+
+    def test_set_session(self):
+        """
+        If a page has a ``set_session()`` method, it should recieve a session
+        object. Some aspects of the behavior of this object are tested here as
+        well.
+        """
+        class TestPage(object):
+            def action(self, value=None):
+                self.session['value'] = value
+            def index(self):
+                if 'value' in self.session:
+                    return 'value: {0}'.format(self.session['value'])
+                else:
+                    return 'no value set'
+            def set_session(self, session):
+                self.session = session
+
+        with self.get_server(TestPage()):
+            r = requests.get('http://localhost:8000/')
+            self.assertEquals('no value set', r.text)
+            self.assertIn('SESSIONID', r.cookies)
+
+            session_id = r.cookies['SESSIONID']
+
+            requests.post(
+                'http://localhost:8000/',
+                cookies={'SESSIONID': session_id},
+                data={'value': 'example'}
+            )
+
+            r = requests.get(
+                'http://localhost:8000/',
+                cookies={'SESSIONID': session_id}
+            )
+            self.assertEquals('value: example', r.text)
+
+    def test_set_different_sessions(self):
+        """
+        Requests without the same session id should naturally yield differet
+        sesions.
+        """
+        class TestPage(object):
+            def action(self, value=None):
+                self.session['value'] = value
+            def index(self):
+                if 'value' in self.session:
+                    return 'value: {0}'.format(self.session['value'])
+                else:
+                    return 'no value set'
+            def set_session(self, session):
+                self.session = session
+
+        with self.get_server(TestPage()):
+            r = requests.get('http://localhost:8000/')
+            self.assertEquals('no value set', r.text)
+
+            session_id1 = r.cookies['SESSIONID']
+
+            requests.post(
+                'http://localhost:8000/',
+                cookies={'SESSIONID': session_id1},
+                data={'value': 'example'}
+            )
+
+            r = requests.get(
+                'http://localhost:8000/',
+                cookies={'SESSIONID': session_id1}
+            )
+            self.assertEquals('value: example', r.text)
+
+            r = requests.get('http://localhost:8000/')
+            self.assertEquals('no value set', r.text)
+
+            session_id2 = r.cookies['SESSIONID']
+
+            requests.post(
+                'http://localhost:8000/',
+                cookies={'SESSIONID': session_id2},
+                data={'value': 'other'}
+            )
+
+            r = requests.get(
+                'http://localhost:8000/',
+                cookies={'SESSIONID': session_id2}
+            )
+            self.assertEquals('value: other', r.text)
+            r = requests.get(
+                'http://localhost:8000/',
+                cookies={'SESSIONID': session_id1}
+            )
+            self.assertEquals('value: example', r.text)
