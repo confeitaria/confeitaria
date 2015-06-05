@@ -671,6 +671,43 @@ u'Please log in'
 u'Hello juju'
 </pre>
 </div>
+<div class="section" id="using-sessions">
+<h2>Using sessions</h2>
+<p>If your page needs to preserve state between requests, you can use sessions. To
+get a session, just add a <tt class="docutils literal">set_session()</tt> method to your page - as usual, it
+should receive an argument, which will be a dict-like session object:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class SessionAuthenticationPage(object):
+...     def set_session(self, session):
+...         self.session = session
+...     def action(self, username=None):
+...         self.session['username'] = username
+...     def index(self):
+...         if 'username' in self.session:
+...             return 'User: {0}'.format(self.session['username'])
+...         else:
+...             return 'Not authenticated'
+</pre>
+<p>The received session is preserved between requests. The default implementation
+saves the session variables in memory only and preserve the session through
+cookies:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; page = SessionAuthenticationPage()
+&gt;&gt;&gt; with Server(page):
+...     r = requests.get('http://localhost:8000/')
+...     r.text
+...     r = requests.post(
+...         'http://localhost:8000/', data={'username': 'juju'},
+...         cookies=r.cookies, allow_redirects=False
+...     )
+...     requests.get('http://localhost:8000/', cookies=r.cookies).text
+u'Not authenticated'
+u'User: juju'
+</pre>
+<p>Note that there is no need to handle the cookies directly: in the server,
+Confeitaria takes care of this; in the client, the browser should handle it by
+itself.</p>
+</div>
 <div class="section" id="redirecting">
 <h2>Redirecting</h2>
 <p>HTTP redirect responses are a common need. For example, you may want to redirect
