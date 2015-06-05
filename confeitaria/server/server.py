@@ -1,3 +1,5 @@
+import os
+import binascii
 import multiprocessing
 import time
 
@@ -18,6 +20,7 @@ class Server(object):
     def __init__(self, page, port=8000):
         self.request_parser = requestparser.RequestParser(page)
         self.port = port
+        self.sessions = {}
         self._process = None
 
     def run(self):
@@ -84,6 +87,16 @@ class Server(object):
 
             if hasattr(page, 'set_cookies'):
                 page.set_cookies(cookies)
+
+            if hasattr(page, 'set_session'):
+                if 'SESSIONID' not in cookies:
+                    session_id = binascii.hexlify(os.urandom(16))
+                    self.sessions[session_id] = {}
+                    cookies['SESSIONID'] = session_id
+                else:
+                    session_id = cookies['SESSIONID'].value
+
+                page.set_session(self.sessions[session_id])
 
             if environ['REQUEST_METHOD'] == 'GET':
                 content = page.index(*request.args, **request.kwargs)
