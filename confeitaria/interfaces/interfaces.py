@@ -57,6 +57,35 @@ class URLedPage(object):
 def has_set_url(page):
     return has_setter(page, 'url')
 
+class CookiedPage(object):
+    """
+    ``CookiedPage`` implements the awareness interface to retrieve cookies from
+    the request - that is, it has a ``set_cookies()`` method. It also has a
+    ``get_cookies()`` method so one can retrieve the set cookies.
+
+    To use it you only have to extend it::
+
+    >>> import Cookie
+    >>> class TestPage(CookiedPage):
+    ...     def index(self):
+    ...         return 'url: {0}'.format(self.get_cookies())
+    >>> page = TestPage()
+    >>> cookies = Cookie.SimpleCookie('example=value')
+    >>> page.set_cookies(cookies)
+    >>> page.get_cookies().output()
+    'Set-Cookie: example=value'
+    """
+
+    def set_cookies(self, cookies):
+        self.__cookies = cookies
+
+    def get_cookies(self):
+        return self.__cookies
+
+def has_set_cookies(page):
+    return has_setter(page, 'cookies')
+
+
 def has_setter(page, attr):
     """
     This function returs ``True`` if the given object has a proper setter method
