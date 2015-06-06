@@ -55,14 +55,17 @@ class URLedPage(object):
         return self.__url
 
 def has_set_url(page):
+    return has_setter(page, 'url')
+
+def has_setter(page, attr):
     """
-    This function returs ``True`` if the give object has a proper ``set_url()``
-    method::
+    This function returs ``True`` if the given object has a proper setter method
+    for the given attribute
 
     >>> class TestPage(object):
     ...     def set_url(self, url):
     ...         pass
-    >>> has_set_url(TestPage())
+    >>> has_setter(TestPage(), 'url')
     True
 
     Note that the setter should have one and only one mandatory argument...
@@ -73,22 +76,29 @@ def has_set_url(page):
     >>> class TwoArgumentsTestPage(object):
     ...     def set_url(self, url1, url2):
     ...         pass
-    >>> has_set_url(NoArgumentTestPage())
+    >>> has_setter(NoArgumentTestPage(), 'url')
     False
-    >>> has_set_url(TwoArgumentsTestPage())
+    >>> has_setter(TwoArgumentsTestPage(), 'url')
+    False
+
+    Also, the method should be bound::
+
+    >>> has_setter(TestPage, 'url')
     False
     """
+    method = getattr(page, 'set_' + attr, None)
+
     result = (
-        hasattr(page, 'set_url') and
-        inspect.ismethod(page.set_url) and
-        page.set_url.im_self
+        method is not None and
+        inspect.ismethod(method) and
+        method.im_self
     )
 
     if not result:
         return False
 
-    args, varargs, keywords, values = (
-        a if a else [] for a in inspect.getargspec(page.set_url)
+    args, _, _, values = (
+        a if a else [] for a in inspect.getargspec(method)
     )
     args.pop()
 
@@ -96,3 +106,4 @@ def has_set_url(page):
         return False
 
     return True
+
