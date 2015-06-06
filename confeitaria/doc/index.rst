@@ -407,6 +407,32 @@ Note that there is no need to handle the cookies directly: in the server,
 Confeitaria takes care of this; in the client, the browser should handle it by
 itself.
 
+You can also get the request's session by extending
+``confeitaria.interfaces.SessionedPage``. The method
+``confeitaria.interfaces.SessionedPage.get_session()`` will return the session
+object::
+
+    >>> class BetterAuthPage(confeitaria.interfaces.SessionedPage):
+    ...     def action(self, username=None):
+    ...         self.get_session()['username'] = username
+    ...     def index(self):
+    ...         if 'username' in self.get_session():
+    ...             return 'User: {0}'.format(self.get_session()['username'])
+    ...         else:
+    ...             return 'Not authenticated'
+    >>> page = BetterAuthPage()
+    >>> with Server(page):
+    ...     r = requests.get('http://localhost:8000/')
+    ...     r.text
+    ...     r = requests.post(
+    ...         'http://localhost:8000/', data={'username': 'juju'},
+    ...         cookies=r.cookies, allow_redirects=False
+    ...     )
+    ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
+    u'Not authenticated'
+    u'User: juju'
+
+
 Redirecting
 -----------
 
