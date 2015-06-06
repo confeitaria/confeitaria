@@ -343,6 +343,32 @@ set of cookies. This cookies object should behave as the
     'juju'
     u'Hello juju'
 
+If you extend ``confeitaria.interfaces.CookiedPage`` you will have a pair of
+methods to set a retrieve the cookies:
+
+    >>> class AnotherAuthenticationPage(confeitaria.interfaces.CookiedPage):
+    ...     def action(self, username=None):
+    ...         cookies = self.get_cookies()
+    ...         cookies['username'] = username
+    ...     def index(self):
+    ...         cookies = self.get_cookies()
+    ...         if 'username' in cookies:
+    ...             return 'Hello {0}'.format(cookies['username'].value)
+    ...         else:
+    ...             return 'Please log in'
+    >>> page = AnotherAuthenticationPage()
+    >>> with Server(page):
+    ...     requests.get('http://localhost:8000/').text
+    ...     r = requests.post(
+    ...         'http://localhost:8000/', data={'username': 'juju'},
+    ...         allow_redirects=False
+    ...     )
+    ...     r.cookies['username']
+    ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
+    u'Please log in'
+    'juju'
+    u'Hello juju'
+
 Using sessions
 --------------
 
