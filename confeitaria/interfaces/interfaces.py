@@ -85,6 +85,36 @@ class CookiedPage(object):
 def has_set_cookies(page):
     return has_setter(page, 'cookies')
 
+class SessionedPage(object):
+    """
+    ``SessionedPage`` implements the awareness interface to receive the session
+    from the current request. The session itself is a dict-like object.
+
+    To use it you only have to extend it::
+
+    >>> class TestPage(SessionedPage):
+    ...     def action(self, value=None):
+    ...         session = self.get_session()
+    ...         session['value'] = 'example'
+    ...     def index(self):
+    ...         session = self.get_session()
+    ...         return 'session value: {0}'.format(session.get('value', None))
+    >>> page = TestPage()
+    >>> session = {}
+    >>> page.set_session(session)
+    >>> page.action(value='example')
+    >>> page.get_session()
+    {'value': 'example'}
+    """
+
+    def set_session(self, session):
+        self.__session = session
+
+    def get_session(self):
+        return self.__session
+
+def has_set_session(page):
+    return has_setter(page, 'session')
 
 def has_setter(page, attr):
     """
