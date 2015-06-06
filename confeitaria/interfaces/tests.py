@@ -89,7 +89,7 @@ class TestCookiedPage(unittest.TestCase):
 
 class TestSessionedPage(unittest.TestCase):
 
-    def test_set_sessiom_to_get_session(self):
+    def test_set_session_to_get_session(self):
         """
         This test ensures that what goes into ``SessionedPage.set_session()`` is
         retrieved by ``SessionedPage.get_session()``.
@@ -101,7 +101,7 @@ class TestSessionedPage(unittest.TestCase):
 
     def test_has_set_session(self):
         """
-        This tests ensures the ``has_set_sessio()`` returns ``True`` if its
+        This tests ensures the ``has_set_session()`` returns ``True`` if its
         argument has a ``set_session()`` method accepting one mandatory
         argument.
         """
@@ -110,6 +110,36 @@ class TestSessionedPage(unittest.TestCase):
                 pass
 
         self.assertTrue(interfaces.has_set_session(TestPage()))
+
+class TestRequestedPage(unittest.TestCase):
+
+    def test_set_request_to_get_request(self):
+        """
+        This test ensures that what goes into ``RequestedPage.set_request()`` is
+        retrieved by ``RequestedPage.get_request()``.
+        """
+        import confeitaria.request
+
+        page = interfaces.RequestedPage()
+        request = confeitaria.request.Request(
+            args=['arg1', 'arg2'], kwargs={'value': 'example'}
+        )
+        page.set_request(request)
+
+        self.assertEqual(['arg1', 'arg2'], page.get_request().args)
+        self.assertEqual({'value': 'example'}, page.get_request().kwargs)
+
+    def test_has_set_request(self):
+        """
+        This tests ensures the ``has_set_request()`` returns ``True`` if its
+        argument has a ``set_request()`` method accepting one mandatory
+        argument.
+        """
+        class TestPage(object):
+            def set_request(self, value):
+                pass
+
+        self.assertTrue(interfaces.has_set_request(TestPage()))
 
 class TestHasSetter(unittest.TestCase):
 
@@ -178,6 +208,8 @@ test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestCookiedPage))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestSessionedPage))
+test_suite.addTest(
+    unittest.defaultTestLoader.loadTestsFromTestCase(TestRequestedPage))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestIsPage))
 test_suite.addTest(
