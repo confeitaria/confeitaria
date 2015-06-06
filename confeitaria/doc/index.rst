@@ -306,6 +306,21 @@ example, about query parameters::
     ...     requests.get('http://localhost:8000/?action=update').text
     u'The action is update'
 
+The class ``confeitaria.interfaces.RequestedPage`` implements the
+``set_request()`` method, as well as a ``get_request()`` to retrieve the set
+request::
+
+    >>> class AlsoActionPage(confeitaria.interfaces.RequestedPage):
+    ...     def index(self):
+    ...         request = self.get_request()
+    ...         return (
+    ...             'The action is ' + request.query_parameters['action']
+    ...         )
+    >>> page = AlsoActionPage()
+    >>> with Server(page):
+    ...     requests.get('http://localhost:8000/?action=update').text
+    u'The action is update'
+
 Getting and sending cookies
 ---------------------------
 
