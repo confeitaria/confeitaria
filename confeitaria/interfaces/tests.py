@@ -87,6 +87,30 @@ class TestCookiedPage(unittest.TestCase):
 
         self.assertTrue(interfaces.has_set_cookies(TestPage()))
 
+class TestSessionedPage(unittest.TestCase):
+
+    def test_set_sessiom_to_get_session(self):
+        """
+        This test ensures that what goes into ``SessionedPage.set_session()`` is
+        retrieved by ``SessionedPage.get_session()``.
+        """
+        page = interfaces.SessionedPage()
+        page.set_session({'value': 'example'})
+
+        self.assertEqual({'value': 'example'}, page.get_session())
+
+    def test_has_set_session(self):
+        """
+        This tests ensures the ``has_set_sessio()`` returns ``True`` if its
+        argument has a ``set_session()`` method accepting one mandatory
+        argument.
+        """
+        class TestPage(object):
+            def set_session(self, value):
+                pass
+
+        self.assertTrue(interfaces.has_set_session(TestPage()))
+
 class TestHasSetter(unittest.TestCase):
 
     def test_has_setter_is_false_no_method(self):
@@ -152,6 +176,8 @@ test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestURLedPage))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestCookiedPage))
+test_suite.addTest(
+    unittest.defaultTestLoader.loadTestsFromTestCase(TestSessionedPage))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestIsPage))
 test_suite.addTest(
