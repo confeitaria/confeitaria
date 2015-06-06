@@ -31,6 +31,34 @@ def is_page(obj):
     else:
         return False
 
+class RequestedPage(object):
+    """
+    ``RequestedPage`` implements the awareness interface to retrieve the current
+    parsed request - that is, it has a ``set_request()`` method. It also has a
+    ``get_request()`` method so one can retrieve the set URL.
+
+    To use it you only have to extend it::
+    
+    >>> class TestPage(RequestedPage):
+    ...     def index(self):
+    ...         request = self.get_request()
+    ...         return 'value: {0}'.format(request.kwargs['value'])
+    >>> page = TestPage()
+    >>> import confeitaria.request
+    >>> page.set_request(confeitaria.request.Request(args=['value']))
+    >>> page.get_request().args
+    ['value']
+    """
+
+    def set_request(self, request):
+        self.__request = request
+
+    def get_request(self):
+        return self.__request
+
+def has_set_request(page):
+    return has_setter(page, 'request')
+
 class URLedPage(object):
     """
     ``URLedPage`` implements the awareness interface to retrieve the current
