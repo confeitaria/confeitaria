@@ -51,7 +51,7 @@ class TestURLedPage(unittest.TestCase):
 
     def test_has_set_url(self):
         """
-        This tests ensures the ``has_set_url()`` returns ``False`` if its
+        This tests ensures the ``has_set_url()`` returns ``True`` if its
         argument has a ``set_url()`` method accepting one mandatory argument.
         """
         class TestPage(object):
@@ -59,6 +59,33 @@ class TestURLedPage(unittest.TestCase):
                 pass
 
         self.assertTrue(interfaces.has_set_url(TestPage()))
+
+class TestCookiedPage(unittest.TestCase):
+
+    def test_set_cookies_to_get_gookies(self):
+        """
+        This test ensures that what goes into ``CookiedPage.set_cookies()`` is
+        retrieved by ``CookiedPage.get_cookies()``.
+        """
+        import Cookie
+        page = interfaces.CookiedPage()
+        cookies = Cookie.SimpleCookie()
+        cookies['example'] = 'value'
+        page.set_cookies(cookies)
+
+        self.assertEqual(cookies['example'], page.get_cookies()['example'])
+
+    def test_has_set_cookies(self):
+        """
+        This tests ensures the ``has_set_cookies()`` returns ``True`` if its
+        argument has a ``set_cookies()`` method accepting one mandatory
+        argument.
+        """
+        class TestPage(object):
+            def set_cookies(self, value):
+                pass
+
+        self.assertTrue(interfaces.has_set_cookies(TestPage()))
 
 class TestHasSetter(unittest.TestCase):
 
@@ -123,6 +150,8 @@ class TestHasSetter(unittest.TestCase):
 test_suite = unittest.TestSuite()
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestURLedPage))
+test_suite.addTest(
+    unittest.defaultTestLoader.loadTestsFromTestCase(TestCookiedPage))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestIsPage))
 test_suite.addTest(
