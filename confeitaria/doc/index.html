@@ -635,6 +635,21 @@ example, about query parameters:</p>
 ...     requests.get('http://localhost:8000/?action=update').text
 u'The action is update'
 </pre>
+<p>The class <tt class="docutils literal">confeitaria.interfaces.RequestedPage</tt> implements the
+<tt class="docutils literal">set_request()</tt> method, as well as a <tt class="docutils literal">get_request()</tt> to retrieve the set
+request:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class AlsoActionPage(confeitaria.interfaces.RequestedPage):
+...     def index(self):
+...         request = self.get_request()
+...         return (
+...             'The action is ' + request.query_parameters['action']
+...         )
+&gt;&gt;&gt; page = AlsoActionPage()
+&gt;&gt;&gt; with Server(page):
+...     requests.get('http://localhost:8000/?action=update').text
+u'The action is update'
+</pre>
 </div>
 <div class="section" id="getting-and-sending-cookies">
 <h2>Getting and sending cookies</h2>
@@ -670,6 +685,34 @@ u'Please log in'
 'juju'
 u'Hello juju'
 </pre>
+<p>If you extend <tt class="docutils literal">confeitaria.interfaces.CookiedPage</tt> you will have a pair of
+methods to set a retrieve the cookies:</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; class AnotherAuthenticationPage(confeitaria.interfaces.CookiedPage):
+...     def action(self, username=None):
+...         cookies = self.get_cookies()
+...         cookies['username'] = username
+...     def index(self):
+...         cookies = self.get_cookies()
+...         if 'username' in cookies:
+...             return 'Hello {0}'.format(cookies['username'].value)
+...         else:
+...             return 'Please log in'
+&gt;&gt;&gt; page = AnotherAuthenticationPage()
+&gt;&gt;&gt; with Server(page):
+...     requests.get('http://localhost:8000/').text
+...     r = requests.post(
+...         'http://localhost:8000/', data={'username': 'juju'},
+...         allow_redirects=False
+...     )
+...     r.cookies['username']
+...     requests.get('http://localhost:8000/', cookies=r.cookies).text
+u'Please log in'
+'juju'
+u'Hello juju'
+</pre>
+</blockquote>
 </div>
 <div class="section" id="using-sessions">
 <h2>Using sessions</h2>
@@ -707,6 +750,31 @@ u'User: juju'
 <p>Note that there is no need to handle the cookies directly: in the server,
 Confeitaria takes care of this; in the client, the browser should handle it by
 itself.</p>
+<p>You can also get the request's session by extending
+<tt class="docutils literal">confeitaria.interfaces.SessionedPage</tt>. The method
+<tt class="docutils literal">confeitaria.interfaces.SessionedPage.get_session()</tt> will return the session
+object:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; class BetterAuthPage(confeitaria.interfaces.SessionedPage):
+...     def action(self, username=None):
+...         self.get_session()['username'] = username
+...     def index(self):
+...         if 'username' in self.get_session():
+...             return 'User: {0}'.format(self.get_session()['username'])
+...         else:
+...             return 'Not authenticated'
+&gt;&gt;&gt; page = BetterAuthPage()
+&gt;&gt;&gt; with Server(page):
+...     r = requests.get('http://localhost:8000/')
+...     r.text
+...     r = requests.post(
+...         'http://localhost:8000/', data={'username': 'juju'},
+...         cookies=r.cookies, allow_redirects=False
+...     )
+...     requests.get('http://localhost:8000/', cookies=r.cookies).text
+u'Not authenticated'
+u'User: juju'
+</pre>
 </div>
 <div class="section" id="redirecting">
 <h2>Redirecting</h2>
