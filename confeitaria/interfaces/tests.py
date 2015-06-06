@@ -60,69 +60,73 @@ class TestURLedPage(unittest.TestCase):
 
         self.assertTrue(interfaces.has_set_url(TestPage()))
 
-    def test_has_set_url_is_false_no_method(self):
+class TestHasSetter(unittest.TestCase):
+
+    def test_has_setter_is_false_no_method(self):
         """
-        This tests ensures the ``has_set_url()`` returns ``False`` if its
-        argument has a ``set_url`` attribute that is not a method.
+        This tests ensures the ``has_setter()`` returns ``False`` if the
+        required attribute is no method.
         """
         class TestPage(object):
             def __init__(self):
-                self.set_url = 'string'
+                self.set_example = 'string'
 
-        self.assertFalse(interfaces.has_set_url(TestPage()))
+        self.assertFalse(interfaces.has_setter(TestPage(), 'example'))
 
-    def test_has_set_url_is_false_no_argument(self):
+    def test_has_setter_is_false_no_argument(self):
         """
-        This tests ensures the ``has_set_url()`` returns ``False`` if its
-        argument has a ``set_url()`` method accepting no argument.
-        """
-        class TestPage(object):
-            def set_url(self):
-                pass
-
-        self.assertFalse(interfaces.has_set_url(TestPage()))
-
-    def test_has_set_url_is_false_more_than_one_argument(self):
-        """
-        This tests ensures the ``has_set_url()`` returns ``False`` if its
-        argument has a ``set_url()`` method with more than one required
-        argument.
+        This tests ensures the ``has_setter()`` returns ``False`` if its
+        argument has the expected method but it receives no arguments.
         """
         class TestPage(object):
-            def set_url(self, value1, value2):
+            def set_example(self):
                 pass
 
-        self.assertFalse(interfaces.has_set_url(TestPage()))
+        self.assertFalse(interfaces.has_setter(TestPage(), 'example'))
 
-    def test_has_set_url_is_true_optional_argumets(self):
+    def test_has_setter_is_false_more_than_one_mandatory_argument(self):
         """
-        This tests ensures the ``has_set_url()`` returns ``True`` if its
-        argument has a ``set_url()`` method with one mandatory argument and
+        This tests ensures the ``has_setter()`` returns ``False`` if its
+        argument has the expected method but it has more than one unbound
+        mandatory argumet.
+        """
+        class TestPage(object):
+            def set_example(self, value1, value2):
+                pass
+
+        self.assertFalse(interfaces.has_setter(TestPage(), 'example'))
+
+    def test_has_setter_is_true_optional_argumets(self):
+        """
+        This tests ensures the ``has_setter()`` returns ``True`` if its
+        argument has the expected method method with one mandatory argument and
         some optional ones.
         """
         class TestPage(object):
-            def set_url(self, value1, value2=None, *args, **kwargs):
+            def set_example(self, value1, value2=None, *args, **kwargs):
                 pass
 
-        self.assertTrue(interfaces.has_set_url(TestPage()))
+        self.assertTrue(interfaces.has_setter(TestPage(), 'example'))
 
-    def test_has_set_url_is_false_to_unbound_method(self):
+    def test_has_setter_is_false_to_unbound_method(self):
         """
-        This tests ensures the ``has_set_url()`` returns ``False`` if its
-        argument has a ``set_url()`` method but it is not bound. (For example,
+        This tests ensures the ``has_setter()`` returns ``False`` if its
+        argument the expected method but it is not bound. (For example,
         it is a page class.)
         """
         class TestPage(object):
-            def set_url(self, value1, value2=None, *args, **kwargs):
+            def set_example(self, value):
                 pass
 
-        self.assertFalse(interfaces.has_set_url(TestPage))
+        self.assertFalse(interfaces.has_setter(TestPage, 'example'))
 
 test_suite = unittest.TestSuite()
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestURLedPage))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestIsPage))
+test_suite.addTest(
+    unittest.defaultTestLoader.loadTestsFromTestCase(TestHasSetter))
 test_suite.addTest(doctest.DocTestSuite(interfaces))
 
 def load_tests(loader, tests, ignore):
