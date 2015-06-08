@@ -141,6 +141,49 @@ class TestRequestedPage(unittest.TestCase):
 
         self.assertTrue(interfaces.has_set_request(TestPage()))
 
+class TestPage(unittest.TestCase):
+
+    def test_has_set_url(self):
+        """
+        The ``interfaces.Page`` "super-interface" should have a
+        ``set_url()`` method.
+        """
+        class TestPage(interfaces.Page):
+            pass
+
+        self.assertTrue(interfaces.has_set_url(TestPage()))
+
+    def test_has_set_request(self):
+        """
+        The ``interfaces.Page`` "super-interface" should have a
+        ``set_request()`` method.
+        """
+        class TestPage(interfaces.Page):
+            pass
+
+        self.assertTrue(interfaces.has_set_request(TestPage()))
+
+    def test_has_set_cookies(self):
+        """
+        The ``interfaces.Page`` "super-interface" should have a
+        ``set_url()`` method.
+        """
+        class TestPage(interfaces.Page):
+            pass
+
+        self.assertTrue(interfaces.has_set_cookies(TestPage()))
+
+    def test_has_set_session(self):
+        """
+        The ``interfaces.Page`` "super-interface" should have a
+        ``set_session()`` method.
+        """
+        class TestPage(interfaces.Page):
+            pass
+
+        self.assertTrue(interfaces.has_set_session(TestPage()))
+
+
 class TestHasSetter(unittest.TestCase):
 
     def test_has_setter_is_false_no_method(self):
@@ -210,6 +253,7 @@ test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestSessionedPage))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestRequestedPage))
+test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestPage))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestIsPage))
 test_suite.addTest(
