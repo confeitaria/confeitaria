@@ -144,6 +144,39 @@ class SessionedPage(object):
 def has_set_session(page):
     return has_setter(page, 'session')
 
+
+class Page(URLedPage, RequestedPage, CookiedPage, SessionedPage):
+    """
+    The ``Page`` class provides the awareness interfaces to get the URL,
+    request object, cookies and sessions from a request::
+
+    >>> import confeitaria.request, Cookie, confeitaria.request as cr
+    >>> class TestPage(Page):
+    ...     def index(self):
+    ...         request = self.get_request()
+    ...         return ('URL: {0}\\n'
+    ...             'Request value: {1}\\n'
+    ...             'Cookies: {2}\\n'
+    ...             'Session: {3}'
+    ...         ).format(
+    ...             self.get_url(),
+    ...             self.get_request().kwargs['request_value'],
+    ...             self.get_cookies().output(),
+    ...             self.get_session()
+    ...         )
+    >>> page = TestPage()
+    >>> page.set_url('/test')
+    >>> page.set_request(cr.Request(kwargs={'request_value': 'example'}))
+    >>> page.set_cookies(Cookie.SimpleCookie('example=value'))
+    >>> page.set_session({'session_value': 'example'})
+    >>> print(page.index())
+    URL: /test
+    Request value: example
+    Cookies: Set-Cookie: example=value
+    Session: {'session_value': 'example'}
+    """
+    pass
+
 def has_setter(page, attr):
     """
     This function returs ``True`` if the given object has a proper setter method
