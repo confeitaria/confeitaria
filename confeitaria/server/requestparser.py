@@ -249,8 +249,8 @@ class RequestParser(object):
         ``RequestParser`` expects as its constructor argument a page
         (probably with subpages) to which to map URLs.
         """
-        self.linkmap = self._get_linkmap(page)
-        urls = list(self.linkmap.keys())
+        self.url_dict = self._get_url_dict(page)
+        urls = list(self.url_dict.keys())
         urls.sort()
         urls.reverse()
         self.urls = urls
@@ -259,7 +259,7 @@ class RequestParser(object):
         _, _, path, _, query, _ = urlparse.urlparse(url)
 
         prefix = find_longest_prefix(path, self.urls)
-        page = self.linkmap[prefix]
+        page = self.url_dict[prefix]
         query_parameters = self._get_query_parameters(query)
 
         if body is None:
@@ -307,22 +307,23 @@ class RequestParser(object):
             for name, value in page_kwargs.items()
         }
 
-    def _get_linkmap(self, page, path=None, linkmap=None):
-        linkmap = {} if linkmap is None else linkmap
+    def _get_url_dict(self, page, path=None, url_dict=None):
+        url_dict = {} if url_dict is None else url_dict
         path = '' if path is None else path
 
-        linkmap[path] = page
+        url_dict[path] = page
 
         for attr_name in dir(page):
             attr = getattr(page, attr_name)
             if confeitaria.interfaces.has_page_method(attr):
-                self._get_linkmap(attr, '/'.join((path, attr_name)), linkmap)
+                url = '/'.join((path, attr_name))
+                self._get_url_dict(attr, url, url_dict)
 
         if confeitaria.interfaces.has_setter(page, 'url'):
             page_url = path if path != '' else '/'
             page.set_url(page_url)
 
-        return linkmap
+        return url_dict
 
     def _get_query_parameters(self, query):
         query_parameters = urlparse.parse_qs(query)
