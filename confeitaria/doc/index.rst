@@ -121,15 +121,15 @@ Query path parameters
         u'3 + 2 = 5'
         u'-2 + 3 = 1'
 
-    If the URL path does not a value for the given parameter, the index method
-    will still be called, having ``None`` as its parameter value::
+    If the URL path does not a value for the given parameter, a 404 Not Found
+    response will be served::
 
         >>> class NonePage(object):
         ...    def index(self, arg):
         ...        return "arg: {0}, arg type: {1}".format(arg, type(arg))
         >>> with Server(NonePage()):
-        ...     requests.get('http://localhost:8000/').text
-        u"arg: None, arg type: <type 'NoneType'>"
+        ...     requests.get('http://localhost:8000/').status_code
+        404
 
 
     If the URL path has more values than the number of index method's mandatory

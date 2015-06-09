@@ -59,7 +59,7 @@ class TestRequestParser(unittest.TestCase):
         with self.assertRaises(NotFound):
             request_parser.parse_request('/nosub')
 
-    def test_path_parameters(self):
+    def test_path_args(self):
         """
         This test ensures that the parser can find parameters in path.
         """
@@ -78,7 +78,7 @@ class TestRequestParser(unittest.TestCase):
         self.assertEquals(['value'], request.args)
         self.assertEquals({}, request.kwargs)
 
-    def test_missing_path_parameters_are_none(self):
+    def test_missing_path_args_not_found_404(self):
         """
         This test ensures that  parser finds a page whose index method
         expects arguments, but the parameters are not passed in the path,
@@ -90,11 +90,9 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/')
 
-        self.assertEquals(page, request.page)
-        self.assertEquals([], request.path_args)
-        self.assertEquals([None], request.args)
+        with self.assertRaises(NotFound):
+            request_parser.parse_request('/')
 
     def test_too_many_path_parameters_leads_to_404(self):
         """
@@ -125,8 +123,7 @@ class TestRequestParser(unittest.TestCase):
         This test ensures that when parser finds a page whose index method
         expects arguments, but the number of parameters in the path is larger
         than the number of arguments in the index method, then a 404 Not Found
-        response will follow
-
+        response will follow.
         """
         class TestPage(object):
             def index(self, kwarg1=None, kwarg2=None):
@@ -144,11 +141,7 @@ class TestRequestParser(unittest.TestCase):
 
     def test_path_and_query_args(self):
         """
-        This test ensures that when parser finds a page whose index method
-        expects arguments, but the number of parameters in the path is larger
-        than the number of arguments in the index method, then a 404 Not Found
-        response will follow
-
+        This test checks whether path and query args are being properly parsed.
         """
         class TestPage(object):
             def index(self, arg1, arg2, kwarg1=None, kwarg2=None):
@@ -156,13 +149,13 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/value1?kwarg2=value')
+        request = request_parser.parse_request('/value1/value2?kwarg2=value')
 
         self.assertEquals(page, request.page)
-        self.assertEquals(['value1'], request.path_args)
+        self.assertEquals(['value1', 'value2'], request.path_args)
         self.assertEquals({'kwarg2': 'value'}, request.query_args)
         self.assertEquals({}, request.form_args)
-        self.assertEquals(['value1', None], request.args)
+        self.assertEquals(['value1', 'value2'], request.args)
         self.assertEquals({'kwarg1': None, 'kwarg2': 'value'}, request.kwargs)
 
     def test_attribute_has_precedence_over_path_parameters(self):

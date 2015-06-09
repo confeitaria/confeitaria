@@ -161,24 +161,20 @@ class TestReference(unittest.TestCase):
                 'self.sub url: /sub; self.sub.another url: /sub/another', r.text
             )
 
-    def test_index_parameters_should_have_none_value(self):
+    def test_too_few_path_parameters_leads_to_404(self):
         """
-        This test ensures that mandatory parameters from index will receive
-        ``None`` as their values if no value is found in the path.
+        This test ensures that a path without mandatory arguments will result in
+        a 404 Not Found result.
         """
         class TestPage(object):
             def index(self, arg):
-                if arg is not None:
-                    result = 'arg: {0}'.format(arg)
-                else:
-                    result = 'no arg'
-                return result
+                return 'irrelevant content'
 
         with self.get_server(TestPage()):
+            r = requests.get('http://localhost:8000/sub')
+            self.assertEquals(200, r.status_code)
             r = requests.get('http://localhost:8000/')
-            self.assertEquals('no arg', r.text)
-            r = requests.get('http://localhost:8000/example')
-            self.assertEquals('arg: example', r.text)
+            self.assertEquals(404, r.status_code)
 
     def test_too_many_index_parameters_results_in_404(self):
         """
