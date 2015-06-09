@@ -447,6 +447,54 @@ object::
     u'Not authenticated'
     u'User: juju'
 
+The ``Page`` class
+------------------
+
+In practice, we almost always want to have access to the URL page, cookies,
+session and the request object. Instead of implementing all the required methods
+by hand, or extending all awareness interface classes, we can just extend the
+``confeitaria.interfaces.Page`` class, and our page will be aware of all these
+informations. Consider, for example, an e-commerce page which stores the user
+in session and the cart in the cookies::
+
+    >>> class CartPage(confeitaria.interfaces.Page):
+    ...     def index(self):
+    ...         result = "Welcome to {0}. ".format(self.get_url())
+    ...         user = self.get_session().get('username', 'nobody')
+    ...         result += "You are {0}. ".format(user)
+    ...         if 'items' in self.get_cookies():
+    ...             items = self.get_cookies()['items'].value
+    ...         else:
+    ...             items = 0
+    ...         result += "You have {0} items.".format(items)
+    ...         return result
+    ...     def action(self, username=None, items=None):
+    ...         if username is not None:
+    ...             self.get_session()['username'] = username
+    ...         if items is not None:
+    ...             self.get_cookies()['items'] = items
+
+It would yield the following results::
+
+    >>> page = CartPage()
+    >>> with Server(page):
+    ...     r = requests.get('http://localhost:8000/')
+    ...     r.text
+    ...     r = requests.post(
+    ...         'http://localhost:8000/', data={'username': 'juju'},
+    ...         cookies=r.cookies
+    ...     )
+    ...     r.text
+    ...     r = requests.post(
+    ...         'http://localhost:8000/', data={'items': '2'},
+    ...         cookies=r.cookies
+    ...     )
+    ...     r.text
+    ...     r.cookies['items']
+    u'Welcome to /. You are nobody. You have 0 items.'
+    u'Welcome to /. You are juju. You have 0 items.'
+    u'Welcome to /. You are juju. You have 2 items.'
+    '2'
 
 Redirecting
 -----------
