@@ -49,17 +49,6 @@ class TestURLedPage(unittest.TestCase):
 
         self.assertEqual('/test', page.get_url())
 
-    def test_has_set_url(self):
-        """
-        This tests ensures the ``has_set_url()`` returns ``True`` if its
-        argument has a ``set_url()`` method accepting one mandatory argument.
-        """
-        class TestPage(object):
-            def set_url(self, value):
-                pass
-
-        self.assertTrue(interfaces.has_set_url(TestPage()))
-
 class TestCookiedPage(unittest.TestCase):
 
     def test_set_cookies_to_get_gookies(self):
@@ -75,18 +64,6 @@ class TestCookiedPage(unittest.TestCase):
 
         self.assertEqual(cookies['example'], page.get_cookies()['example'])
 
-    def test_has_set_cookies(self):
-        """
-        This tests ensures the ``has_set_cookies()`` returns ``True`` if its
-        argument has a ``set_cookies()`` method accepting one mandatory
-        argument.
-        """
-        class TestPage(object):
-            def set_cookies(self, value):
-                pass
-
-        self.assertTrue(interfaces.has_set_cookies(TestPage()))
-
 class TestSessionedPage(unittest.TestCase):
 
     def test_set_session_to_get_session(self):
@@ -98,18 +75,6 @@ class TestSessionedPage(unittest.TestCase):
         page.set_session({'value': 'example'})
 
         self.assertEqual({'value': 'example'}, page.get_session())
-
-    def test_has_set_session(self):
-        """
-        This tests ensures the ``has_set_session()`` returns ``True`` if its
-        argument has a ``set_session()`` method accepting one mandatory
-        argument.
-        """
-        class TestPage(object):
-            def set_session(self, value):
-                pass
-
-        self.assertTrue(interfaces.has_set_session(TestPage()))
 
 class TestRequestedPage(unittest.TestCase):
 
@@ -129,60 +94,56 @@ class TestRequestedPage(unittest.TestCase):
         self.assertEqual(['arg1', 'arg2'], page.get_request().args)
         self.assertEqual({'value': 'example'}, page.get_request().kwargs)
 
-    def test_has_set_request(self):
-        """
-        This tests ensures the ``has_set_request()`` returns ``True`` if its
-        argument has a ``set_request()`` method accepting one mandatory
-        argument.
-        """
-        class TestPage(object):
-            def set_request(self, value):
-                pass
-
-        self.assertTrue(interfaces.has_set_request(TestPage()))
-
 class TestPage(unittest.TestCase):
 
-    def test_has_set_url(self):
+    def test_set_url_to_get_url(self):
         """
-        The ``interfaces.Page`` "super-interface" should have a
-        ``set_url()`` method.
+        This test ensures pages extending ``Page`` have methods for getting and
+        setting URLs.
         """
-        class TestPage(interfaces.Page):
-            pass
+        page = interfaces.Page()
+        page.set_url('/test')
 
-        self.assertTrue(interfaces.has_set_url(TestPage()))
+        self.assertEqual('/test', page.get_url())
 
-    def test_has_set_request(self):
+    def test_set_cookies_to_get_gookies(self):
         """
-        The ``interfaces.Page`` "super-interface" should have a
-        ``set_request()`` method.
+        This test ensures pages extending ``Page`` have methods for getting and
+        setting cookies.
         """
-        class TestPage(interfaces.Page):
-            pass
+        import Cookie
+        page = interfaces.Page()
+        cookies = Cookie.SimpleCookie()
+        cookies['example'] = 'value'
+        page.set_cookies(cookies)
 
-        self.assertTrue(interfaces.has_set_request(TestPage()))
+        self.assertEqual(cookies['example'], page.get_cookies()['example'])
 
-    def test_has_set_cookies(self):
+    def test_set_session_to_get_session(self):
         """
-        The ``interfaces.Page`` "super-interface" should have a
-        ``set_url()`` method.
+        This test ensures pages extending ``Page`` have methods for getting and
+        setting the current session.
         """
-        class TestPage(interfaces.Page):
-            pass
+        page = interfaces.Page()
+        page.set_session({'value': 'example'})
 
-        self.assertTrue(interfaces.has_set_cookies(TestPage()))
+        self.assertEqual({'value': 'example'}, page.get_session())
 
-    def test_has_set_session(self):
+    def test_set_request_to_get_request(self):
         """
-        The ``interfaces.Page`` "super-interface" should have a
-        ``set_session()`` method.
+        This test ensures pages extending ``Page`` have methods for getting and
+        setting request objects.
         """
-        class TestPage(interfaces.Page):
-            pass
+        import confeitaria.request
 
-        self.assertTrue(interfaces.has_set_session(TestPage()))
+        page = interfaces.Page()
+        request = confeitaria.request.Request(
+            args=['arg1', 'arg2'], kwargs={'value': 'example'}
+        )
+        page.set_request(request)
 
+        self.assertEqual(['arg1', 'arg2'], page.get_request().args)
+        self.assertEqual({'value': 'example'}, page.get_request().kwargs)
 
 class TestHasSetter(unittest.TestCase):
 
