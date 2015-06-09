@@ -3,39 +3,39 @@ import unittest
 
 import interfaces
 
-class TestIsPage(unittest.TestCase):
+class TestHasPageMethod(unittest.TestCase):
 
-    def test_is_page_true_index_method(self):
+    def test_has_page_method_true_index_method(self):
         """
-        ``is_page()`` should return ``True`` if its argument has an ``index()``
-        bound method.
+        ``has_page_method()`` should return ``True`` if its argument has an
+        ``index()`` bound method.
         """
         class TestPage(object):
             def index(self):
                 return ''
 
-        self.assertTrue(interfaces.is_page(TestPage()))
+        self.assertTrue(interfaces.has_page_method(TestPage()))
 
-    def test_is_page_true_action_method(self):
+    def test_has_page_method_true_action_method(self):
         """
-        ``is_page()`` should return ``True`` if its argument has an ``action()``
-        bound method.
+        ``has_page_method()`` should return ``True`` if its argument has an
+        ``action()`` bound method.
         """
         class TestPage(object):
             def action(self):
                 return ''
 
-        self.assertTrue(interfaces.is_page(TestPage()))
+        self.assertTrue(interfaces.has_page_method(TestPage()))
 
-    def test_is_page_false_no_method(self):
+    def test_has_page_method_false_no_method(self):
         """
-        ``is_page()`` should return ``True`` if its argument has neither
+        ``has_page_method()`` should return ``True`` if its argument has neither
         ``index()`` nor an ``action()`` bound method.
         """
         class TestObject(object):
             pass
 
-        self.assertFalse(interfaces.is_page(TestObject()))
+        self.assertFalse(interfaces.has_page_method(TestObject()))
 
 class TestURLedPage(unittest.TestCase):
 
@@ -216,7 +216,7 @@ test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestRequestedPage))
 test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestPage))
 test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromTestCase(TestIsPage))
+    unittest.defaultTestLoader.loadTestsFromTestCase(TestHasPageMethod))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestHasSetter))
 test_suite.addTest(doctest.DocTestSuite(interfaces))
