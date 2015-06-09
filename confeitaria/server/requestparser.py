@@ -21,8 +21,8 @@ class RequestParser(object):
     * ``query_args``: a dictionary containing the parsed query paramenters;
     *``form_args``: a dictionary containing the parsed body of a POST
       request;
-    * ``args``: a list, containing strings and ``None``, to be used as the
-      argument to the index or action method; and
+    * ``args``: a list of strings be used as the argument to the index or action
+      method; and
     * ``kwargs``: a dictionary, whose values can be string or ``None``,
       containing optional arguments to the index or action method::
 
@@ -31,7 +31,7 @@ class RequestParser(object):
         ...     def index(self, arg, kwarg=None):
         ...         return ''
         >>> request_parser = RequestParser(TestPage())
-        >>> request = request_parser.parse_request('')
+        >>> request = request_parser.parse_request('/v')
         >>> hasattr(request.page, "index")
         True
         >>> isinstance(request.path_args, list)
@@ -151,8 +151,8 @@ class RequestParser(object):
     There is, however, a situation where the path has compoments that does not
     map to attributes and yet ``parse_request()`` returns a request. It happens
     when the last found page's ``index()`` or ``action()`` method expects
-    arguments, and the path has at most the same number of compoments remaining
-    as the number of arguments of the page method.
+    arguments, and the path has the same number of compoments remaining as the
+    number of arguments of the page method.
 
     An example can make it clearer. Consider the following page::
 
@@ -173,7 +173,7 @@ class RequestParser(object):
         >>> request.page.index(*request.args)
         'Hello world'
 
-    Yet, we cannot pass more path compoment than the number of arguments in the
+    Yet, we cannot pass more path compoments than the number of arguments in the
     method::
 
         >>> request_parser.parse_request('/world/again')
@@ -181,20 +181,14 @@ class RequestParser(object):
           ...
         NotFound: /world/again not found
 
-    If we pass no parameter in the path, ``path_args`` will only have the
-    given values, but ``args`` will be filled with ``None``s until it completes
-    the number of the method's required arguments
+    Neither can we pass _less_ arguments - ti will also result in a
+    ``confeitaria.responses.NotFound`` exception::
 
     ::
         >>> request = request_parser.parse_request('/')
-        >>> request.page == page
-        True
-        >>> request.path_args
-        []
-        >>> request.args
-        [None]
-        >>> request.page.index(*request.args)
-        'Hello None'
+        Traceback (most recent call last):
+          ...
+        NotFound: / not found
 
     Optional parameters
     -------------------
@@ -294,18 +288,14 @@ class RequestParser(object):
         args = positional_arguments[:]
 
         args_count = len(args_names) - len(args_values)
-        missing_args_count = len(args_names) - len(args)
-
-        if missing_args_count > 0:
-            args += [None] * missing_args_count
-        elif missing_args_count < 0:
+        if len(args) != args_count:
             raise confeitaria.responses.NotFound(
                 message='{0} not found'.format(
                     '/' + '/'.join(positional_arguments)
                 )
             )
 
-        return args[:args_count]
+        return args
 
     def _get_kwargs(self, kw_arguments, args_names, args_values):
         page_kwargs = {
