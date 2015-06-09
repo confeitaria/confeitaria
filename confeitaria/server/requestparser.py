@@ -318,7 +318,7 @@ class RequestParser(object):
             if confeitaria.interfaces.is_page(attr):
                 self._get_linkmap(attr, '/'.join((path, attr_name)), linkmap)
 
-        if confeitaria.interfaces.has_set_url(page):
+        if confeitaria.interfaces.has_setter(page, 'url'):
             page_url = path if path != '' else '/'
             page.set_url(page_url)
 

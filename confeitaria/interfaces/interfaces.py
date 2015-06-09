@@ -56,9 +56,6 @@ class RequestedPage(object):
     def get_request(self):
         return self.__request
 
-def has_set_request(page):
-    return has_setter(page, 'request')
-
 class URLedPage(object):
     """
     ``URLedPage`` implements the awareness interface to retrieve the current
@@ -81,9 +78,6 @@ class URLedPage(object):
 
     def get_url(self):
         return self.__url
-
-def has_set_url(page):
-    return has_setter(page, 'url')
 
 class CookiedPage(object):
     """
@@ -109,9 +103,6 @@ class CookiedPage(object):
 
     def get_cookies(self):
         return self.__cookies
-
-def has_set_cookies(page):
-    return has_setter(page, 'cookies')
 
 class SessionedPage(object):
     """
@@ -140,10 +131,6 @@ class SessionedPage(object):
 
     def get_session(self):
         return self.__session
-
-def has_set_session(page):
-    return has_setter(page, 'session')
-
 
 class Page(URLedPage, RequestedPage, CookiedPage, SessionedPage):
     """
