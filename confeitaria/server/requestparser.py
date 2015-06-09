@@ -12,9 +12,19 @@ class RequestParser(object):
     ---------------------------
 
     Request parsers are objects with a ``parse_request()`` method. This method
-    should receive a string as an argument and return a request object. This
-    request object should give access to at least three values: a page object a
-    list of strings and a dictionary::
+    should receive an URL path as an argument and return a request object. This
+    request object should give access to at least five attributes:
+
+    * ``page``: a page object;
+    * ``path_arguments``: a list of strings that are the components from the URL
+      path not included in the path to the page object;
+    * ``query_arguments``: a dictionary containing the parsed query paramenters;
+    *``form_arguments``: a dictionary containing the parsed body of a POST
+      request;
+    * ``args``: a list, containing strings and ``None``, to be used as the
+      argument to the index or action method; and
+    * ``kwargs``: a dictionary, whose values can be string or ``None``,
+      containing optional arguments to the index or action method::
 
         >>> # RequestParser requires such a page to work
         >>> class TestPage(object):
@@ -24,14 +34,20 @@ class RequestParser(object):
         >>> request = request_parser.parse_request('')
         >>> hasattr(request.page, "index")
         True
+        >>> isinstance(request.path_arguments, list)
+        True
+        >>> isinstance(request.query_arguments, dict)
+        True
+        >>> isinstance(request.form_arguments, dict)
+        True
         >>> isinstance(request.args, list)
         True
         >>> isinstance(request.kwargs, dict)
         True
 
     It is mandatory that the page index or action method should be called having
-    the list expanded to fill its mandatory arguments, as well as the dict
-    expanded to fill its optional arguments:
+    the args list expanded to fill its mandatory arguments, as well as the
+    kwargs dict expanded to fill its optional arguments:
 
         >>> request.page.index(*request.args, **request.kwargs)
         ''
@@ -43,8 +59,8 @@ class RequestParser(object):
     ---------------------
 
     ``parse_request()`` can also receive a second argument, which should be the
-    body of a POST request. In this case, the body will be passed as a string
-    and its parameters will be returned in the dict::
+    body of a POST request. It is from this argument that the values at
+    ``form_arguments`` will come from::
 
         >>> class ActionPage(object):
         ...     def action(self, kwarg=None):
@@ -53,12 +69,10 @@ class RequestParser(object):
         >>> request = request_parser.parse_request('', 'kwarg=example')
         >>> hasattr(request.page, "action")
         True
-        >>> isinstance(request.args, list)
+        >>> isinstance(request.path_arguments, list)
         True
-        >>> isinstance(request.kwargs, dict)
+        >>> isinstance(request.form_arguments, dict)
         True
-        >>> request.page.action(*request.args, **request.kwargs)
-        'kwarg is example'
 
     The ``RequestParser`` implemetation
     -----------------------------------
@@ -154,7 +168,7 @@ class RequestParser(object):
         >>> request = request_parser.parse_request('/world')
         >>> request.page == page
         True
-        >>> request.args
+        >>> request.path_arguments
         ['world']
         >>> request.page.index(*request.args)
         'Hello world'
@@ -167,13 +181,16 @@ class RequestParser(object):
           ...
         NotFound: /world/again not found
 
-    (If we pass no parameter, however, the corresponding value in the list of
-    arguments will be ``None``.)
+    If we pass no parameter in the path, ``path_arguments`` will only have the
+    given values, but ``args`` will be filled with ``None``s until it completes
+    the number of the method's required arguments
 
     ::
         >>> request = request_parser.parse_request('/')
         >>> request.page == page
         True
+        >>> request.path_arguments
+        []
         >>> request.args
         [None]
         >>> request.page.index(*request.args)
@@ -182,9 +199,9 @@ class RequestParser(object):
     Optional parameters
     -------------------
 
-    Index methods can also have optional arguments. Those are expected to be
-    filled with the dict returned by the URL parser. In the case of the
-    ``RequestParser``, these values comes from the query string.
+    Index methods can also have optional arguments. They can come from either
+    the query parameters or from the submitted form fields. If the latter is
+    given, then
 
     Given for instance the page below::
 
@@ -201,17 +218,20 @@ class RequestParser(object):
         ... )
         >>> request.page == page
         True
-        >>> request.args
+        >>> request.path_arguments
         []
-        >>> request.kwargs
+        >>> request.query_arguments
         {'greeting': 'Hi', 'greeted': 'Earth'}
-        >>> request.page.index(*request.args, **request.kwargs)
+        >>> request.page.index(*request.path_arguments, **request.kwargs)
         'Hi Earth'
 
-    If ``parse_request()`` received the second argument, then the optional
-    parameters should come from this argument, not from the URL query string.
-    This second argument is expected to be a body of a POST request as a
-    string::
+    Action methods, on the other hand, are not expected to use the query
+    arguments as their optional parameters. Instead, it should use the parsed
+    values form a POST request body.
+
+    If ``parse_request()`` received the second argument, it is expected to be
+    the body of such a POST request, as a string. The parsed values can be found
+    at the ``form_arguments`` attribute from the request::
 
         >>> class ActionPage(object):
         ...     def action(self, kwarg=None):
@@ -221,27 +241,12 @@ class RequestParser(object):
         >>> request = request_parser.parse_request('', 'kwarg=example')
         >>> request.page == page
         True
-        >>> request.args
+        >>> request.path_arguments
         []
-        >>> request.kwargs
+        >>> request.query_arguments
+        {}
+        >>> request.form_arguments
         {'kwarg': 'example'}
-
-    More ``Request`` attributes
-    ---------------------------
-
-    The returned request is the same that is set into a page following the
-    ``set_request()`` protocol. As such, it has more attributes. For example, we
-    can get the list of query parameters from it::
-
-        >>> class RequestedPage(object):
-        ...     def set_request(self, request):
-        ...         self.req = request
-        ...     def index(self):
-        ...         return ''
-        >>> request_parser = RequestParser(RequestedPage())
-        >>> request = request_parser.parse_request('/?kwarg1=example&kwarg2=other')
-        >>> request.query_parameters
-        {'kwarg1': 'example', 'kwarg2': 'other'}
     """
 
     def __init__(self, page):
@@ -258,52 +263,58 @@ class RequestParser(object):
     def parse_request(self, url, body=None):
         _, _, path, _, query, _ = urlparse.urlparse(url)
 
-        prefix = find_longest_prefix(path, self.urls)
-        page = self.url_dict[prefix]
-        query_parameters = self._get_query_parameters(query)
+        page_path = find_longest_prefix(path, self.urls)
+        extra_path = path.replace(page_path, '')
+
+        page = self.url_dict[page_path]
+
+        path_arguments = [a for a in extra_path.split('/') if a]
+        query_arguments = self._get_query_parameters(query)
+        form_arguments = self._get_query_parameters(body)
 
         if body is None:
             page_method = page.index
+            kw_arguments = query_arguments
         else:
             page_method = page.action
-            query = body
+            kw_arguments = form_arguments
 
         args_names, _, _, args_values = inspect.getargspec(page_method)
         args_values = args_values if args_values is not None else []
 
-        args = self._get_args(path.replace(prefix, ''), args_names, args_values)
-        kwargs = self._get_kwargs(query, args_names, args_values)
+        args = self._get_args(path_arguments, args_names, args_values)
+        kwargs = self._get_kwargs(kw_arguments, args_names, args_values)
 
         return confeitaria.request.Request(
-            page, args, kwargs, query_parameters=query_parameters
+            page, path_arguments, query_arguments, form_arguments, args, kwargs
         )
 
-    def _get_args(self, extra_path, args_names, args_values):
-        path_args = [a for a in extra_path.split('/') if a]
+    def _get_args(self, positional_arguments, args_names, args_values):
+        args_names.pop(0)
+        args = positional_arguments[:]
 
         args_count = len(args_names) - len(args_values)
-        args = path_args
+        missing_args_count = len(args_names) - len(args)
 
-        missing_args_count = len(args_names) - len(path_args) -1
         if missing_args_count > 0:
             args += [None] * missing_args_count
         elif missing_args_count < 0:
             raise confeitaria.responses.NotFound(
-                message='{0} not found'.format(extra_path)
+                message='{0} not found'.format(
+                    '/' + '/'.join(positional_arguments)
+                )
             )
 
-        return args[:args_count-1]
+        return args[:args_count]
 
-    def _get_kwargs(self, query, args_names, args_values):
-        query_args = self._get_query_parameters(query)
-
+    def _get_kwargs(self, kw_arguments, args_names, args_values):
         page_kwargs = {
             name: value
             for name, value in zip(reversed(args_names), reversed(args_values))
         }
 
         return {
-            name: query_args.get(name, value)
+            name: kw_arguments.get(name, value)
             for name, value in page_kwargs.items()
         }
 
@@ -326,7 +337,10 @@ class RequestParser(object):
         return url_dict
 
     def _get_query_parameters(self, query):
-        query_parameters = urlparse.parse_qs(query)
+        if query is not None:
+            query_parameters = urlparse.parse_qs(query)
+        else:
+            query_parameters = {}
 
         for key, value in query_parameters.items():
             if isinstance(value, list) and len(value) == 1:
