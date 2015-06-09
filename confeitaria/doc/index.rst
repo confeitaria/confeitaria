@@ -299,7 +299,7 @@ example, about query parameters::
     ...         self.request = request
     ...     def index(self):
     ...         return (
-    ...             'The action is ' + self.request.query_parameters['action']
+    ...             'The action is ' + self.request.query_args['action']
     ...         )
     >>> page = ActionPage()
     >>> with Server(page):
@@ -314,7 +314,7 @@ request::
     ...     def index(self):
     ...         request = self.get_request()
     ...         return (
-    ...             'The action is ' + request.query_parameters['action']
+    ...             'The action is ' + request.query_args['action']
     ...         )
     >>> page = ActionPage()
     >>> with Server(page):
