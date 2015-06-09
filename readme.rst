@@ -275,11 +275,11 @@ To save you from typing the same method over and over, we also provide the class
 ``get_url()`` method::
 
     >>> import confeitaria.interfaces
-    >>> class MyURLedPage(confeitaria.interfaces.URLedPage):
+    >>> class URLAwarePage(confeitaria.interfaces.URLedPage):
     ...     def index(self):
     ...         return 'My URL is ' + self.get_url()
-    >>> root = MyURLedPage()
-    >>> root.sub = MyURLedPage()
+    >>> root = URLAwarePage()
+    >>> root.sub = URLAwarePage()
     >>> with Server(root):
     ...     requests.get('http://localhost:8000/').text
     ...     requests.get('http://localhost:8000/sub').text
@@ -310,13 +310,13 @@ The class ``confeitaria.interfaces.RequestedPage`` implements the
 ``set_request()`` method, as well as a ``get_request()`` to retrieve the set
 request::
 
-    >>> class AlsoActionPage(confeitaria.interfaces.RequestedPage):
+    >>> class ActionPage(confeitaria.interfaces.RequestedPage):
     ...     def index(self):
     ...         request = self.get_request()
     ...         return (
     ...             'The action is ' + request.query_parameters['action']
     ...         )
-    >>> page = AlsoActionPage()
+    >>> page = ActionPage()
     >>> with Server(page):
     ...     requests.get('http://localhost:8000/?action=update').text
     u'The action is update'
@@ -333,56 +333,66 @@ If a page has a bound method named ``set_cookies()`` with one argument, this
 method will be called and the argument value will be an object representing a
 set of cookies. This cookies object should behave as the
 `Cookie.SimpleCookie
-<https://docs.python.org/2/library/cookie.html#Cookie.SimpleCookie>`_::
+<https://docs.python.org/2/library/cookie.html#Cookie.SimpleCookie>`_. Consider,
+for example, the cart page below - it stores the number of items in a cookie::
 
-    >>> class AuthenticationPage(object):
+    >>> class CartPage(object):
     ...     def set_cookies(self, cookies):
     ...         self.cookies = cookies
-    ...     def action(self, username=None):
-    ...         self.cookies['username'] = username
+    ...     def action(self, items=None):
+    ...         if items is not None:
+    ...             self.cookies['items'] = items
     ...     def index(self):
-    ...         if 'username' in self.cookies:
-    ...             return 'Hello {0}'.format(self.cookies['username'].value)
+    ...         if 'items' in self.cookies:
+    ...             return 'You have {0} items'.format(
+    ...                 self.cookies['items'].value
+    ...             )
     ...         else:
-    ...             return 'Please log in'
-    >>> page = AuthenticationPage()
+    ...             return 'You have no items'
+
+The results from using it is::
+
+    >>> page = CartPage()
     >>> with Server(page):
     ...     requests.get('http://localhost:8000/').text
     ...     r = requests.post(
-    ...         'http://localhost:8000/', data={'username': 'juju'},
+    ...         'http://localhost:8000/', data={'items': '2'},
     ...         allow_redirects=False
     ...     )
-    ...     r.cookies['username']
+    ...     r.cookies['items']
     ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
-    u'Please log in'
-    'juju'
-    u'Hello juju'
+    u'You have no items'
+    '2'
+    u'You have 2 items'
 
 If you extend ``confeitaria.interfaces.CookiedPage`` you will have a pair of
 methods to set a retrieve the cookies:
 
-    >>> class AnotherAuthenticationPage(confeitaria.interfaces.CookiedPage):
-    ...     def action(self, username=None):
-    ...         cookies = self.get_cookies()
-    ...         cookies['username'] = username
+    >>> class CartPage(confeitaria.interfaces.CookiedPage):
+    ...     def action(self, items=None):
+    ...         if items is not None:
+    ...             self.get_cookies()['items'] = items
     ...     def index(self):
-    ...         cookies = self.get_cookies()
-    ...         if 'username' in cookies:
-    ...             return 'Hello {0}'.format(cookies['username'].value)
+    ...         if 'items' in self.get_cookies():
+    ...             cookies = self.get_cookies()
+    ...             return 'You have {0} items'.format(
+    ...                 self.get_cookies()['items'].value
+    ...             )
     ...         else:
-    ...             return 'Please log in'
-    >>> page = AnotherAuthenticationPage()
+    ...             return 'You have no items'
+    >>> page = CartPage()
     >>> with Server(page):
     ...     requests.get('http://localhost:8000/').text
     ...     r = requests.post(
-    ...         'http://localhost:8000/', data={'username': 'juju'},
+    ...         'http://localhost:8000/', data={'items': '2'},
     ...         allow_redirects=False
     ...     )
-    ...     r.cookies['username']
+    ...     r.cookies['items']
     ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
-    u'Please log in'
-    'juju'
-    u'Hello juju'
+    u'You have no items'
+    '2'
+    u'You have 2 items'
+
 
 Using sessions
 --------------
@@ -391,7 +401,7 @@ If your page needs to preserve state between requests, you can use sessions. To
 get a session, just add a ``set_session()`` method to your page - as usual, it
 should receive an argument, which will be a dict-like session object::
 
-    >>> class SessionAuthenticationPage(object):
+    >>> class SessionPage(object):
     ...     def set_session(self, session):
     ...         self.session = session
     ...     def action(self, username=None):
@@ -406,7 +416,7 @@ The received session is preserved between requests. The default implementation
 saves the session variables in memory only and preserve the session through
 cookies::
 
-    >>> page = SessionAuthenticationPage()
+    >>> page = SessionPage()
     >>> with Server(page):
     ...     r = requests.get('http://localhost:8000/')
     ...     r.text
@@ -427,7 +437,7 @@ You can also get the request's session by extending
 ``confeitaria.interfaces.SessionedPage.get_session()`` will return the session
 object::
 
-    >>> class BetterAuthPage(confeitaria.interfaces.SessionedPage):
+    >>> class SessionPage(confeitaria.interfaces.SessionedPage):
     ...     def action(self, username=None):
     ...         self.get_session()['username'] = username
     ...     def index(self):
@@ -435,7 +445,7 @@ object::
     ...             return 'User: {0}'.format(self.get_session()['username'])
     ...         else:
     ...             return 'Not authenticated'
-    >>> page = BetterAuthPage()
+    >>> page = SessionPage()
     >>> with Server(page):
     ...     r = requests.get('http://localhost:8000/')
     ...     r.text
@@ -457,7 +467,7 @@ by hand, or extending all awareness interface classes, we can just extend the
 informations. Consider, for example, an e-commerce page which stores the user
 in session and the cart in the cookies::
 
-    >>> class CartPage(confeitaria.interfaces.Page):
+    >>> class ShopPage(confeitaria.interfaces.Page):
     ...     def index(self):
     ...         result = "Welcome to {0}. ".format(self.get_url())
     ...         user = self.get_session().get('username', 'nobody')
@@ -476,7 +486,7 @@ in session and the cart in the cookies::
 
 It would yield the following results::
 
-    >>> page = CartPage()
+    >>> page = ShopPage()
     >>> with Server(page):
     ...     r = requests.get('http://localhost:8000/')
     ...     r.text
