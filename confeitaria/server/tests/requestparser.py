@@ -22,6 +22,9 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(page)
         request = request_parser.parse_request('/')
         self.assertEquals(page, request.page)
+        self.assertEquals([], request.path_arguments)
+        self.assertEquals({}, request.query_arguments)
+        self.assertEquals({}, request.form_arguments)
         self.assertEquals([], request.args)
         self.assertEquals({}, request.kwargs)
 
@@ -69,6 +72,9 @@ class TestRequestParser(unittest.TestCase):
         request = request_parser.parse_request('/value')
 
         self.assertEquals(page, request.page)
+        self.assertEquals(['value'], request.path_arguments)
+        self.assertEquals({}, request.query_arguments)
+        self.assertEquals({}, request.form_arguments)
         self.assertEquals(['value'], request.args)
         self.assertEquals({}, request.kwargs)
 
@@ -87,8 +93,8 @@ class TestRequestParser(unittest.TestCase):
         request = request_parser.parse_request('/')
 
         self.assertEquals(page, request.page)
+        self.assertEquals([], request.path_arguments)
         self.assertEquals([None], request.args)
-        self.assertEquals({}, request.kwargs)
 
     def test_too_many_path_parameters_leads_to_404(self):
         """
@@ -107,14 +113,14 @@ class TestRequestParser(unittest.TestCase):
         request = request_parser.parse_request('/value')
 
         self.assertEquals(page, request.page)
+        self.assertEquals(['value'], request.path_arguments)
         self.assertEquals(['value'], request.args)
-        self.assertEquals({}, request.kwargs)
 
         with self.assertRaises(NotFound):
             request_parser.parse_request('/value/excess')
 
 
-    def test_query_parameters(self):
+    def test_query_arguments(self):
         """
         This test ensures that when parser finds a page whose index method
         expects arguments, but the number of parameters in the path is larger
@@ -131,10 +137,12 @@ class TestRequestParser(unittest.TestCase):
         request = request_parser.parse_request('/?kwarg2=value')
 
         self.assertEquals(page, request.page)
-        self.assertEquals([], request.args)
-        self.assertEquals({'kwarg1': None, 'kwarg2': 'value'},request.kwargs)
+        self.assertEquals([], request.path_arguments)
+        self.assertEquals({'kwarg2': 'value'}, request.query_arguments)
+        self.assertEquals({}, request.form_arguments)
+        self.assertEquals({'kwarg1': None, 'kwarg2': 'value'}, request.kwargs)
 
-    def test_path_and_query_parameters(self):
+    def test_path_and_query_arguments(self):
         """
         This test ensures that when parser finds a page whose index method
         expects arguments, but the number of parameters in the path is larger
@@ -148,13 +156,14 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/value1?kwarg2=kwvalue2')
+        request = request_parser.parse_request('/value1?kwarg2=value')
 
         self.assertEquals(page, request.page)
+        self.assertEquals(['value1'], request.path_arguments)
+        self.assertEquals({'kwarg2': 'value'}, request.query_arguments)
+        self.assertEquals({}, request.form_arguments)
         self.assertEquals(['value1', None], request.args)
-        self.assertEquals(
-            {'kwarg1': None, 'kwarg2': 'kwvalue2'}, request.kwargs
-        )
+        self.assertEquals({'kwarg1': None, 'kwarg2': 'value'}, request.kwargs)
 
     def test_attribute_has_precedence_over_path_parameters(self):
         """
@@ -177,7 +186,6 @@ class TestRequestParser(unittest.TestCase):
 
         self.assertEquals(page, request.page)
         self.assertEquals(['value'], request.args)
-        self.assertEquals({}, request.kwargs)
         self.assertEquals(
             'page: root, arg: value',
             request.page.index(*request.args, **request.kwargs)
@@ -187,7 +195,6 @@ class TestRequestParser(unittest.TestCase):
 
         self.assertEquals(page.attribute, request.page)
         self.assertEquals([], request.args)
-        self.assertEquals({}, request.kwargs)
         self.assertEquals(
             'page: attribute',
             request.page.index(*request.args, **request.kwargs)
@@ -230,6 +237,8 @@ class TestRequestParser(unittest.TestCase):
 
         request = request_parser.parse_request('/sub', 'kwarg=example')
 
+        self.assertEquals({}, request.query_arguments)
+        self.assertEquals({'kwarg': 'example'}, request.form_arguments)
         self.assertEquals({'kwarg': 'example'}, request.kwargs)
 
     def test_returned_tuple_is_request_object(self):
@@ -245,7 +254,7 @@ class TestRequestParser(unittest.TestCase):
         request = request_parser.parse_request('/?kwarg=value&kwarg1=example')
 
         self.assertEquals(
-            {'kwarg': 'value', 'kwarg1': 'example'}, request.query_parameters
+            {'kwarg': 'value', 'kwarg1': 'example'}, request.query_arguments
         )
 
     def test_request_not_tuple_anymore(self):
@@ -265,6 +274,9 @@ class TestRequestParser(unittest.TestCase):
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
 test_suite.addTest(doctest.DocTestSuite(confeitaria.server.requestparser))
+
+def load_tests(loader, tests, ignore):
+    return test_suite
 
 if __name__ == "__main__":
     unittest.main()
