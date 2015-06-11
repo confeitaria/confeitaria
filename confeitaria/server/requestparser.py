@@ -290,39 +290,39 @@ class RequestParser(object):
         self.urls = urls
 
     def parse_request(self, url, body=None):
-        _, _, path, _, query, _ = urlparse.urlparse(url)
+        parsed_url = urlparse.urlparse(url)
 
-        page_path = find_longest_prefix(path, self.urls)
-        extra_path = path.replace(page_path, '')
+        page_path = find_longest_prefix(parsed_url.path, self.urls)
+        extra_path = parsed_url.path.replace(page_path, '')
 
         page = self.url_dict[page_path]
 
         path_args = [a for a in extra_path.split('/') if a]
-        query_args = self._get_query_parameters(query)
+        query_args = self._get_query_parameters(parsed_url.query)
         form_args = self._get_query_parameters(body)
 
         if body is None:
             page_method = page.index
-            kw_arguments = query_args
+            kwargs = query_args
         else:
             page_method = page.action
-            kw_arguments = form_args
+            kwargs = form_args
 
-        args_names, _, _, args_values = inspect.getargspec(page_method)
-        args_values = args_values if args_values is not None else []
-        args_names.pop(0)
-        args_count = len(args_names) - len(args_values)
+        argspec = inspect.getargspec(page_method)
+
+        defaults = argspec.defaults if argspec.defaults is not None else []
+        args = argspec.args[1:]
+        args_count = len(args) - len(defaults)
 
         if len(path_args) != args_count:
             raise confeitaria.responses.NotFound(
                 message='{0} not found'.format(url)
             )
 
-        args = path_args
-        kwargs = self._get_kwargs(kw_arguments, args_names, args_values)
+        kwargs = self._get_kwargs(kwargs, args, defaults)
 
         return confeitaria.request.Request(
-            page, path_args, query_args, form_args, args, kwargs, url
+            page, path_args, query_args, form_args, path_args, kwargs, url
         )
 
     def _get_kwargs(self, kwargs, args_names, args_values):
