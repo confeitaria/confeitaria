@@ -298,14 +298,11 @@ class RequestParser(object):
         return args
 
     def _get_kwargs(self, kw_arguments, args_names, args_values):
-        page_kwargs = {
-            name: value
-            for name, value in zip(reversed(args_names), reversed(args_values))
-        }
+        kwargs_count = len(args_values)
+        names = args_names[-kwargs_count:]
 
         return {
-            name: kw_arguments.get(name, value)
-            for name, value in page_kwargs.items()
+            name: kw_arguments[name] for name in names if name in kw_arguments
         }
 
     def _get_url_dict(self, page, path=None, url_dict=None):
