@@ -302,6 +302,28 @@ class TestRequestParser(unittest.TestCase):
         with self.assertRaises(TypeError):
             _, _, _ = request_parser.parse_request('')
 
+
+    def test_request_has_url(self):
+        """
+        The request object should have the called URL.
+        """
+        class TestPage(object):
+            def index(self):
+                return ''
+
+        page = TestPage()
+        page.sub = TestPage()
+        request_parser = RequestParser(page)
+
+        request = request_parser.parse_request('/')
+        self.assertEquals('/', request.url)
+
+        request = request_parser.parse_request('/?arg=1')
+        self.assertEquals('/?arg=1', request.url)
+
+        request = request_parser.parse_request('/sub')
+        self.assertEquals('/sub', request.url)
+
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
 test_suite.addTest(doctest.DocTestSuite(confeitaria.server.requestparser))
 
