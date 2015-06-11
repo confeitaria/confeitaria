@@ -288,9 +288,10 @@ class TestRequestParser(unittest.TestCase):
         )
 
     def test_request_not_tuple_anymore(self):
-        """ In the past, the request object used to be a tuple. It proved to
-        be hard to maintain and confusing. As a consequence, we removed this
-        behavior from it. This test registers this change.
+        """
+        In the past, the request object used to be a tuple. It proved to be
+        confusing. As a consequence, we removed this behavior from it. This test
+        registers this change.
         """
         class TestPage(object):
             def index(self):
@@ -300,7 +301,7 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(page)
 
         with self.assertRaises(TypeError):
-            _, _, _ = request_parser.parse_request('')
+            _, _, _ = request_parser.parse_request('/')
 
 
     def test_request_has_url(self):
