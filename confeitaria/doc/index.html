@@ -452,15 +452,15 @@ from the query path, as below:</p>
 u'3 + 2 = 5'
 u'-2 + 3 = 1'
 </pre>
-<p>If the URL path does not a value for the given parameter, the index method
-will still be called, having <tt class="docutils literal">None</tt> as its parameter value:</p>
+<p>If the URL path does not a value for the given parameter, a 404 Not Found
+response will be served:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; class NonePage(object):
 ...    def index(self, arg):
 ...        return &quot;arg: {0}, arg type: {1}&quot;.format(arg, type(arg))
 &gt;&gt;&gt; with Server(NonePage()):
-...     requests.get('http://localhost:8000/').text
-u&quot;arg: None, arg type: &lt;type 'NoneType'&gt;&quot;
+...     requests.get('http://localhost:8000/').status_code
+404
 </pre>
 <p>If the URL path has more values than the number of index method's mandatory
 parameters, a 404 Not Found error should be the result:</p>
@@ -604,11 +604,11 @@ examples are quite simple.</blockquote>
 <tt class="docutils literal">get_url()</tt> method:</p>
 <pre class="literal-block">
 &gt;&gt;&gt; import confeitaria.interfaces
-&gt;&gt;&gt; class MyURLedPage(confeitaria.interfaces.URLedPage):
+&gt;&gt;&gt; class URLAwarePage(confeitaria.interfaces.URLedPage):
 ...     def index(self):
 ...         return 'My URL is ' + self.get_url()
-&gt;&gt;&gt; root = MyURLedPage()
-&gt;&gt;&gt; root.sub = MyURLedPage()
+&gt;&gt;&gt; root = URLAwarePage()
+&gt;&gt;&gt; root.sub = URLAwarePage()
 &gt;&gt;&gt; with Server(root):
 ...     requests.get('http://localhost:8000/').text
 ...     requests.get('http://localhost:8000/sub').text
@@ -628,7 +628,7 @@ example, about query parameters:</p>
 ...         self.request = request
 ...     def index(self):
 ...         return (
-...             'The action is ' + self.request.query_parameters['action']
+...             'The action is ' + self.request.query_args['action']
 ...         )
 &gt;&gt;&gt; page = ActionPage()
 &gt;&gt;&gt; with Server(page):
@@ -639,13 +639,13 @@ u'The action is update'
 <tt class="docutils literal">set_request()</tt> method, as well as a <tt class="docutils literal">get_request()</tt> to retrieve the set
 request:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; class AlsoActionPage(confeitaria.interfaces.RequestedPage):
+&gt;&gt;&gt; class ActionPage(confeitaria.interfaces.RequestedPage):
 ...     def index(self):
 ...         request = self.get_request()
 ...         return (
-...             'The action is ' + request.query_parameters['action']
+...             'The action is ' + request.query_args['action']
 ...         )
-&gt;&gt;&gt; page = AlsoActionPage()
+&gt;&gt;&gt; page = ActionPage()
 &gt;&gt;&gt; with Server(page):
 ...     requests.get('http://localhost:8000/?action=update').text
 u'The action is update'
@@ -660,57 +660,66 @@ with each request.</p>
 <p>If a page has a bound method named <tt class="docutils literal">set_cookies()</tt> with one argument, this
 method will be called and the argument value will be an object representing a
 set of cookies. This cookies object should behave as the
-<a class="reference external" href="https://docs.python.org/2/library/cookie.html#Cookie.SimpleCookie">Cookie.SimpleCookie</a>:</p>
+<a class="reference external" href="https://docs.python.org/2/library/cookie.html#Cookie.SimpleCookie">Cookie.SimpleCookie</a>. Consider,
+for example, the cart page below - it stores the number of items in a cookie:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; class AuthenticationPage(object):
+&gt;&gt;&gt; class CartPage(object):
 ...     def set_cookies(self, cookies):
 ...         self.cookies = cookies
-...     def action(self, username=None):
-...         self.cookies['username'] = username
+...     def action(self, items=None):
+...         if items is not None:
+...             self.cookies['items'] = items
 ...     def index(self):
-...         if 'username' in self.cookies:
-...             return 'Hello {0}'.format(self.cookies['username'].value)
+...         if 'items' in self.cookies:
+...             return 'You have {0} items'.format(
+...                 self.cookies['items'].value
+...             )
 ...         else:
-...             return 'Please log in'
-&gt;&gt;&gt; page = AuthenticationPage()
+...             return 'You have no items'
+</pre>
+<p>The results from using it is:</p>
+<pre class="literal-block">
+&gt;&gt;&gt; page = CartPage()
 &gt;&gt;&gt; with Server(page):
 ...     requests.get('http://localhost:8000/').text
 ...     r = requests.post(
-...         'http://localhost:8000/', data={'username': 'juju'},
+...         'http://localhost:8000/', data={'items': '2'},
 ...         allow_redirects=False
 ...     )
-...     r.cookies['username']
+...     r.cookies['items']
 ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
-u'Please log in'
-'juju'
-u'Hello juju'
+u'You have no items'
+'2'
+u'You have 2 items'
 </pre>
 <p>If you extend <tt class="docutils literal">confeitaria.interfaces.CookiedPage</tt> you will have a pair of
 methods to set a retrieve the cookies:</p>
 <blockquote>
 <pre class="doctest-block">
-&gt;&gt;&gt; class AnotherAuthenticationPage(confeitaria.interfaces.CookiedPage):
-...     def action(self, username=None):
-...         cookies = self.get_cookies()
-...         cookies['username'] = username
+&gt;&gt;&gt; class CartPage(confeitaria.interfaces.CookiedPage):
+...     def action(self, items=None):
+...         if items is not None:
+...             self.get_cookies()['items'] = items
 ...     def index(self):
-...         cookies = self.get_cookies()
-...         if 'username' in cookies:
-...             return 'Hello {0}'.format(cookies['username'].value)
+...         if 'items' in self.get_cookies():
+...             cookies = self.get_cookies()
+...             return 'You have {0} items'.format(
+...                 self.get_cookies()['items'].value
+...             )
 ...         else:
-...             return 'Please log in'
-&gt;&gt;&gt; page = AnotherAuthenticationPage()
+...             return 'You have no items'
+&gt;&gt;&gt; page = CartPage()
 &gt;&gt;&gt; with Server(page):
 ...     requests.get('http://localhost:8000/').text
 ...     r = requests.post(
-...         'http://localhost:8000/', data={'username': 'juju'},
+...         'http://localhost:8000/', data={'items': '2'},
 ...         allow_redirects=False
 ...     )
-...     r.cookies['username']
+...     r.cookies['items']
 ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
-u'Please log in'
-'juju'
-u'Hello juju'
+u'You have no items'
+'2'
+u'You have 2 items'
 </pre>
 </blockquote>
 </div>
@@ -720,7 +729,7 @@ u'Hello juju'
 get a session, just add a <tt class="docutils literal">set_session()</tt> method to your page - as usual, it
 should receive an argument, which will be a dict-like session object:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; class SessionAuthenticationPage(object):
+&gt;&gt;&gt; class SessionPage(object):
 ...     def set_session(self, session):
 ...         self.session = session
 ...     def action(self, username=None):
@@ -735,7 +744,7 @@ should receive an argument, which will be a dict-like session object:</p>
 saves the session variables in memory only and preserve the session through
 cookies:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; page = SessionAuthenticationPage()
+&gt;&gt;&gt; page = SessionPage()
 &gt;&gt;&gt; with Server(page):
 ...     r = requests.get('http://localhost:8000/')
 ...     r.text
@@ -755,7 +764,7 @@ itself.</p>
 <tt class="docutils literal">confeitaria.interfaces.SessionedPage.get_session()</tt> will return the session
 object:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; class BetterAuthPage(confeitaria.interfaces.SessionedPage):
+&gt;&gt;&gt; class SessionPage(confeitaria.interfaces.SessionedPage):
 ...     def action(self, username=None):
 ...         self.get_session()['username'] = username
 ...     def index(self):
@@ -763,7 +772,7 @@ object:</p>
 ...             return 'User: {0}'.format(self.get_session()['username'])
 ...         else:
 ...             return 'Not authenticated'
-&gt;&gt;&gt; page = BetterAuthPage()
+&gt;&gt;&gt; page = SessionPage()
 &gt;&gt;&gt; with Server(page):
 ...     r = requests.get('http://localhost:8000/')
 ...     r.text
@@ -785,7 +794,7 @@ by hand, or extending all awareness interface classes, we can just extend the
 informations. Consider, for example, an e-commerce page which stores the user
 in session and the cart in the cookies:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; class CartPage(confeitaria.interfaces.Page):
+&gt;&gt;&gt; class ShopPage(confeitaria.interfaces.Page):
 ...     def index(self):
 ...         result = &quot;Welcome to {0}. &quot;.format(self.get_url())
 ...         user = self.get_session().get('username', 'nobody')
@@ -804,7 +813,7 @@ in session and the cart in the cookies:</p>
 </pre>
 <p>It would yield the following results:</p>
 <pre class="literal-block">
-&gt;&gt;&gt; page = CartPage()
+&gt;&gt;&gt; page = ShopPage()
 &gt;&gt;&gt; with Server(page):
 ...     r = requests.get('http://localhost:8000/')
 ...     r.text
