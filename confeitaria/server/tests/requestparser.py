@@ -137,7 +137,44 @@ class TestRequestParser(unittest.TestCase):
         self.assertEquals([], request.path_args)
         self.assertEquals({'kwarg2': 'value'}, request.query_args)
         self.assertEquals({}, request.form_args)
-        self.assertEquals({'kwarg1': None, 'kwarg2': 'value'}, request.kwargs)
+        self.assertEquals({'kwarg2': 'value'}, request.kwargs)
+
+    def test_kwargs_ignores_values_not_in_method_signature(self):
+        """
+        This method ensures that the ``Request.kwargs`` dict has no argument
+        whose name is not a name of a positional argument of the method to be
+        called.
+        """
+        class TestPage(object):
+            def index(self, kwarg=None):
+                return ''
+
+        page = TestPage()
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request('/?kwarg=value&arg=no')
+
+        self.assertEquals(page, request.page)
+        self.assertEquals({'kwarg': 'value', 'arg': 'no'}, request.query_args)
+        self.assertEquals({'kwarg': 'value'}, request.kwargs)
+
+    def test_kwags_has_no_values_to_positional_arguments(self):
+        """
+        This method ensures that the ``Request.kwargs`` dict has no argument
+        that should be specified as path arguments.
+        """
+        class TestPage(object):
+            def index(self, arg, kwarg=None):
+                return ''
+
+        page = TestPage()
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request('/example?kwarg=value&arg=no')
+
+        self.assertEquals(page, request.page)
+        self.assertEquals(['example'], request.path_args)
+        self.assertEquals(['example'], request.args)
+        self.assertEquals({'kwarg': 'value', 'arg': 'no'}, request.query_args)
+        self.assertEquals({'kwarg': 'value'}, request.kwargs)
 
     def test_path_and_query_args(self):
         """
@@ -156,7 +193,7 @@ class TestRequestParser(unittest.TestCase):
         self.assertEquals({'kwarg2': 'value'}, request.query_args)
         self.assertEquals({}, request.form_args)
         self.assertEquals(['value1', 'value2'], request.args)
-        self.assertEquals({'kwarg1': None, 'kwarg2': 'value'}, request.kwargs)
+        self.assertEquals({'kwarg2': 'value'}, request.kwargs)
 
     def test_attribute_has_precedence_over_path_parameters(self):
         """
