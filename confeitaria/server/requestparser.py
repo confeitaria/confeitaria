@@ -275,27 +275,20 @@ class RequestParser(object):
 
         args_names, _, _, args_values = inspect.getargspec(page_method)
         args_values = args_values if args_values is not None else []
+        args_names.pop(0)
+        args_count = len(args_names) - len(args_values)
 
-        args = self._get_args(path_args, args_names, args_values)
+        if len(path_args) != args_count:
+            raise confeitaria.responses.NotFound(
+                message='{0} not found'.format(url)
+            )
+
+        args = path_args
         kwargs = self._get_kwargs(kw_arguments, args_names, args_values)
 
         return confeitaria.request.Request(
             page, path_args, query_args, form_args, args, kwargs, url
         )
-
-    def _get_args(self, positional_arguments, args_names, args_values):
-        args_names.pop(0)
-        args = positional_arguments[:]
-
-        args_count = len(args_names) - len(args_values)
-        if len(args) != args_count:
-            raise confeitaria.responses.NotFound(
-                message='{0} not found'.format(
-                    '/' + '/'.join(positional_arguments)
-                )
-            )
-
-        return args
 
     def _get_kwargs(self, kwargs, args_names, args_values):
         kwargs_count = len(args_values)
