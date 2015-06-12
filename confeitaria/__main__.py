@@ -1,4 +1,4 @@
-import confeitaria
+import confeitaria.runner
 
 class BasicDocumentationPage(object):
     """
@@ -10,4 +10,4 @@ class BasicDocumentationPage(object):
 
         return pkgutil.get_data('confeitaria', 'doc/index.html')
 
-confeitaria.run(BasicDocumentationPage())
+confeitaria.runner.run(BasicDocumentationPage())
