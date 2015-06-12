@@ -3,19 +3,7 @@ import wsgiref.simple_server as simple_server
 
 from server import Server
 
-DEFAULT_CONFIG = {
-    'port': 8000
-}
-
-def page_server(page, environ, start_response):
-    status = '200 OK'
-    headers = [('Content-type', 'text/html')]
-
-    start_response(status, headers)
-
-    return page.index()
-
-def run(page, config=None):
+def run(page):
     """
     This is the simplest way so far of running a Confeitaria site.
     ``confeitaria.run()`` starts up a server to serve the output of a page.
@@ -50,6 +38,4 @@ def run(page, config=None):
 
     >>> p.terminate()
     """
-    config = DEFAULT_CONFIG if config is None else config
-
-    server = Server(page, **config).run()
+    server = Server(page).run()

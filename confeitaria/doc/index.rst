@@ -36,12 +36,12 @@ method*) or a bounded method named ``action()`` (the *action method*). The
     ...        return "This is a test"
 
 The simplest way so far of running a Confeitaria object is to use
-``confeitaria.run()``. It starts up a server to serve the return of the
+``confeitaria.runner.run()``. It starts up a server to serve the return of the
 ``index()`` method::
 
-    import confeitaria
+    import confeitaria.runner
     page = TestPage()
-    confeitaria.run(page)
+    confeitaria.runner.run(page)
 
 If you access http://localhost:8000 after this, you will see ``This is a test``
 in the browser.
@@ -49,7 +49,7 @@ in the browser.
 .. One can also create a ``Server`` object, which is more flexible. They are
    created and used as below::
    
-       from confeitaria import Server
+       from confeitaria.server import Server
        page = TestPage()
        server = Server(page)
        server.run()
@@ -58,7 +58,7 @@ in the browser.
    server will start in a different process, requests would be possible from the
    source code and it would bw shut down after everything is done::
    
-       >>> from confeitaria import Server
+       >>> from confeitaria.server import Server
        >>> import requests
        >>> page = TestPage()
        >>> with Server(page):
@@ -68,11 +68,11 @@ in the browser.
 Subpages
 --------
 
-If the page passed to ``confeitaria.run()`` / ``Server`` has an attribute, and
-this attribute is also a page, then we only need to add the attribute name as
-part of the path in the URL to get its output. The attribute page is a subpage
-and can has its own subpages. For example, if we have the classes
-below::
+If the page passed to ``confeitaria.runner.run()`` / ``Server`` has an
+attribute, and this attribute is also a page, then we only need to add the
+attribute name as part of the path in the URL to get its output. The attribute
+page is a subpage and can has its own subpages. For example, if we have the
+classes below::
 
     >>> class RootPage(object):
     ...     def index(self):
