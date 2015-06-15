@@ -91,15 +91,12 @@ class Server(object):
             if hasattr(page, 'set_session'):
                 if 'SESSIONID' not in cookies:
                     session_id = binascii.hexlify(os.urandom(16))
-                    self.sessions[session_id] = {}
                     cookies['SESSIONID'] = session_id
                 else:
                     session_id = cookies['SESSIONID'].value
 
-                    if session_id not in self.sessions:
-                        session_id = binascii.hexlify(os.urandom(16))
-                        self.sessions[session_id] = {}
-                        cookies['SESSIONID'] = session_id
+                if session_id not in self.sessions:
+                    self.sessions[session_id] = {}
 
                 page.set_session(self.sessions[session_id])
 
