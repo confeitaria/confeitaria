@@ -9,6 +9,7 @@ from confeitaria.server import server
 from confeitaria import runner
 
 import confeitaria
+import confeitaria.interfaces
 
 class TestServer(TestReference):
 
@@ -49,6 +50,33 @@ class TestServer(TestReference):
             self.assertEquals('page content', request.text)
             self.assertEquals(200, request.status_code)
             self.assertEquals('text/html', request.headers['content-type'])
+
+    def test_handle_old_session_id_from_cookie_after_restart(self):
+        """
+        Since the default session is stored in memory, it is lost when the
+        server restarts. Yet, a browser can still have the session id from the
+        first execution of the server. If that happens, the server should handle
+        it gracefully.
+        """
+        class TestPage(confeitaria.interfaces.SessionedPage):
+            def index(self):
+                return ''
+
+        page = TestPage()
+
+        with Server(page):
+            request = requests.get('http://localhost:8000/')
+
+            request = requests.get(
+                'http://localhost:8000/', cookies=request.cookies
+            )
+            self.assertEquals(200, request.status_code)
+
+        with Server(page):
+            request = requests.get(
+                'http://localhost:8000/', cookies=request.cookies
+            )
+            self.assertEquals(200, request.status_code)
 
     def get_server(self, page):
         return Server(page)
