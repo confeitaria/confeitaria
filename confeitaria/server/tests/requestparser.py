@@ -1,6 +1,11 @@
 import unittest
 import doctest
 
+try:
+    import cStringIO as StringIO
+except:
+    import StringIO
+
 import requests
 
 from ..requestparser import RequestParser
@@ -39,7 +44,7 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/')
+        request = request_parser.parse_request({'PATH_INFO': '/'})
         self.assertEquals(page, request.page)
         self.assertEquals([], request.path_args)
         self.assertEquals({}, request.query_args)
@@ -60,7 +65,7 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(page)
 
         with self.assertRaises(NotFound):
-            request_parser.parse_request('/nosub')
+            request_parser.parse_request({'PATH_INFO': '/nosub'})
 
     def test_not_subpage_404(self):
         """
@@ -76,7 +81,7 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(page)
 
         with self.assertRaises(NotFound):
-            request_parser.parse_request('/nosub')
+            request_parser.parse_request({'PATH_INFO': '/nosub'})
 
     def test_path_args(self):
         """
@@ -88,7 +93,7 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/value')
+        request = request_parser.parse_request({'PATH_INFO': '/value'})
 
         self.assertEquals(page, request.page)
         self.assertEquals(['value'], request.path_args)
@@ -111,7 +116,7 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(page)
 
         with self.assertRaises(NotFound):
-            request_parser.parse_request('/')
+            request_parser.parse_request({'PATH_INFO': '/'})
 
     def test_too_many_path_parameters_leads_to_404(self):
         """
@@ -127,14 +132,14 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/value')
+        request = request_parser.parse_request({'PATH_INFO': '/value'})
 
         self.assertEquals(page, request.page)
         self.assertEquals(['value'], request.path_args)
         self.assertEquals(['value'], request.args)
 
         with self.assertRaises(NotFound):
-            request_parser.parse_request('/value/excess')
+            request_parser.parse_request({'PATH_INFO': '/value/excess'})
 
 
     def test_query_args(self):
@@ -150,7 +155,9 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/?kwarg2=value')
+        request = request_parser.parse_request({
+            'PATH_INFO': '/', 'QUERY_STRING': 'kwarg2=value'
+        })
 
         self.assertEquals(page, request.page)
         self.assertEquals([], request.path_args)
@@ -170,7 +177,9 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/?kwarg=value&arg=no')
+        request = request_parser.parse_request({
+            'PATH_INFO': '/', 'QUERY_STRING': 'kwarg=value&arg=no'
+        })
 
         self.assertEquals(page, request.page)
         self.assertEquals({'kwarg': 'value', 'arg': 'no'}, request.query_args)
@@ -187,7 +196,9 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/example?kwarg=value&arg=no')
+        request = request_parser.parse_request({
+            'PATH_INFO': '/example', 'QUERY_STRING': 'kwarg=value&arg=no'
+        })
 
         self.assertEquals(page, request.page)
         self.assertEquals(['example'], request.path_args)
@@ -205,7 +216,9 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/value1/value2?kwarg2=value')
+        request = request_parser.parse_request({
+            'PATH_INFO': '/value1/value2', 'QUERY_STRING': 'kwarg2=value'
+        })
 
         self.assertEquals(page, request.page)
         self.assertEquals(['value1', 'value2'], request.path_args)
@@ -231,7 +244,7 @@ class TestRequestParser(unittest.TestCase):
         page.attribute = AttributePage()
         request_parser = RequestParser(page)
 
-        request = request_parser.parse_request('/value')
+        request = request_parser.parse_request({'PATH_INFO': '/value'})
 
         self.assertEquals(page, request.page)
         self.assertEquals(['value'], request.args)
@@ -240,7 +253,7 @@ class TestRequestParser(unittest.TestCase):
             request.page.index(*request.args, **request.kwargs)
         )
 
-        request = request_parser.parse_request('/attribute')
+        request = request_parser.parse_request({'PATH_INFO': '/attribute'})
 
         self.assertEquals(page.attribute, request.page)
         self.assertEquals([], request.args)
@@ -265,7 +278,11 @@ class TestRequestParser(unittest.TestCase):
         page.sub = ActionPage()
         request_parser = RequestParser(page)
 
-        request = request_parser.parse_request('/sub', '')
+        request = request_parser.parse_request({
+            'PATH_INFO': '/sub',
+            'CONTENT_LENGTH': 0,
+            'wsgi.input': StringIO.StringIO()
+        })
 
         self.assertEquals(page.sub, request.page)
 
@@ -284,7 +301,11 @@ class TestRequestParser(unittest.TestCase):
         page.sub = ActionPage()
         request_parser = RequestParser(page)
 
-        request = request_parser.parse_request('/sub', 'kwarg=example')
+        request = request_parser.parse_request({
+            'PATH_INFO': '/sub',
+            'CONTENT_LENGTH': len('kwarg=example'),
+            'wsgi.input': StringIO.StringIO('kwarg=example')
+        })
 
         self.assertEquals({}, request.query_args)
         self.assertEquals({'kwarg': 'example'}, request.form_args)
@@ -300,7 +321,9 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
-        request = request_parser.parse_request('/?kwarg=value&kwarg1=example')
+        request = request_parser.parse_request({
+            'PATH_INFO': '/', 'QUERY_STRING': 'kwarg=value&kwarg1=example'
+        })
 
         self.assertEquals(
             {'kwarg': 'value', 'kwarg1': 'example'}, request.query_args
@@ -320,7 +343,7 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(page)
 
         with self.assertRaises(TypeError):
-            _, _, _ = request_parser.parse_request('/')
+            _, _, _ = request_parser.parse_request({'PATH_INFO': '/'})
 
 
     def test_request_has_url(self):
@@ -335,13 +358,15 @@ class TestRequestParser(unittest.TestCase):
         page.sub = TestPage()
         request_parser = RequestParser(page)
 
-        request = request_parser.parse_request('/')
+        request = request_parser.parse_request({'PATH_INFO': '/'})
         self.assertEquals('/', request.url)
 
-        request = request_parser.parse_request('/?arg=1')
+        request = request_parser.parse_request({
+            'PATH_INFO': '/', 'QUERY_STRING': 'arg=1'
+        })
         self.assertEquals('/?arg=1', request.url)
 
-        request = request_parser.parse_request('/sub')
+        request = request_parser.parse_request({'PATH_INFO': '/sub'})
         self.assertEquals('/sub', request.url)
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
