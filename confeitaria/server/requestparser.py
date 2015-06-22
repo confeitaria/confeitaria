@@ -289,7 +289,18 @@ class RequestParser(object):
         urls.reverse()
         self.urls = urls
 
-    def parse_request(self, url, body=None):
+    def parse_request(self, environment):
+        path_info = environment.get('PATH_INFO', '')
+        query_string = environment.get('QUERY_STRING', '')
+        url = path_info + ('?' + query_string if query_string else '')
+        try:
+            body_size = int(environment.get('CONTENT_LENGTH', 0))
+        except (ValueError):
+            body_size = 0
+
+        content = environment.get('wsgi.input', None)
+        body = content.read(body_size) if content is not None else None
+
         parsed_url = urlparse.urlparse(url)
 
         page_path = find_longest_prefix(parsed_url.path, self.urls)
