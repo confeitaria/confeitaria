@@ -10,6 +10,25 @@ import confeitaria.server.requestparser
 
 class TestRequestParser(unittest.TestCase):
 
+    def test_parse_empty_dict(self):
+        """
+        ``RequestParser`` should parse the environment dict. It should also be
+        able to parser an empty environment - and this test checks that.
+        """
+        class TestPage(object):
+            def index(self):
+                return ''
+
+        page = TestPage()
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request({})
+        self.assertEquals(page, request.page)
+        self.assertEquals([], request.path_args)
+        self.assertEquals({}, request.query_args)
+        self.assertEquals({}, request.form_args)
+        self.assertEquals([], request.args)
+        self.assertEquals({}, request.kwargs)
+
     def test_get_root(self):
         """
         This test ensures that the root path (``/``) is mapped to the root page.
