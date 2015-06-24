@@ -2,646 +2,243 @@
 Confeitaria, an experimental web framework for Python
 =====================================================
 
-Welcome to Confeitaria's documentation! Confeitaria is a Web framework for
-Python whose main purpose is to test some hypothesis and possibilities about
-Web development. Those hypothesis are the `principles`_ behind Confeitaria.
-Let's take a look at them... after some initial tests.
+Confeitaria is a Web framework for Python whose main purpose is to test some
+hypothesis and possibilities about Web development. They can work or not but we
+will only discover by trying, right?
 
-How to use Confeitaria
+Anyway, this is just a first release of the very core of it - we have to do much
+more. Yet, you can already play with it. Here is how...
+
+Installing Confeitaria
 ======================
 
-The very first use to Confeitaria is to see its own documentation. You should
-be able to install Confeitaria with ``pip``::
+You can install Confeitaria with ``pip``::
 
     $ pip install confeitaria
 
-Now, just run
-
-::
-
-    $ python -mconfeitaria
-
-and access http://localhost:8000. Voilà! You will see this same documentation.
+It should be possible to download the full package and unzip it but it is not
+yet documented.
 
 Creating and serving pages
---------------------------
+==========================
 
-You would rather show your own page, for sure. In Confeitaria, a page is an
-object with a bounded method named ``index()`` (henceforward named the *index
-method*) or a bounded method named ``action()`` (the *action method*). The
-*instances* of the class below would be valid pages::
+In Confeitaria, the content is served from *pages*  - objects providing methods
+to respond to HTTP requests. The most crucial page method is probably
+``index()``. For example, suppose you want to serve the HTML document below,
+which comes from the ``index.html`` file::
 
-    >>> class TestPage(object):
-    ...    def index(self):
-    ...        return "This is a test"
+    <!doctype html>
+    <html>
+        <head>
+            <title>Confeitaria's Log</title>
+        </head>
+        <body>
+            <h1>Confeitaria's Log</h1>
+            <p>Confeitaria is an experimental and very incipient web framework
+            for Python.</p>
+        </body>
+    </html>
 
-The simplest way so far of running a Confeitaria object is to use
-``confeitaria.run()``. It starts up a server to serve the return of the
-``index()`` method::
+We should create a page object such as the one below at a file named
+``page.py``::
 
-    import confeitaria
-    page = TestPage()
-    confeitaria.run(page)
+    class LogPage(object):
+        def index(self):
+            content = open('index.html').read()
 
-If you access http://localhost:8000 after this, you will see ``This is a test``
-in the browser.
+            return content
 
-.. One can also create a ``Server`` object, which is more flexible. They are
-   created and used as below::
-   
-       from confeitaria import Server
-       page = TestPage()
-       server = Server(page)
-       server.run()
+To run it, we can use the ``confeitaria.runner.run()`` function. So our
+``page.py`` file will look like this::
 
-   A nice ``Server`` trick is to start it up through a ``with`` statement. The
-   server will start in a different process, requests would be possible from the
-   source code and it would bw shut down after everything is done::
-   
-       >>> from confeitaria import Server
-       >>> import requests
-       >>> page = TestPage()
-       >>> with Server(page):
-       ...     requests.get('http://localhost:8000').text
-       u'This is a test'
+    import confeitaria.runner
+
+    class LogPage(object):
+        def index(self):
+            content = open('index.html').read()
+
+            return content
+
+    page = LogPage()
+    confeitaria.runner.run(page)
+
+To run it, we just call::
+
+    $ python page.py
+
+Now, we just hit http://localhost:8000. There is our document:
+
+.. image:: confeitaria/doc/pictures/screenshot1.png
+
+Kneading HTML
+=============
+
+Now, we are going to store some small chunks of text into files in the same
+directory. For example, one would be ``20150623183351.txt`` with the following
+content::
+
+    I'm full of ideas but lack the discipline to advance in a timely pace. No
+    option other than keep trying, then.
+
+    After all, I'm getting some fun from this folly.
+
+Other would be ``20150623183710.txt`` and its content would be::
+
+    The boy should be taken to the playground: he is asking for it for a long
+    time. Sadly, the rain does not stop these days.
+
+    Let's hope the weather is better by Monday.
+
+We want to list such content in the very same HTML document - without changing
+the original file. A solution would be::
+
+    class LogPage(object):
+        def index(self):
+            logs = []
+            for l in glob.glob('*.txt'):
+                log = open(l).read()
+                paragraphs = log.split('\n\n')
+                marked_paragraphs = ('<p>{0}</p>'.format(p) for p in paragraphs)
+                marked_log = ''.join(marked_paragraphs)
+
+                logs.append(marked_log)
+
+            content = open('index.html').read()
+            beginning, end = content.split('</body>')
+
+            log_content = '<hr>' + '<hr>'.join(logs)
+
+            return beginning  + log_content + '</body>' + end
+
+    page = LogPage()
+    confeitaria.runner.run(page)
+
+Below is the screenshot of the resulting page:
+
+.. image:: confeitaria/doc/pictures/screenshot2.png
+
+Note that not only we do not use any template system - we also retrieve the
+content from a raw (but valid) HTML file. This is a pattern that should be used
+more often: instead of using specific languages to generate markup, we get a
+complete, representative HTML file and process it. Sadly, the tools available
+now are quite limited but it is part of our work to improve it.
+
 
 Subpages
---------
+========
+
+Now, how to allow new logs to be entered? We can create a *subpage* to save
+them. So, for example, we would create a page class like this one::
+
+    class EditPage(object):
+        def index(self):
+            return """<!doctype html>
+            <html>
+                <head>
+                    <title>Edit file</title>
+                </head>
+                <body>
+                    <h1>Edit the file</h1>
+                    <form action="/edit" method="post">
+                        <textarea name="content" rows="15" cols="50"></textarea>
+                        <input type="submit" value="Save">
+                    </form>
+                </body>
+            </html>"""
+
+(The HTML documet is in a string for pure laziness.)
+
+We want it to be a subpage of our main page, so we add it as a field of our
+index page::
+
+    page = LogPage()
+    page.edit = EditPage()
+    confeitaria.runner.run(page)
+
+We stop and start our server again with the command above (which is boring so
+may be reviewed at the future...) and then access http://localhost:8000/edit.
+The result is this:
+
+.. image:: confeitaria/doc/pictures/screenshot3.png
+
+The trick here is: when you assign a page object as an attribute of another page
+object, it becomes a *subpage* of the later. To reach the subpage, you just need
+to add the attribute names as components of the path. In our case, the attribute
+name is ``edit`` so we added it after http://localhost:8000.
+
+Executing actions
+=================
+
+Our new subpage cannot save the content yet: it has only an *index* method,
+which only serves a document. We need an *action* method. Fortunately, it is
+easy to do::
+
+    class EditPage(object):
+        def index(self):
+            content = open('index.html').read()
+
+            return """<!doctype html>
+            <html>
+                <head>
+                    <title>Edit file</title>
+                </head>
+                <body>
+                    <h1>Edit the file</h1>
+                    <form action="/edit" method="post">
+                        <textarea name="content" rows="15" cols="70">{content}</textarea>
+                        <input type="submit" value="Save">
+                    </form>
+                </body>
+            </html>""".format(content=content)
+
+        def action(self, content='No content provided'):
+            now = datetime.datetime.now()
+            filename = now.strftime("%Y%m%d%H%M%S.txt")
+
+            with open(filename, 'w') as log:
+                log.write(content)
+
+Quite straightforward: one gets the value of the fields as arguments to a method
+called ``action()``. As you can see in the document from the index method, the
+action of the form is ``/edit``, so the same page object handles the form and
+the processing.
+
+HTTP Responses
+==============
+
+Now, let's enter the following text at the form and click in "Save":
+
+.. image:: confeitaria/doc/pictures/screenshot4.png
+
+Well, you'll see that the same page with the form is displayed, but if you
+reload it the form will not be resubmited. Action methods by default redirect
+to their own pages by default - then if the page has an index method (as ours
+does) it will be rendered.
+
+We can, however, redirect elsewhere - just raise the
+``confeitaria.responses.SeeOther`` exception. We can, for example, redirect to
+the index page::
+
+        def action(self, content='No content provided'):
+            now = datetime.datetime.now()
+            filename = now.strftime("%Y%m%d%H%M%S.txt")
+
+            with open(filename, 'w') as log:
+                log.write(content)
+
+            raise confeitaria.responses.SeeOther(location='/')
 
-If the page passed to ``confeitaria.run()`` / ``Server`` has an attribute, and
-this attribute is also a page, then we only need to add the attribute name as
-part of the path in the URL to get its output. The attribute page is a subpage
-and can has its own subpages. For example, if we have the classes
-below::
+If you enter a new log message, the browser will be automatically redirected to
+the root page.
 
-    >>> class RootPage(object):
-    ...     def index(self):
-    ...         return 'root'
-    >>> class SubPage(object):
-    ...     def index(self):
-    ...         return 'a subpage'
-    >>> class SubSubPage(object):
-    ...     def index(self):
-    ...         return 'another subpage'
+There are other responses to raise (e.g. ``NotFound``) as well but not all HTTP
+responses are implemented yet.
 
-...and then we build a structure as such::
+Summary
+=======
 
-   >>> root = RootPage()
-   >>> root.sub = SubPage()
-   >>> root.sub.another = SubSubPage()
+There is many other features available - sessions, request objects, cookies etc.
+- and many others to implement. You may take a look at the `main reference`_ for
+more about the framework. 
 
-... then we should expect the following responses::
-
-    >>> with Server(root):
-    ...    requests.get('http://localhost:8000/').text
-    ...    requests.get('http://localhost:8000/sub').text
-    ...    requests.get('http://localhost:8000/sub/another').text
-    u'root'
-    u'a subpage'
-    u'another subpage'
-
-Index method arguments
-----------------------
-
-Naturally, most pages should get information from the browser. This information
-can be passed to the index method by arguments. The values for the arguments are
-retrieved from the HTTP request parameters. It can be done in two ways:
-
-Query path parameters
-    If the index function has mandatory arguments, their values will come
-    from the query path, as below::
-
-        >>> class SumPage(object):
-        ...    def index(self, p1, p2):
-        ...        v1, v2 = int(p1), int(p2)
-        ...        return "{0} + {1} = {2}".format(v1, v2, v1 + v2)
-        >>> with Server(SumPage()):
-        ...     requests.get('http://localhost:8000/3/2').text
-        ...     requests.get('http://localhost:8000/-2/3').text
-        u'3 + 2 = 5'
-        u'-2 + 3 = 1'
-
-    If the URL path does not a value for the given parameter, the index method
-    will still be called, having ``None`` as its parameter value::
-
-        >>> class NonePage(object):
-        ...    def index(self, arg):
-        ...        return "arg: {0}, arg type: {1}".format(arg, type(arg))
-        >>> with Server(NonePage()):
-        ...     requests.get('http://localhost:8000/').text
-        u"arg: None, arg type: <type 'NoneType'>"
-
-
-    If the URL path has more values than the number of index method's mandatory
-    parameters, a 404 Not Found error should be the result::
-
-        >>> class NonePage(object):
-        ...    def index(self, arg):
-        ...        return "arg: {0} arg type: {1}".format(arg, type(arg))
-        >>> with Server(NonePage()):
-        ...     requests.get('http://localhost:8000/a/b').status_code
-        404
-
-Query string parameters
-    If the index function has optional arguments, their values will come
-    from the query string parameters, as below::
-
-        >>> class HelloWorldPage(object):
-        ...    def index(self, greeting='Hello', greeted='World'):
-        ...        return greeting + " " + greeted + "!"
-        >>> with Server(HelloWorldPage()):
-        ...     requests.get('http://localhost:8000/').text
-        ...     requests.get('http://localhost:8000/?greeting=Hi').text
-        ...     requests.get(
-        ...         'http://localhost:8000/?greeting=Hi&greeted=Earth').text
-        u'Hello World!'
-        u'Hi World!'
-        u'Hi Earth!'
-
-Which one to use is up to the developer. We believe mandatory arguments are
-good to pass mandatory identifiers, such as database primary keys and usernames,
-as in ``http://example.com/report/1081`` or ``http://example.com/user/juju``.
-Optional parameters are nice in most other cases, such as when executing
-operations (as in ``http://example.com/user/update?id=324&username=Ju``)
-or giving extra options (as in ``http://example.com/report/1081?pages=all``).
-
-    **Advanced warning**: what if one wants to give the values for mandatory
-    arguments with query string parameters (e.g. using the URL
-    ``http://localhost:8000/?p2=3&p1=2`` to hit ``SumPage``) or optional
-    arguments with path components (generating a URL such as
-    ``http://localhost:8000/hello/world`` to access ``HelloWorldPage``)? This
-    behavior is undefined on purpose. Confeitaria should play well with many
-    other frameworks and the best behavior can vary between them. In our
-    reference implementation, it fails, and we don't think it is a good practice
-    anyway.
-
-Action methods
---------------
-
-Index methods only handle GET requests. If a request uses the POST HTTP method,
-it should be handled by an action method.
-
-Action methods are not expected to return HTML documents, they are only called
-for their side effects. Any relevant content should be returned by an index
-method.
-
-Consider, for example, the following mock of an authetication page::
-
-        >>> class AuthenticationPage(object):
-        ...     username = None
-        ...     def action(self, username=None):
-        ...         AuthenticationPage.username = username
-
-It could be a subpage of a root page as the one below::
-
-        >>> class MainPage(object):
-        ...     def index(self):
-        ...         if AuthenticationPage.username:
-        ...             return 'You are logged in as {0}.'.format(
-        ...                 AuthenticationPage.username
-        ...             )
-        ...         else:
-        ...             return 'You are not logged in.'
-
-So we would have this tree::
-
-        >>> page = MainPage()
-        >>> page.auth = AuthenticationPage()
-
-By default, nobody would be authenticated::
-
-        >>> with Server(page):
-        ...     requests.get('http://localhost:8000/').text
-        u'You are not logged in.'
-
-We can, however, send a POST request for log in::
-
-        >>> with Server(page):
-        ...     requests.get('http://localhost:8000/').text
-        ...     _ = requests.post(
-        ...         'http://localhost:8000/auth', data={'username': 'alice'},
-        ...         allow_redirects=False # Why to do it? We'll see... soon.
-        ...     )
-        ...     requests.get('http://localhost:8000/').text
-        u'You are not logged in.'
-        u'You are logged in as alice.'
-
-Knowing a page URL
-------------------
-
-If a page has a bound method named ``set_url()`` which receives one argument,
-this method will be called and the parameter value will be the URL of the page.
-This means that each page can know what is its own URL on the server::
-
-    >>> class URLAwarePage(object):
-    ...     def set_url(self, url):
-    ...         self.url = url
-    ...     def index(self):
-    ...         return 'My URL is ' + self.url
-    >>> root = URLAwarePage()
-    >>> root.sub = URLAwarePage()
-    >>> with Server(root):
-    ...     requests.get('http://localhost:8000/').text
-    ...     requests.get('http://localhost:8000/sub').text
-    u'My URL is /'
-    u'My URL is /sub'
-
-This URL is immutable, it is set in the server start up. This means that a page
-can even know the URL of its subpages::
-
-    >>> class RootPage(object):
-    ...     def __init__(self):
-    ...         self.sub = URLAwarePage()
-    ...     def index(self):
-    ...         return (
-    ...             'Subpage is at {0}. '
-    ...             '<a href="{0}">Go there!</a>'.format(self.sub.url)
-    ...         )
-    >>> with Server(RootPage()):
-    ...     requests.get('http://localhost:8000/').text
-    u'Subpage is at /sub. <a href="/sub">Go there!</a>'
-
-..
-
-    **Note**: one could argue that the "URLs" in these examples are actually
-    just paths, not full URLs. We hope, however, to make it possible to a page
-    to have a totally different URL, even in another domain. We do not have
-    this feature now; yet, assuming that the URLs defined with ``set_url()``
-    can be more complex than paths is the way to go - even if the current
-    examples are quite simple.
-
-To save you from typing the same method over and over, we also provide the class
-``confeitaria.interface.URLedPage``. It implements this protocol and has a
-``get_url()`` method::
-
-    >>> import confeitaria.interfaces
-    >>> class URLAwarePage(confeitaria.interfaces.URLedPage):
-    ...     def index(self):
-    ...         return 'My URL is ' + self.get_url()
-    >>> root = URLAwarePage()
-    >>> root.sub = URLAwarePage()
-    >>> with Server(root):
-    ...     requests.get('http://localhost:8000/').text
-    ...     requests.get('http://localhost:8000/sub').text
-    u'My URL is /'
-    u'My URL is /sub'
-
-Getting the request
--------------------
-
-If a page has a bound method named ``set_requests()`` with one argument, this
-method will be called and the argument value will be an object representing the
-HTTP request being processed. This request object can given information, for
-example, about query parameters::
-
-    >>> class ActionPage(object):
-    ...     def set_request(self, request):
-    ...         self.request = request
-    ...     def index(self):
-    ...         return (
-    ...             'The action is ' + self.request.query_parameters['action']
-    ...         )
-    >>> page = ActionPage()
-    >>> with Server(page):
-    ...     requests.get('http://localhost:8000/?action=update').text
-    u'The action is update'
-
-The class ``confeitaria.interfaces.RequestedPage`` implements the
-``set_request()`` method, as well as a ``get_request()`` to retrieve the set
-request::
-
-    >>> class ActionPage(confeitaria.interfaces.RequestedPage):
-    ...     def index(self):
-    ...         request = self.get_request()
-    ...         return (
-    ...             'The action is ' + request.query_parameters['action']
-    ...         )
-    >>> page = ActionPage()
-    >>> with Server(page):
-    ...     requests.get('http://localhost:8000/?action=update').text
-    u'The action is update'
-
-Getting and sending cookies
----------------------------
-
-Cookies are the most standard way of recalling information between different
-requests from the same browser. Once a server sends instructos for setting
-cookies to a browser, the browser is expected to send this information back
-with each request.
-
-If a page has a bound method named ``set_cookies()`` with one argument, this
-method will be called and the argument value will be an object representing a
-set of cookies. This cookies object should behave as the
-`Cookie.SimpleCookie
-<https://docs.python.org/2/library/cookie.html#Cookie.SimpleCookie>`_. Consider,
-for example, the cart page below - it stores the number of items in a cookie::
-
-    >>> class CartPage(object):
-    ...     def set_cookies(self, cookies):
-    ...         self.cookies = cookies
-    ...     def action(self, items=None):
-    ...         if items is not None:
-    ...             self.cookies['items'] = items
-    ...     def index(self):
-    ...         if 'items' in self.cookies:
-    ...             return 'You have {0} items'.format(
-    ...                 self.cookies['items'].value
-    ...             )
-    ...         else:
-    ...             return 'You have no items'
-
-The results from using it is::
-
-    >>> page = CartPage()
-    >>> with Server(page):
-    ...     requests.get('http://localhost:8000/').text
-    ...     r = requests.post(
-    ...         'http://localhost:8000/', data={'items': '2'},
-    ...         allow_redirects=False
-    ...     )
-    ...     r.cookies['items']
-    ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
-    u'You have no items'
-    '2'
-    u'You have 2 items'
-
-If you extend ``confeitaria.interfaces.CookiedPage`` you will have a pair of
-methods to set a retrieve the cookies:
-
-    >>> class CartPage(confeitaria.interfaces.CookiedPage):
-    ...     def action(self, items=None):
-    ...         if items is not None:
-    ...             self.get_cookies()['items'] = items
-    ...     def index(self):
-    ...         if 'items' in self.get_cookies():
-    ...             cookies = self.get_cookies()
-    ...             return 'You have {0} items'.format(
-    ...                 self.get_cookies()['items'].value
-    ...             )
-    ...         else:
-    ...             return 'You have no items'
-    >>> page = CartPage()
-    >>> with Server(page):
-    ...     requests.get('http://localhost:8000/').text
-    ...     r = requests.post(
-    ...         'http://localhost:8000/', data={'items': '2'},
-    ...         allow_redirects=False
-    ...     )
-    ...     r.cookies['items']
-    ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
-    u'You have no items'
-    '2'
-    u'You have 2 items'
-
-
-Using sessions
---------------
-
-If your page needs to preserve state between requests, you can use sessions. To
-get a session, just add a ``set_session()`` method to your page - as usual, it
-should receive an argument, which will be a dict-like session object::
-
-    >>> class SessionPage(object):
-    ...     def set_session(self, session):
-    ...         self.session = session
-    ...     def action(self, username=None):
-    ...         self.session['username'] = username
-    ...     def index(self):
-    ...         if 'username' in self.session:
-    ...             return 'User: {0}'.format(self.session['username'])
-    ...         else:
-    ...             return 'Not authenticated'
-
-The received session is preserved between requests. The default implementation
-saves the session variables in memory only and preserve the session through
-cookies::
-
-    >>> page = SessionPage()
-    >>> with Server(page):
-    ...     r = requests.get('http://localhost:8000/')
-    ...     r.text
-    ...     r = requests.post(
-    ...         'http://localhost:8000/', data={'username': 'juju'},
-    ...         cookies=r.cookies, allow_redirects=False
-    ...     )
-    ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
-    u'Not authenticated'
-    u'User: juju'
-
-Note that there is no need to handle the cookies directly: in the server,
-Confeitaria takes care of this; in the client, the browser should handle it by
-itself.
-
-You can also get the request's session by extending
-``confeitaria.interfaces.SessionedPage``. The method
-``confeitaria.interfaces.SessionedPage.get_session()`` will return the session
-object::
-
-    >>> class SessionPage(confeitaria.interfaces.SessionedPage):
-    ...     def action(self, username=None):
-    ...         self.get_session()['username'] = username
-    ...     def index(self):
-    ...         if 'username' in self.get_session():
-    ...             return 'User: {0}'.format(self.get_session()['username'])
-    ...         else:
-    ...             return 'Not authenticated'
-    >>> page = SessionPage()
-    >>> with Server(page):
-    ...     r = requests.get('http://localhost:8000/')
-    ...     r.text
-    ...     r = requests.post(
-    ...         'http://localhost:8000/', data={'username': 'juju'},
-    ...         cookies=r.cookies, allow_redirects=False
-    ...     )
-    ...     requests.get('http://localhost:8000/', cookies=r.cookies).text
-    u'Not authenticated'
-    u'User: juju'
-
-The ``Page`` class
-------------------
-
-In practice, we almost always want to have access to the URL page, cookies,
-session and the request object. Instead of implementing all the required methods
-by hand, or extending all awareness interface classes, we can just extend the
-``confeitaria.interfaces.Page`` class, and our page will be aware of all these
-informations. Consider, for example, an e-commerce page which stores the user
-in session and the cart in the cookies::
-
-    >>> class ShopPage(confeitaria.interfaces.Page):
-    ...     def index(self):
-    ...         result = "Welcome to {0}. ".format(self.get_url())
-    ...         user = self.get_session().get('username', 'nobody')
-    ...         result += "You are {0}. ".format(user)
-    ...         if 'items' in self.get_cookies():
-    ...             items = self.get_cookies()['items'].value
-    ...         else:
-    ...             items = 0
-    ...         result += "You have {0} items.".format(items)
-    ...         return result
-    ...     def action(self, username=None, items=None):
-    ...         if username is not None:
-    ...             self.get_session()['username'] = username
-    ...         if items is not None:
-    ...             self.get_cookies()['items'] = items
-
-It would yield the following results::
-
-    >>> page = ShopPage()
-    >>> with Server(page):
-    ...     r = requests.get('http://localhost:8000/')
-    ...     r.text
-    ...     r = requests.post(
-    ...         'http://localhost:8000/', data={'username': 'juju'},
-    ...         cookies=r.cookies
-    ...     )
-    ...     r.text
-    ...     r = requests.post(
-    ...         'http://localhost:8000/', data={'items': '2'},
-    ...         cookies=r.cookies
-    ...     )
-    ...     r.text
-    ...     r.cookies['items']
-    u'Welcome to /. You are nobody. You have 0 items.'
-    u'Welcome to /. You are juju. You have 0 items.'
-    u'Welcome to /. You are juju. You have 2 items.'
-    '2'
-
-Redirecting
------------
-
-HTTP redirect responses are a common need. For example, you may want to redirect
-the browser to another URL to where the looked upon content was moved. You just
-need to raise the ``confeitaria.responses.MovedPermanently`` exception::
-
-    >>> import confeitaria.responses
-    >>> class OldPage(object):
-    ...     def index(self):
-    ...         raise confeitaria.responses.MovedPermanently('/new')
-    >>> class NewPage(object):
-    ...     def index(self):
-    ...         return 'page: new'
-    >>> page = OldPage()
-    >>> page.new = NewPage()
-    >>> with Server(page):
-    ...     r = requests.get('http://localhost:8000/', allow_redirects=False)
-    ...     r.status_code
-    ...     r.headers['location']
-    301
-    '/new'
-    >>> with Server(page):
-    ...     r = requests.get('http://localhost:8000/')
-    ...     r.status_code
-    ...     r.text
-    200
-    u'page: new'
-
-If, however, one wants to implement the POST-REDIRECT-GET pattern, it is better
-to use the ``SeeOther`` response::
-
-    >>> class LoginPage(object):
-    ...     username = None
-    ...     def index(self):
-    ...         if LoginPage.username is None:
-    ...             return 'Nobody is logged in.'
-    ...         else:
-    ...             return '{0} is logged in.'.format(LoginPage.username)
-    ...     def action(self, username=None):
-    ...         LoginPage.username = username
-    ...         raise confeitaria.responses.SeeOther('/')
-    >>> with Server(LoginPage()):
-    ...     requests.get('http://localhost:8000/').text
-    ...     r = requests.post(
-    ...         'http://localhost:8000/', data={'username': 'bob'}
-    ...     )
-    ...     r.status_code
-    ...     r.text
-    u'Nobody is logged in.'
-    200
-    u'bob is logged in.'
-
-If no parameter is given to the ``SeeOther`` or ``MovedPermanently``
-constructor, the browser will be redirected to the originally requested URL::
-
-    >>> class RedirectPage(object):
-    ...     def action(self, username=None):
-    ...         raise confeitaria.responses.SeeOther()
-    >>> with Server(RedirectPage()):
-    ...     r = requests.post(
-    ...         'http://localhost:8000/?a=b', allow_redirects=False
-    ...     )
-    ...     r.status_code
-    ...     r.headers['location']
-    303
-    '/?a=b'
-
-However, one does not even need to raise the response: if an action method
-returns without raising any response, it will redirect to the original URL by
-default::
-
-    >>> class MagicRedirectPage(object):
-    ...     def action(self, username=None):
-    ...         pass
-    >>> with Server(MagicRedirectPage()):
-    ...     r = requests.post(
-    ...         'http://localhost:8000/?magic=true', allow_redirects=False
-    ...     )
-    ...     r.status_code
-    ...     r.headers['location']
-    303
-    '/?magic=true'
-
-Principles
-==========
-
-In Confeitaria, we try to follow some principles as much as possible. We do not
-know how much they are feasible or advantageus, they are not necessarily
-original and we are not saying you have to follow them. We will try, however.
-
-Principle 1: *The customer should get only the desired piece.*
-    Confeitaria should provide many applications, each in its own package. They
-    should be as independent as possible so the developer may use only what is
-    needed.
-
-Principle 2: *To use a page should be a piece of cake.*
-    An application should be pages that can be instatiated many times, maybe
-    with some pages. The pages should be as flexible as any simple object, not
-    requiring any setup other than being called by ``confeitaria.run()`` (but
-    being open to more, optional configuration0.
-
-Principle 3: *A cake should be useful without more cooking.*
-    Whenever possible, a Confeitaria package should be usable by only calling
-    it with the Python interpreter's ``-m`` flag. For example, the reference
-    confeitaria module does provide a feature: it displays this same
-    documenation.
-
-Principle 4: *The layered cake should be edible without the frosting.*
-    The Confeitaria pages should have tiers, and the lower one cannot depend on
-    the higher one. In special, any Confeitaria page should be usable even
-    without CSS and JavaScript (the "frosting"). CSS and JavaScript should be
-    added to improve the usabiity of a functioning page. A rule of thumb to
-    ensure this is that *any task should be executed only using ``curl`` or the
-    ``requests`` module*.
-
-Principle 5: *The dough should be tested at each step.*
-   We should test as much as possible. Each commit set should contain a new
-   test. We should have unit tests, integration tests, functional tests without
-   JavaScript and functional tests with JavaScript - probably even JavaScript
-   tests.
-
-Principle 6: *The recipes should be written down.*
-    We should document how to use Confeitaria. Each public method should have a
-    docstring. Each application page should have a separate document explaining
-    it. Examples should be doctests.
-
-Principle 7: *Each order should be written down.*
-    Each change in the code base should be preceded by a ticket in the issue
-    tracker.
-
-Principle 8: *The dough should harmonize with any flavor.*
-    It should be possible to run add a Confeitaria page to applications in as
-    many frameworks as possible - such as Django, CherryPy, CGI... This WSGI
-    implementation is actually a reference implementation - other modules should
-    not depend on it!
-
-We may add more principles, or give up some of them - that is acceptable. The
-main objective here, after all, is to discover what is possible to do.
+.. _`main reference`: confeitaria/doc/index.rst
