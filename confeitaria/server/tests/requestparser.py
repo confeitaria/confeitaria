@@ -400,6 +400,27 @@ class TestRequestParser(unittest.TestCase):
         with self.assertRaises(confeitaria.responses.NotFound):
             request_parser.parse_request({'REQUEST_METHOD': 'GET'})
 
+    def test_request_has_request_method(self):
+        """
+        The request object should have the request method.
+        """
+        class TestPage(object):
+            def index(self):
+                return ''
+            def action(self):
+                pass
+
+        page = TestPage()
+        page.sub = TestPage()
+        request_parser = RequestParser(page)
+
+        request = request_parser.parse_request({'REQUEST_METHOD': 'GET'})
+        self.assertEquals('GET', request.method)
+
+        request = request_parser.parse_request({'REQUEST_METHOD': 'POST'})
+        self.assertEquals('POST', request.method)
+
+
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
 test_suite.addTest(doctest.DocTestSuite(confeitaria.server.requestparser))
 
