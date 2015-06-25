@@ -321,6 +321,7 @@ class RequestParser(object):
         self.urls = urls
 
     def parse_request(self, environment):
+        method = environment.get('REQUEST_METHOD', 'GET')
         path_info = environment.get('PATH_INFO', '')
         query_string = environment.get('QUERY_STRING', '')
         url = path_info + ('?' + query_string if query_string else '')
@@ -343,12 +344,19 @@ class RequestParser(object):
         query_args = self._get_query_parameters(parsed_url.query)
         form_args = self._get_query_parameters(body)
 
-        if body is None:
-            page_method = page.index
-            kwargs = query_args
-        else:
-            page_method = page.action
+        if method == 'POST':
+            page_method_name = 'action'
             kwargs = form_args
+        else:
+            page_method_name = 'index'
+            kwargs = query_args
+
+        try:
+            page_method = getattr(page, page_method_name)
+        except AttributeError:
+            raise confeitaria.responses.NotFound(
+                message='{0} not found'.format(url)
+            )
 
         argspec = inspect.getargspec(page_method)
 
