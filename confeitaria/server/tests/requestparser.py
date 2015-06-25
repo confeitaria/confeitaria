@@ -279,9 +279,8 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(page)
 
         request = request_parser.parse_request({
-            'PATH_INFO': '/sub',
-            'CONTENT_LENGTH': 0,
-            'wsgi.input': StringIO.StringIO()
+            'REQUEST_METHOD': 'POST', 'PATH_INFO': '/sub',
+            'CONTENT_LENGTH': 0, 'wsgi.input': StringIO.StringIO()
         })
 
         self.assertEquals(page.sub, request.page)
@@ -302,7 +301,7 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(page)
 
         request = request_parser.parse_request({
-            'PATH_INFO': '/sub',
+            'REQUEST_METHOD': 'POST', 'PATH_INFO': '/sub',
             'CONTENT_LENGTH': len('kwarg=example'),
             'wsgi.input': StringIO.StringIO('kwarg=example')
         })
@@ -368,6 +367,38 @@ class TestRequestParser(unittest.TestCase):
 
         request = request_parser.parse_request({'PATH_INFO': '/sub'})
         self.assertEquals('/sub', request.url)
+
+    def test_get_http_method_yields_index_page_no_action_page(self):
+        """
+        Requiring a page with an index method (but no action method) with the
+        ``GET`` HTTP method should work, but requiring it with the ``POST``
+        method should fail.
+        """
+        class IndexPage(object):
+            def index(self):
+                return ''
+
+        request_parser = RequestParser(IndexPage())
+
+        request = request_parser.parse_request({'REQUEST_METHOD': 'GET'})
+        with self.assertRaises(confeitaria.responses.NotFound):
+            request_parser.parse_request({'REQUEST_METHOD': 'POST'})
+
+    def test_post_http_method_yields_action_page_no_index_page(self):
+        """
+        Requiring a page with an action method (but no index method) with the
+        ``POST`` HTTP method should work, but requiring it with the ``GET``
+        method should fail.
+        """
+        class ActionPage(object):
+            def action(self):
+                pass
+
+        request_parser = RequestParser(ActionPage())
+
+        request = request_parser.parse_request({'REQUEST_METHOD': 'POST'})
+        with self.assertRaises(confeitaria.responses.NotFound):
+            request_parser.parse_request({'REQUEST_METHOD': 'GET'})
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
 test_suite.addTest(doctest.DocTestSuite(confeitaria.server.requestparser))
