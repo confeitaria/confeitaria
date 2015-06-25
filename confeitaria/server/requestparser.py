@@ -2,6 +2,7 @@ import inspect
 import urlparse
 
 import confeitaria.interfaces
+import confeitaria.request
 import confeitaria.responses
 
 class RequestParser(object):
@@ -13,7 +14,7 @@ class RequestParser(object):
     with subpages.
 
     The magic happens mostly when calling the ``parse_request()`` method. It
-    recieves as its argument an URL and the body of a POST request.
+    recieves as its argument a dict - more specifically, a WSGI environment.
 
     As a result, it returns a ``Request`` object, which for its turn has the
     page pointed by the given path - if any - as well as relevant information
@@ -25,8 +26,7 @@ class RequestParser(object):
     ``RequestParser.parse_request()`` returns an stance of
     ``confeitaria.request.Request``. This object has many attributes, and one
     of the most important is ``page``. It is the page object that is pointed by
-    the given URL path.
-
+    the ``PATH_INFO`` value from the environment dict.
 
     ``RequestParser`` implements the so called *object publisher* pattern, where
     URLs are addresses for real Python objects.
@@ -69,7 +69,7 @@ class RequestParser(object):
     ...and now URL paths should be mapped to the pages of the object. The root
     path is mapped to the root page::
 
-        >>> page = parser.parse_request('/').page
+        >>> page = parser.parse_request({'PATH_INFO': '/'}).page
         >>> page.index()
         'root'
 
@@ -77,14 +77,14 @@ class RequestParser(object):
     from the attribute (of the root page) with the same name of the path
     component::
 
-        >>> page = parser.parse_request('/sub').page
+        >>> page = parser.parse_request({'PATH_INFO': '/sub'}).page
         >>> page.index()
         'sub'
 
     If the path has yet another component, then the request parser tries to get
     an attribute from the previous subpage, and so on::
 
-        >>> page = parser.parse_request('/sub/another').page
+        >>> page = parser.parse_request({'PATH_INFO': '/sub/another'}).page
         >>> page.index()
         'another'
 
@@ -99,9 +99,9 @@ class RequestParser(object):
         The page object pointed by the given URL path, if any. It is either the
         page given to the ``RequestParser`` constructor or one of its subpages::
 
-        >>> isinstance(parser.parse_request('/').page, RootPage)
+        >>> isinstance(parser.parse_request({'PATH_INFO': '/'}).page, RootPage)
         True
-        >>> isinstance(parser.parse_request('/sub').page, SubPage)
+        >>> isinstance(parser.parse_request({'PATH_INFO': '/sub'}).page, SubPage)
         True
 
     ``path_args``
@@ -112,46 +112,58 @@ class RequestParser(object):
         page. You can find these components are found at the``path_args``
         attribute from the request::
 
-        >>> parser.parse_request('/arg/value').path_args
+        >>> parser.parse_request({'PATH_INFO': '/arg/value'}).path_args
         ['value']
 
         If there is no extra compoment, it will be an empty list::
 
-        >>> parser.parse_request('/sub').path_args
+        >>> parser.parse_request({'PATH_INFO': '/sub'}).path_args
         []
 
     ``query_args``
         A dict containing _all_ values from the query string from the URL.
 
-        >>> parser.parse_request('/?arg=value').query_args
+        >>> parser.parse_request({
+        ...     'PATH_INFO': '/', 'QUERY_STRING': 'arg=value'
+        ... }).query_args
         {'arg': 'value'}
-        >>> parser.parse_request('/sub?arg=value').query_args
+        >>> parser.parse_request({
+        ...     'PATH_INFO': '/sub', 'QUERY_STRING': 'arg=value'
+        ... }).query_args
         {'arg': 'value'}
-        >>> parser.parse_request('/sub?arg=value&kwarg1=ok').query_args
+        >>> parser.parse_request({
+        ...     'PATH_INFO': '/sub', 'QUERY_STRING': 'arg=value&kwarg1=ok'
+        ... }).query_args
         {'kwarg1': 'ok', 'arg': 'value'}
 
         If the query string is empty, so is the attribute
 
-        >>> parser.parse_request('/sub').query_args
+        >>> parser.parse_request({'PATH_INFO': '/sub'}).query_args
         {}
 
     ``form_args``
-        A dict containing _all_ values from the request body passed as the
-        second argumetn from ``RequestParser.parse_request()``::
+        A dict containing _all_ values from the request body::
 
-        >>> parser.parse_request('/action?arg1=value', 'arg2=ok').form_args
+        >>> import StringIO
+        >>> parser.parse_request({
+        ...     'PATH_INFO': '/action', 'QUERY_STRING': 'arg1=value',
+        ...     'CONTENT_LENGTH': len('arg2=ok'),
+        ...     'wsgi.input': StringIO.StringIO('arg2=ok')
+        ... }).form_args
         {'arg2': 'ok'}
 
         If none is given, it is an empty dict::
 
-        >>> parser.parse_request('/sub?arg1=value').form_args
+        >>> parser.parse_request({
+        ...     'PATH_INFO': '/sub', 'QUERY_STRING': 'arg1=value'
+        ... }).form_args
         {}
 
     ``args``
         A sublist of ``path_args`` to be unpacked as the positional arguments of
         the page method from ``page``::
 
-        >>> parser.parse_request('/arg/value').args
+        >>> parser.parse_request({'PATH_INFO': '/arg/value'}).args
         ['value']
 
         In practice, right now, in this implementation, it will be equal to
@@ -160,30 +172,43 @@ class RequestParser(object):
 
     ``kwargs``
         A dict to be unpacked as the keyword arguments of ``page`` page method.
-        If no body argument is given, its values will come from ``query_args``::
+        If no request body is given, its values will come from ``query_args``::
 
-        >>> parser.parse_request('/kwarg?kwarg1=query').kwargs
+        >>> parser.parse_request({
+        ...     'PATH_INFO': '/kwarg', 'QUERY_STRING': 'kwarg1=query'   
+        ... }).kwargs
         {'kwarg1': 'query'}
 
-        If the body argumet is given, then its values will come from
+        If a request body is available, then its values will come from
         ``form_args``::
 
-        >>> parser.parse_request('/action?kwarg1=query', 'kwarg1=form').kwargs
+        >>> parser.parse_request({
+        ...     'PATH_INFO': '/action', 'QUERY_STRING': 'kwarg1=query',
+        ...     'CONTENT_LENGTH': len('kwarg1=form'),
+        ...     'wsgi.input': StringIO.StringIO('kwarg1=form')
+        ... }).kwargs
         {'kwarg1': 'form'}
 
         This attribute will only contain values that matches optional arguments
         from the page method to be called - other values from ``form_args`` and
         ``query_args`` are not present::
 
-        >>> parser.parse_request('/kwarg?kwarg1=query&nothere=true').kwargs
+        >>> parser.parse_request({
+        ...     'PATH_INFO': '/kwarg', 'QUERY_STRING': 'kwarg1=query&nothere=true'
+        ... }).kwargs
         {'kwarg1': 'query'}
-        >>> parser.parse_request('/action', 'kwarg1=form&nothere=true').kwargs
+        >>> parser.parse_request({
+        ...     'PATH_INFO': '/action', 'CONTENT_LENGTH': len('kwarg1=form&nothere=true'),
+        ...     'wsgi.input': StringIO.StringIO('kwarg1=form&nothere=true')
+        ... }).kwargs
         {'kwarg1': 'form'}
 
         Also, it does not contain values for positional arguments, which always
         should come from the URL path components::
 
-        >>> r = parser.parse_request('/arg/yes?kwarg=query&arg=no')
+        >>> r = parser.parse_request({
+        ...     'PATH_INFO': '/arg/yes', 'QUERY_STRING': 'kwarg=query&arg=no'
+        ... })
         >>> r.kwargs
         {'kwarg': 'query'}
         >>> r.args
@@ -202,18 +227,18 @@ class RequestParser(object):
     same name as the next compoment, then an ``confeitaria.responses.NotFound``
     exception is raised to signalize that the page was not found::
 
-        >>> parser.parse_request('/nopage')
+        >>> parser.parse_request({'PATH_INFO': '/nopage'})
         Traceback (most recent call last):
           ...
         NotFound: /nopage not found
-        >>> parser.parse_request('/sub/nopage')
+        >>> parser.parse_request({'PATH_INFO': '/sub/nopage'})
         Traceback (most recent call last):
           ...
         NotFound: /sub/nopage not found
 
     The same happens when an attribute is found but it is not a page::
 
-        >>> parser.parse_request('/attr')
+        >>> parser.parse_request({'PATH_INFO': '/attr'})
         Traceback (most recent call last):
           ...
         NotFound: /attr not found
@@ -222,10 +247,10 @@ class RequestParser(object):
     --------------------
 
     There is, however, a situation where the path has compoments that does not
-    map to attributes and yet ``parse_request()`` returns a request. It happens
-    when the last found page's ``index()`` or ``action()`` method expects
-    arguments, and the path has the same number of compoments remaining as the
-    number of arguments of the page method.
+    map to attributes and yet ``parse_request()`` succeeds. When the last found
+    page's ``index()`` or ``action()`` method expects arguments, and the path
+    has the same number of compoments remaining as the  number of arguments of
+    the page method.
 
     For example, the index method from ``ArgPage`` expects a positional
     argument. So, any URL hitting the ``ArgPage`` object should have an extra
@@ -234,14 +259,14 @@ class RequestParser(object):
     Since the ``index()`` method expects parameters, we should pass one more
     component in the path::
 
-        >>> request = parser.parse_request('/arg/value')
+        >>> request = parser.parse_request({'PATH_INFO': '/arg/value'})
         >>> request.page.index(*request.args)
         'arg: value kwarg: 0'
 
     Yet, we cannot pass more path compoments than the number of arguments in the
     method::
 
-        >>> parser.parse_request('/arg/value/other')
+        >>> parser.parse_request({'PATH_INFO': '/arg/value/other'})
         Traceback (most recent call last):
           ...
         NotFound: /arg/value/other not found
@@ -250,7 +275,7 @@ class RequestParser(object):
     ``confeitaria.responses.NotFound`` response::
 
     ::
-        >>> parser.parse_request('/arg')
+        >>> parser.parse_request({'PATH_INFO': '/arg'})
         Traceback (most recent call last):
           ...
         NotFound: /arg not found
@@ -263,7 +288,9 @@ class RequestParser(object):
     not given, then the optional arguments will come from the query string::
 
 
-    >>> parser.parse_request('/kwarg?kwarg1=value').kwargs
+    >>> parser.parse_request({
+    ...     'PATH_INFO': '/kwarg', 'QUERY_STRING': 'kwarg1=value'
+    ... }).kwargs
     {'kwarg1': 'value'}
 
     Action methods, on the other hand, are not expected to use the query
@@ -274,7 +301,11 @@ class RequestParser(object):
     the body of such a POST request, as a string. The parsed values can be found
     at the ``form_args`` attribute from the request::
 
-    >>> parser.parse_request('/action?kwarg1=query', 'kwarg1=form').kwargs
+    >>> parser.parse_request({
+    ...     'PATH_INFO': '/action', 'QUERY_STRING': 'kwarg1=query',
+    ...     'CONTENT_LENGTH': len('kwarg1=form'),
+    ...     'wsgi.input': StringIO.StringIO('kwarg1=form')
+    ... }).kwargs
     {'kwarg1': 'form'}
     """
 
