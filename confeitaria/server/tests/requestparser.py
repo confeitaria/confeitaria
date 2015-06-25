@@ -33,6 +33,7 @@ class TestRequestParser(unittest.TestCase):
         self.assertEquals({}, request.form_args)
         self.assertEquals([], request.args)
         self.assertEquals({}, request.kwargs)
+        self.assertEquals('GET', request.method)
 
     def test_get_root(self):
         """
