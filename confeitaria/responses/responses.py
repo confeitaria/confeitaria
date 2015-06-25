@@ -97,3 +97,18 @@ class NotFound(Response):
     status_code = '404 Not Found'
     def __init__(self, headers=None, message=None, *args):
         Response.__init__(self, NotFound.status_code, headers, message, *args)
+
+class MethodNotAllowed(Response):
+    """
+    This response indicates the requested resource is available but does not
+    handle the requested HTTP method::
+
+        >>> r = MethodNotAllowed()
+        >>> r.status_code
+        '405 Method Not Allowed'
+    """
+    status_code = '405 Method Not Allowed'
+    def __init__(self, headers=None, message=None, *args):
+        Response.__init__(
+            self, MethodNotAllowed.status_code, headers, message, *args
+        )
