@@ -67,19 +67,13 @@ class Server(object):
         httpd.serve_forever()
 
     def _run_app(self, environ, start_response):
-        path_info = environ.get('PATH_INFO', '')
-        query_string = environ.get('QUERY_STRING', '')
-        url = path_info + ('?' + query_string if query_string else '')
-
         cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
 
         try:
             content = ''
-            request = self.request_parser.parse_request(
-                url, self._get_body_content(environ)
-            )
+            request = self.request_parser.parse_request(environ)
             page = request.page
 
             if hasattr(page, 'set_request'):
@@ -108,7 +102,7 @@ class Server(object):
                 raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as e:
             if e.status_code.startswith('30'):
-                self._replace_none_location(e.headers, url)
+                self._replace_none_location(e.headers, request.url)
             status = e.status_code
             self._add_cookies_to_headers(cookies, e.headers)
             headers = e.headers
