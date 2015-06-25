@@ -375,7 +375,8 @@ class RequestParser(object):
         kwargs = self._get_kwargs(kwargs, args, defaults)
 
         return confeitaria.request.Request(
-            page, path_args, query_args, form_args, path_args, kwargs, url
+            page, path_args, query_args, form_args, path_args, kwargs, url,
+            method
         )
 
     def _get_kwargs(self, kwargs, args_names, args_values):
