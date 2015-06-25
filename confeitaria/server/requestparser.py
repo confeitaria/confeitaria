@@ -146,8 +146,8 @@ class RequestParser(object):
 
         >>> import StringIO
         >>> parser.parse_request({
-        ...     'PATH_INFO': '/action', 'QUERY_STRING': 'arg1=value',
-        ...     'CONTENT_LENGTH': len('arg2=ok'),
+        ...     'REQUEST_METHOD': 'POST', 'PATH_INFO': '/action',
+        ...     'QUERY_STRING': 'arg1=value', 'CONTENT_LENGTH': len('arg2=ok'),
         ...     'wsgi.input': StringIO.StringIO('arg2=ok')
         ... }).form_args
         {'arg2': 'ok'}
@@ -183,7 +183,8 @@ class RequestParser(object):
         ``form_args``::
 
         >>> parser.parse_request({
-        ...     'PATH_INFO': '/action', 'QUERY_STRING': 'kwarg1=query',
+        ...     'REQUEST_METHOD': 'POST', 'PATH_INFO': '/action',
+        ...     'QUERY_STRING': 'kwarg1=query',
         ...     'CONTENT_LENGTH': len('kwarg1=form'),
         ...     'wsgi.input': StringIO.StringIO('kwarg1=form')
         ... }).kwargs
@@ -198,7 +199,8 @@ class RequestParser(object):
         ... }).kwargs
         {'kwarg1': 'query'}
         >>> parser.parse_request({
-        ...     'PATH_INFO': '/action', 'CONTENT_LENGTH': len('kwarg1=form&nothere=true'),
+        ...     'REQUEST_METHOD': 'POST', 'PATH_INFO': '/action',
+        ...     'CONTENT_LENGTH': len('kwarg1=form&nothere=true'),
         ...     'wsgi.input': StringIO.StringIO('kwarg1=form&nothere=true')
         ... }).kwargs
         {'kwarg1': 'form'}
@@ -302,7 +304,8 @@ class RequestParser(object):
     at the ``form_args`` attribute from the request::
 
     >>> parser.parse_request({
-    ...     'PATH_INFO': '/action', 'QUERY_STRING': 'kwarg1=query',
+    ...     'REQUEST_METHOD': 'POST', 'PATH_INFO': '/action',
+    ...     'QUERY_STRING': 'kwarg1=query',
     ...     'CONTENT_LENGTH': len('kwarg1=form'),
     ...     'wsgi.input': StringIO.StringIO('kwarg1=form')
     ... }).kwargs
