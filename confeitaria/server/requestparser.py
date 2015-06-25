@@ -357,8 +357,8 @@ class RequestParser(object):
         try:
             page_method = getattr(page, page_method_name)
         except AttributeError:
-            raise confeitaria.responses.NotFound(
-                message='{0} not found'.format(url)
+            raise confeitaria.responses.MethodNotAllowed(
+                message='{0} does not support {1} requests'.format(url, method)
             )
 
         argspec = inspect.getargspec(page_method)
