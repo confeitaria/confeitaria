@@ -382,7 +382,7 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(IndexPage())
 
         request = request_parser.parse_request({'REQUEST_METHOD': 'GET'})
-        with self.assertRaises(confeitaria.responses.NotFound):
+        with self.assertRaises(confeitaria.responses.MethodNotAllowed):
             request_parser.parse_request({'REQUEST_METHOD': 'POST'})
 
     def test_post_http_method_yields_action_page_no_index_page(self):
@@ -398,7 +398,7 @@ class TestRequestParser(unittest.TestCase):
         request_parser = RequestParser(ActionPage())
 
         request = request_parser.parse_request({'REQUEST_METHOD': 'POST'})
-        with self.assertRaises(confeitaria.responses.NotFound):
+        with self.assertRaises(confeitaria.responses.MethodNotAllowed):
             request_parser.parse_request({'REQUEST_METHOD': 'GET'})
 
     def test_request_has_request_method(self):
