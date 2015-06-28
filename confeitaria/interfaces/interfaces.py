@@ -1,5 +1,55 @@
 import inspect
 
+def has_index_method(obj):
+    """
+    This function returns ``True`` if its argument has an index method::
+
+        >>> class ContentPage(object):
+        ...     def index(self):
+        ...         return 'example'
+        >>> has_index_method(ContentPage())
+        True
+
+    It if has an action method but no index method, however, it returns false::
+
+        >>> class ActionPage(object):
+        ...     def action(self):
+        ...         pass
+        >>> has_index_method(ActionPage())
+        False
+    """
+    attr = getattr(obj, 'index', None)
+
+    return (
+        not inspect.isclass(obj) and
+        inspect.ismethod(attr)
+    )
+
+def has_action_method(obj):
+    """
+    This function returns ``True`` if its argument has an action method::
+
+        >>> class ActionPage(object):
+        ...     def action(self):
+        ...         pass
+        >>> has_action_method(ActionPage())
+        True
+
+    It if has an index method but no action method, however, it returns false::
+
+        >>> class ContentPage(object):
+        ...     def index(self):
+        ...         return 'example'
+        >>> has_action_method(ContentPage())
+        False
+    """
+    attr = getattr(obj, 'action', None)
+
+    return (
+        not inspect.isclass(obj) and
+        inspect.ismethod(attr)
+    )
+
 def has_page_method(obj):
     """
     This function returns ``True`` if its argument has an index method...
