@@ -29,13 +29,82 @@ class TestHasPageMethod(unittest.TestCase):
 
     def test_has_page_method_false_no_method(self):
         """
-        ``has_page_method()`` should return ``True`` if its argument has neither
+        ``has_page_method()`` should return ``False`` if its argument has neither
         ``index()`` nor an ``action()`` bound method.
         """
         class TestObject(object):
             pass
 
         self.assertFalse(interfaces.has_page_method(TestObject()))
+
+class TestHasIndexMethod(unittest.TestCase):
+
+    def test_has_index_method_true_index_method(self):
+        """
+        ``has_index_method()`` should return ``True`` if its argument has an
+        ``index()`` bound method.
+        """
+        class TestPage(object):
+            def index(self):
+                return ''
+
+        self.assertTrue(interfaces.has_index_method(TestPage()))
+
+    def test_has_index_method_false_action_method(self):
+        """
+        ``has_index_method()`` should return ``False`` if its argument has an
+        ``action()`` bound method.
+        """
+        class TestPage(object):
+            def action(self):
+                pass
+
+        self.assertFalse(interfaces.has_index_method(TestPage()))
+
+    def test_has_index_method_false_no_method(self):
+        """
+        ``has_index_method()`` should return ``False`` if its argument has no
+        ``index()`` bound method.
+        """
+        class TestObject(object):
+            pass
+
+        self.assertFalse(interfaces.has_index_method(TestObject()))
+
+class TestHasActionMethod(unittest.TestCase):
+
+    def test_has_action_method_true_action_method(self):
+        """
+        ``has_action_method()`` should return ``True`` if its argument has an
+        ``action()`` bound method.
+        """
+        class TestPage(object):
+            def action(self):
+                pass
+
+        self.assertTrue(interfaces.has_action_method(TestPage()))
+
+    def test_has_action_method_false_index_method(self):
+        """
+        ``has_action_method()`` should return ``False`` if its argument has an
+        ``index()`` bound method.
+        """
+        class TestPage(object):
+            def index(self):
+                return ''
+
+        self.assertFalse(interfaces.has_action_method(TestPage()))
+
+    def test_has_action_method_false_no_method(self):
+        """
+        ``has_index_method()`` should return ``False`` if its argument has no
+        ``index()`` bound method.
+        """
+        class TestObject(object):
+            pass
+
+        self.assertFalse(interfaces.has_action_method(TestObject()))
+
 
 class TestURLedPage(unittest.TestCase):
 
@@ -217,6 +286,10 @@ test_suite.addTest(
 test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestPage))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestHasPageMethod))
+test_suite.addTest(
+    unittest.defaultTestLoader.loadTestsFromTestCase(TestHasIndexMethod))
+test_suite.addTest(
+    unittest.defaultTestLoader.loadTestsFromTestCase(TestHasActionMethod))
 test_suite.addTest(
     unittest.defaultTestLoader.loadTestsFromTestCase(TestHasSetter))
 test_suite.addTest(doctest.DocTestSuite(interfaces))
