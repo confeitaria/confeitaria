@@ -70,16 +70,7 @@ def has_page_method(obj):
         >>> has_page_method(ActionPage())
         True
     """
-    if not inspect.isclass(obj):
-        return (
-            hasattr(obj, 'index') and
-            inspect.ismethod(obj.index)
-        ) or (
-            hasattr(obj, 'action') and
-            inspect.ismethod(obj.action)
-        )
-    else:
-        return False
+    return has_index_method(obj) or has_action_method(obj)
 
 class RequestedPage(object):
     """
