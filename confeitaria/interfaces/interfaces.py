@@ -65,8 +65,8 @@ def has_page_method(obj):
     ...or an action method::
 
         >>> class ActionPage(object):
-        ...     def index(self):
-        ...         return 'example'
+        ...     def action(self):
+        ...         pass
         >>> has_page_method(ActionPage())
         True
     """
