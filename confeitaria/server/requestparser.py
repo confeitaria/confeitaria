@@ -363,9 +363,9 @@ class RequestParser(object):
 
         defaults = argspec.defaults if argspec.defaults is not None else []
         args = argspec.args[1:]
-        args_count = len(args) - len(defaults)
+        mandatory_args_count = len(args) - len(defaults)
 
-        if len(path_args) != args_count:
+        if len(path_args) != mandatory_args_count:
             raise confeitaria.responses.NotFound(
                 message='{0} not found'.format(url)
             )
