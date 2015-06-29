@@ -421,6 +421,25 @@ class TestRequestParser(unittest.TestCase):
         request = request_parser.parse_request({'REQUEST_METHOD': 'POST'})
         self.assertEquals('POST', request.method)
 
+    def test_other_http_methods_yield_method_not_allowed(self):
+        """
+        Requiring a page with an index method (but no action method) with the
+        ``GET`` HTTP method should work, but requiring it with the ``POST``
+        method should fail.
+        """
+        class TestPage(object):
+            def index(self):
+                return ''
+            def action(self):
+                pass
+
+        request_parser = RequestParser(TestPage())
+
+        with self.assertRaises(confeitaria.responses.MethodNotAllowed):
+            request_parser.parse_request({'REQUEST_METHOD': 'PUT'})
+        with self.assertRaises(confeitaria.responses.MethodNotAllowed):
+            request_parser.parse_request({'REQUEST_METHOD': 'DELETE'})
+
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
 test_suite.addTest(doctest.DocTestSuite(confeitaria.server.requestparser))
