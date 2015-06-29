@@ -347,15 +347,13 @@ class RequestParser(object):
         query_args = self._get_query_parameters(parsed_url.query)
         form_args = self._get_query_parameters(body)
 
-        if method == 'POST':
-            page_method_name = 'action'
-            kwargs = form_args
-        else:
-            page_method_name = 'index'
-            kwargs = query_args
-
         try:
-            page_method = getattr(page, page_method_name)
+            if method == 'POST':
+                page_method = page.action
+                kwargs = form_args
+            else:
+                page_method = page.index
+                kwargs = query_args
         except AttributeError:
             raise confeitaria.responses.MethodNotAllowed(
                 message='{0} does not support {1} requests'.format(url, method)
