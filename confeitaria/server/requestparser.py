@@ -3,7 +3,8 @@ import urlparse
 
 import confeitaria.interfaces
 import confeitaria.request
-import confeitaria.responses
+
+from confeitaria.responses import NotFound, MethodNotAllowed
 
 class RequestParser(object):
     """
@@ -355,7 +356,7 @@ class RequestParser(object):
                 page_method = page.index
                 kwargs = query_args
         except AttributeError:
-            raise confeitaria.responses.MethodNotAllowed(
+            raise MethodNotAllowed(
                 message='{0} does not support {1} requests'.format(url, method)
             )
 
@@ -366,9 +367,7 @@ class RequestParser(object):
         mandatory_args_count = len(args) - len(defaults)
 
         if len(path_args) != mandatory_args_count:
-            raise confeitaria.responses.NotFound(
-                message='{0} not found'.format(url)
-            )
+            raise NotFound(message='{0} not found'.format(url))
 
         kwargs = self._get_kwargs(kwargs, args, defaults)
 
