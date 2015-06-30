@@ -1,10 +1,11 @@
 import unittest
 import doctest
+import Cookie
 
 import requests
 
 from confeitaria.reference.tests import TestReference
-from ..server import Server
+from ..server import Server, get_cookies_tuples
 from confeitaria.server import server
 from confeitaria import runner
 
@@ -81,7 +82,26 @@ class TestServer(TestReference):
     def get_server(self, page):
         return Server(page)
 
+class TestServerFunctions(unittest.TestCase):
+
+    def test_get_cookies_tuples(self):
+        """
+        Ensures the ``get_cookies_list()`` returns an iterator yielding tuples
+        appropriate to be added to a header.
+        """
+        cookie = Cookie.SimpleCookie()
+        cookie['a'] = 'A'
+        cookie['b'] = 'B'
+
+        i = get_cookies_tuples(cookie)
+
+        self.assertEquals(i.next(), ('Set-Cookie', 'a=A'))
+        self.assertEquals(i.next(), ('Set-Cookie', 'b=B'))
+
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestServer)
+test_suite.addTest(
+    unittest.TestLoader().loadTestsFromTestCase(TestServerFunctions)
+)
 test_suite.addTest(doctest.DocTestSuite(server))
 test_suite.addTest(doctest.DocTestSuite(runner))
 test_suite.addTest(
