@@ -94,7 +94,6 @@ class Server(object):
 
             if request.method == 'GET':
                 content = page.index(*request.args, **request.kwargs)
-                self._add_cookies_to_headers(cookies, headers)
             elif request.method == 'POST':
                 page.action(*request.args, **request.kwargs)
                 raise confeitaria.responses.SeeOther()
@@ -102,17 +101,12 @@ class Server(object):
             if e.status_code.startswith('30'):
                 self._replace_none_location(e.headers, request.url)
             status = e.status_code
-            self._add_cookies_to_headers(cookies, e.headers)
             headers = e.headers
 
+        headers.extend(get_cookies_tuples(cookies))
         start_response(status, headers)
 
         return content
-
-    def _add_cookies_to_headers(self, cookies, headers):
-        headers.extend(
-            ('Set-Cookie', cookies[k].OutputString()) for k in cookies
-        )
 
     def _replace_none_location(self, headers, location):
         for i, h in enumerate(headers):
@@ -145,3 +139,19 @@ class Server(object):
                 self.run()
             except socket.error:
                 pass
+
+def get_cookies_tuples(cookies):
+    """
+    Returns an iterator. This iterator yields tuples - each tuple defines a
+    cookie and is appropriate to be put in the headers list for
+    ``wsgiref.start_response()``::
+
+    >>> cookie = Cookie.SimpleCookie()
+    >>> cookie['a'] = 'A'
+    >>> cookie['b'] = 'B'
+    >>> list(get_cookies_tuples(cookie))
+    [('Set-Cookie', 'a=A'), ('Set-Cookie', 'b=B')]
+    """
+    return (
+        ('Set-Cookie', cookies[k].OutputString()) for k in cookies
+    )
