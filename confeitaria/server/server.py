@@ -34,10 +34,10 @@ class Server(object):
 
         >>> s = Server(TestPage())
 
-        >>> import multiprocessing, time
+        >>> import multiprocessing, waiters
         >>> p = multiprocessing.Process(target=s.run)
         >>> p.start()
-        >>> time.sleep(1)
+        >>> waiters.wait_server_up('', s.port)
 
         Then the server is supposed to serve the content provided by the page:
 
