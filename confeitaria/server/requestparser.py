@@ -363,25 +363,19 @@ class RequestParser(object):
 
         defaults = argspec.defaults if argspec.defaults is not None else []
         args = argspec.args[1:]
-        mandatory_args_count = len(args) - len(defaults)
+        kwargs_count = len(defaults)
+        mandatory_args_count = len(args) - kwargs_count
 
         if len(path_args) != mandatory_args_count:
             raise NotFound(message='{0} not found'.format(url))
 
-        kwargs = self._get_kwargs(kwargs, args, defaults)
+        kwargs_names = args[-kwargs_count:]
+        kwargs = subdict(kwargs, kwargs_names)
 
         return confeitaria.request.Request(
             page, path_args, query_args, form_args, path_args, kwargs, url,
             method
         )
-
-    def _get_kwargs(self, kwargs, args_names, args_values):
-        kwargs_count = len(args_values)
-        names = args_names[-kwargs_count:]
-
-        return {
-            name: kwargs[name] for name in names if name in kwargs
-        }
 
     def _get_url_dict(self, page, path=None, url_dict=None):
         url_dict = {} if url_dict is None else url_dict
