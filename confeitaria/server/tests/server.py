@@ -5,7 +5,7 @@ import Cookie
 import requests
 
 from confeitaria.reference.tests import TestReference
-from ..server import Server, get_cookies_tuples
+from ..server import Server, get_cookies_tuples, replace_none_location
 from confeitaria.server import server
 from confeitaria import runner
 
@@ -97,6 +97,23 @@ class TestServerFunctions(unittest.TestCase):
 
         self.assertEquals(i.next(), ('Set-Cookie', 'a=A'))
         self.assertEquals(i.next(), ('Set-Cookie', 'b=B'))
+
+    def test_replace_none_location(self):
+        """
+        Ensures that the function replaces locations from a header which are
+        ``None`` with a valid location.
+        """
+        headers = [('Location', '/a'), ('Set-Cookie', 'a=A')]
+        self.assertEquals(
+            [('Location', '/a'), ('Set-Cookie', 'a=A')],
+            replace_none_location(headers, '/b')
+        )
+
+        headers = [('Location', None), ('Set-Cookie', 'a=A')]
+        self.assertEquals(
+            [('Location', '/b'), ('Set-Cookie', 'a=A')],
+            replace_none_location(headers, '/b')
+        )
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestServer)
 test_suite.addTest(
