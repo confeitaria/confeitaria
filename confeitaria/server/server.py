@@ -1,7 +1,5 @@
 import os
 import binascii
-import multiprocessing
-import time
 
 import wsgiref.simple_server as simple_server
 import Cookie
@@ -132,11 +130,28 @@ class Server(object):
                 headers[i] = h[0], location
 
     def __enter__(self):
-        self._process = multiprocessing.Process(target=self.run)
-        self._process.start()
-        time.sleep(1)
+        import multiprocessing
+        import waiters
+
+        try:
+            self._process = multiprocessing.Process(target=self._force_run)
+            self._process.start()
+            waiters.wait_server_up('', self.port)
+        except:
+            raise
 
     def __exit__(self, type, value, traceback):
+        import waiters
+
         self._process.terminate()
+        waiters.wait_server_down('', self.port)
         self._process = None
 
+    def _force_run(self):
+        import socket
+
+        while True:
+            try:
+                self.run()
+            except socket.error:
+                pass
