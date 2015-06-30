@@ -318,7 +318,15 @@ class RequestParser(object):
         ``RequestParser`` expects as its constructor argument a page
         (probably with subpages) to which to map URLs.
         """
-        self.url_dict = self._get_url_dict(page)
+        self.url_dict = path_dict(
+            page, condition=confeitaria.interfaces.has_page_method,
+            sep='/', path=''
+        )
+
+        for url, page in self.url_dict.items():
+            if confeitaria.interfaces.has_setter(page, 'url'):
+                page.set_url(url if url != '' else '/')
+
         urls = list(self.url_dict.keys())
         urls.sort()
         urls.reverse()
@@ -376,24 +384,6 @@ class RequestParser(object):
             page, path_args, query_args, form_args, path_args, kwargs, url,
             method
         )
-
-    def _get_url_dict(self, page, path=None, url_dict=None):
-        url_dict = {} if url_dict is None else url_dict
-        path = '' if path is None else path
-
-        url_dict[path] = page
-
-        for attr_name in dir(page):
-            attr = getattr(page, attr_name)
-            if confeitaria.interfaces.has_page_method(attr):
-                url = '/'.join((path, attr_name))
-                self._get_url_dict(attr, url, url_dict)
-
-        if confeitaria.interfaces.has_setter(page, 'url'):
-            page_url = path if path != '' else '/'
-            page.set_url(page_url)
-
-        return url_dict
 
     def _get_query_parameters(self, query):
         if query is not None:
