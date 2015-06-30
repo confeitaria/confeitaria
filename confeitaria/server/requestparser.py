@@ -432,3 +432,66 @@ def subdict(d, keys):
     {'a': 1}
     """
     return { k: d[k] for k in keys if k in d }
+
+def path_dict(obj, condition, sep='.', path=None):
+    """
+    ``path_dict()`` receives an object as its argument and returns a dict
+    whose keys are the "path" to each attribute of the object (recursively)
+    and the values are the attributes. Only objects satisfying a given
+    condition will be added to the dict. For the tree below::
+
+    >>> class Obj(object):
+    ...     pass
+    >>> o = Obj()
+    >>> o.sub = Obj()
+    >>> o.sub.another = Obj()
+    >>> o.sub.another.value = 'a'
+    >>> pd = path_dict(o, lambda o: isinstance(o, Obj))
+
+    ...we get this::
+
+    >>> pd[''] == o
+    True
+    >>> pd['sub'] == o.sub
+    True
+    >>> pd['sub.another'] == o.sub.another
+    True
+    >>> 'sub.another.value' in pd
+    False
+
+    Or using the example that most interest us - a page tree::
+
+    >>> class TestPage(object):
+    ...     def index(self):
+    ...         return ''
+    >>> page = TestPage()
+    >>> page.sub = TestPage()
+    >>> page.sub.another = TestPage()
+    >>> page.sub.another.value = Obj()
+
+    >>> from confeitaria.interfaces import has_page_method
+    >>> pd = path_dict(page, condition=has_page_method, sep='/')
+    >>> pd[''] == page
+    True
+    >>> pd['sub'] == page.sub
+    True
+    >>> pd['sub/another'] == page.sub.another
+    True
+    >>> 'sub/another/value' in pd
+    False
+    """
+    result = {}
+
+    if not condition(obj):
+        return result
+    else:
+        result[path if path is not None else ''] = obj
+
+    for an in dir(obj):
+        attr = getattr(obj, an)
+        if condition(attr):
+            attr_path = sep.join((path, an)) if path is not None else an
+            attr_dict = path_dict(attr, condition, sep=sep, path=attr_path)
+            result.update(attr_dict)
+
+    return result
