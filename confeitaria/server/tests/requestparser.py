@@ -8,10 +8,10 @@ except:
 
 import requests
 
-from ..requestparser import RequestParser
 from confeitaria.responses import NotFound
 
 import confeitaria.server.requestparser
+from confeitaria.server.requestparser import RequestParser, subdict
 
 class TestRequestParser(unittest.TestCase):
 
@@ -440,8 +440,26 @@ class TestRequestParser(unittest.TestCase):
         with self.assertRaises(confeitaria.responses.MethodNotAllowed):
             request_parser.parse_request({'REQUEST_METHOD': 'DELETE'})
 
+class TestRequestParserFunctions(unittest.TestCase):
+
+    def test_subdict(self):
+        """
+        ``subdict()`` receives a dict and a list of strings and return a dict
+        containing all values mapped by the list of strings if present in the
+        original dict.
+        """
+        self.assertEquals({'a': 1}, subdict({'a': 1, 'b': 2}, ['a']))
+
+    def test_subdict_ignores_unavailable_values(self):
+        """
+        ``subdict()`  just ignores and key not found in the dict.
+        """
+        self.assertEquals({'a': 1}, subdict({'a': 1, 'b': 2}, ['a', 'c']))
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
+test_suite.addTest(
+    unittest.TestLoader().loadTestsFromTestCase(TestRequestParserFunctions)
+)
 test_suite.addTest(doctest.DocTestSuite(confeitaria.server.requestparser))
 
 def load_tests(loader, tests, ignore):
