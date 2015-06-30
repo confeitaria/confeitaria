@@ -481,6 +481,51 @@ class TestRequestParserFunctions(unittest.TestCase):
         self.assertEquals(pd['sub.another'], o.sub.another)
         self.assertEquals(pd['another'], o.another)
 
+    def test_path_dict_with_sep(self):
+        """
+        You should be able to define the separator fo ``path_dict()``.
+        condition will be added to the dict
+        """
+        class Obj(object):
+            pass
+
+        o = Obj()
+        o.sub = Obj()
+        o.sub.another = Obj()
+        o.sub.value = 'a'
+        o.sub.another.value = 3
+        o.another = Obj()
+        o.another.value = 3.14
+
+        pd = path_dict(o, lambda o: isinstance(o, Obj), sep='/')
+
+        self.assertEquals(pd[''], o)
+        self.assertEquals(pd['sub'], o.sub)
+        self.assertEquals(pd['sub/another'], o.sub.another)
+        self.assertEquals(pd['another'], o.another)
+
+    def test_path_dict_with_path(self):
+        """
+        If you give a path to``path_dict()`` it will preceed all other ones.
+        """
+        class Obj(object):
+            pass
+
+        o = Obj()
+        o.sub = Obj()
+        o.sub.another = Obj()
+        o.sub.value = 'a'
+        o.sub.another.value = 3
+        o.another = Obj()
+        o.another.value = 3.14
+
+        pd = path_dict(o, lambda o: isinstance(o, Obj), path='o')
+
+        self.assertEquals(pd['o'], o)
+        self.assertEquals(pd['o.sub'], o.sub)
+        self.assertEquals(pd['o.sub.another'], o.sub.another)
+        self.assertEquals(pd['o.another'], o.another)
+
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
 test_suite.addTest(
     unittest.TestLoader().loadTestsFromTestCase(TestRequestParserFunctions)
