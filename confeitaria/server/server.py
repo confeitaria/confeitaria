@@ -98,20 +98,15 @@ class Server(object):
                 page.action(*request.args, **request.kwargs)
                 raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as e:
-            if e.status_code.startswith('30'):
-                self._replace_none_location(e.headers, request.url)
             status = e.status_code
             headers = e.headers
+            if e.status_code.startswith('30'):
+                headers = replace_none_location(headers, request.url)
 
         headers.extend(get_cookies_tuples(cookies))
         start_response(status, headers)
 
         return content
-
-    def _replace_none_location(self, headers, location):
-        for i, h in enumerate(headers):
-            if (h[0].lower() == 'location') and (h[1] is None):
-                headers[i] = h[0], location
 
     def __enter__(self):
         import multiprocessing
@@ -155,3 +150,27 @@ def get_cookies_tuples(cookies):
     return (
         ('Set-Cookie', cookies[k].OutputString()) for k in cookies
     )
+
+def replace_none_location(headers, location):
+    """
+    Returns a new list of tuples (with headers values) where any 'Location'
+    header with ``None`` as value is replaced by the given location::
+
+    >>> headers = [('Location', None), ('Set-Cookie', 'a=A')]
+    >>> replace_none_location(headers, '/b')
+    [('Location', '/b'), ('Set-Cookie', 'a=A')]
+
+    Location headers already set are not affected::
+
+    >>> headers = [('Location', '/a'), ('Set-Cookie', 'a=A')]
+    >>> replace_none_location(headers, '/b')
+    [('Location', '/a'), ('Set-Cookie', 'a=A')]
+
+    """
+    return [
+        (
+            h[0],
+            location if (h[0].lower() == 'location') and (h[1] is None) else h[1]
+        )
+        for h in headers
+    ]
