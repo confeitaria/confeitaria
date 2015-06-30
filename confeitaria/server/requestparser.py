@@ -422,3 +422,19 @@ def find_longest_prefix(string, prefixes):
             break
 
     return longest
+
+def subdict(d, keys):
+    """
+    ``subdict()`` receives a dict and a list of strings and return a dict
+    containing all values mapped by the list of strings if present in the
+    original dict::
+
+    >>> subdict({'a': 1, 'b': 2}, ['a'])
+    {'a': 1}
+
+    ``subdict()`  just ignores and key not found in the dict::
+
+    >>> subdict({'a': 1, 'b': 2}, ['a', 'c'])
+    {'a': 1}
+    """
+    return { k: d[k] for k in keys if k in d }
