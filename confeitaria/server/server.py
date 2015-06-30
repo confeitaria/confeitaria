@@ -92,10 +92,10 @@ class Server(object):
 
                 page.set_session(self.sessions[session_id])
 
-            if environ['REQUEST_METHOD'] == 'GET':
+            if request.method == 'GET':
                 content = page.index(*request.args, **request.kwargs)
                 self._add_cookies_to_headers(cookies, headers)
-            elif environ['REQUEST_METHOD'] == 'POST':
+            elif request.method == 'POST':
                 page.action(*request.args, **request.kwargs)
                 raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as e:
@@ -113,16 +113,6 @@ class Server(object):
         headers.extend(
             ('Set-Cookie', cookies[k].OutputString()) for k in cookies
         )
-
-    def _get_body_content(self, environ):
-        if environ['REQUEST_METHOD'] != 'POST':
-            return None
-        try:
-            body_size = int(environ.get('CONTENT_LENGTH', 0))
-        except (ValueError):
-            body_size = 0
-
-        return environ['wsgi.input'].read(body_size)
 
     def _replace_none_location(self, headers, location):
         for i, h in enumerate(headers):
