@@ -11,7 +11,7 @@ import requests
 from confeitaria.responses import NotFound
 
 import confeitaria.server.requestparser
-from confeitaria.server.requestparser import RequestParser, subdict
+from confeitaria.server.requestparser import RequestParser, subdict, path_dict
 
 class TestRequestParser(unittest.TestCase):
 
@@ -455,6 +455,31 @@ class TestRequestParserFunctions(unittest.TestCase):
         ``subdict()`  just ignores and key not found in the dict.
         """
         self.assertEquals({'a': 1}, subdict({'a': 1, 'b': 2}, ['a', 'c']))
+
+    def test_path_dict(self):
+        """
+        ``path_dict()`` receives an object as its argument and returns a dict
+        whose keys are the "path" to each attribute of the object (recursively)
+        and the values are the attributes. Only objects satisfying a given
+        condition will be added to the dict
+        """
+        class Obj(object):
+            pass
+
+        o = Obj()
+        o.sub = Obj()
+        o.sub.another = Obj()
+        o.sub.value = 'a'
+        o.sub.another.value = 3
+        o.another = Obj()
+        o.another.value = 3.14
+
+        pd = path_dict(o, lambda o: isinstance(o, Obj))
+
+        self.assertEquals(pd[''], o)
+        self.assertEquals(pd['sub'], o.sub)
+        self.assertEquals(pd['sub.another'], o.sub.another)
+        self.assertEquals(pd['another'], o.another)
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
 test_suite.addTest(
