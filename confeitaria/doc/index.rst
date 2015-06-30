@@ -605,8 +605,8 @@ Principle 1: *The customer should get only the desired piece.*
 Principle 2: *To use a page should be a piece of cake.*
     An application should be pages that can be instatiated many times, maybe
     with some pages. The pages should be as flexible as any simple object, not
-    requiring any setup other than being called by ``confeitaria.run()`` (but
-    being open to more, optional configuration0.
+    requiring any setup other than being called by ``confeitaria.runner.run()``
+    (but being open to more, optional configuration0.
 
 Principle 3: *A cake should be useful without more cooking.*
     Whenever possible, a Confeitaria package should be usable by only calling
