@@ -1,5 +1,9 @@
 import inspect
 import urlparse
+try:
+    import cStringIO as StringIO
+except:
+    import StringIO
 
 import confeitaria.interfaces
 import confeitaria.request
@@ -342,8 +346,8 @@ class RequestParser(object):
         except (ValueError):
             body_size = 0
 
-        content = environment.get('wsgi.input', None)
-        body = content.read(body_size) if content is not None else None
+        content = environment.get('wsgi.input', StringIO.StringIO())
+        body = content.read(body_size)
 
         parsed_url = urlparse.urlparse(url)
 
@@ -353,8 +357,8 @@ class RequestParser(object):
         page = self.url_dict[page_path]
 
         path_args = [a for a in extra_path.split('/') if a]
-        query_args = self._get_query_parameters(parsed_url.query)
-        form_args = self._get_query_parameters(body)
+        query_args = parse_qs_flat(parsed_url.query)
+        form_args = parse_qs_flat(body)
 
         if method == 'POST' and confeitaria.interfaces.has_action_method(page):
             page_method = page.action
@@ -384,18 +388,6 @@ class RequestParser(object):
             page, path_args, query_args, form_args, path_args, kwargs, url,
             method
         )
-
-    def _get_query_parameters(self, query):
-        if query is not None:
-            query_parameters = urlparse.parse_qs(query)
-        else:
-            query_parameters = {}
-
-        for key, value in query_parameters.items():
-            if isinstance(value, list) and len(value) == 1:
-                query_parameters[key] = value[0]
-
-        return query_parameters
 
 def find_longest_prefix(string, prefixes):
     longest = ""
