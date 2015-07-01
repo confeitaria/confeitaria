@@ -348,7 +348,7 @@ class RequestParser(object):
 
         parsed_url = urlparse.urlparse(url)
 
-        page_path = find_longest_prefix(parsed_url.path, self.urls)
+        page_path = first_prefix(parsed_url.path, self.urls, default='/')
         extra_path = parsed_url.path.replace(page_path, '')
 
         page = self.url_dict[page_path]
@@ -385,16 +385,6 @@ class RequestParser(object):
             page, path_args, query_args, form_args, path_args, kwargs, url,
             method
         )
-
-def find_longest_prefix(string, prefixes):
-    longest = ""
-
-    for prefix in prefixes:
-        if string.startswith(prefix):
-            longest = prefix
-            break
-
-    return longest
 
 def first_prefix(string, prefixes, default=None):
     """
