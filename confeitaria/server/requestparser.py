@@ -331,10 +331,7 @@ class RequestParser(object):
             if confeitaria.interfaces.has_setter(page, 'url'):
                 page.set_url(url if url != '' else '/')
 
-        urls = list(self.url_dict.keys())
-        urls.sort()
-        urls.reverse()
-        self.urls = urls
+        self.urls = sorted(self.url_dict.keys(), reverse=True)
 
     def parse_request(self, environment):
         method = environment.get('REQUEST_METHOD', 'GET')
