@@ -11,8 +11,8 @@ import requests
 from confeitaria.responses import NotFound
 
 import confeitaria.server.requestparser
-from confeitaria.server.requestparser\
-    import RequestParser, subdict, path_dict, parse_qs_flat
+from confeitaria.server.requestparser import \
+    RequestParser, subdict, path_dict, parse_qs_flat, first_prefix
 
 class TestRequestParser(unittest.TestCase):
 
@@ -536,6 +536,24 @@ class TestRequestParserFunctions(unittest.TestCase):
         """
         self.assertEquals(
             {'a': '1', 'b': ['2', '3']}, parse_qs_flat('a=1&b=2&b=3')
+        )
+
+    def test_first_prefix(self):
+        """
+        Given a list of strings ``l`` and a string ``s``, ``first_prefix()``
+        finds the first item from ``l`` that is a prefix for ``s`` (i.e. the
+        item ``i`` from ``l`` that satisfies ``s.startswith(i)``.
+        """
+        self.assertEquals('a', first_prefix('abc', ['b', 'a', 'abc']))
+
+    def test_first_prefix_none(self):
+        """
+        If ``first_prefix()`` finds no prefix from the list, it returns ``None``
+        except if the ``default`` parameter is given.
+        """
+        self.assertEquals(None, first_prefix('jkl', ['b', 'a', 'abc']))
+        self.assertEquals(
+            'J', first_prefix('jkl', ['b', 'a', 'abc'], default='J')
         )
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
