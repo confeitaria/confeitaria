@@ -396,6 +396,33 @@ def find_longest_prefix(string, prefixes):
 
     return longest
 
+def first_prefix(string, prefixes, default=None):
+    """
+    Given a list of strings ``l`` and a string ``s``, ``first_prefix()``
+    finds the first item from ``l`` that is a prefix for ``s`` (i.e. the
+    item ``i`` from ``l`` that satisfies ``s.startswith(i)``::
+
+    >>> first_prefix('abc', ['b', 'a', 'abc'])
+    'a'
+
+    By default, if ``first_prefix()`` finds no prefix from the list, it returns
+    ``None``::
+
+    >>> first_prefix('jkl', ['b', 'a', 'abc']) is None
+    True
+
+    However, if the the ``default`` argument is given, this is the value to be
+    returned when o prefix is found::
+
+    >>> first_prefix('jkl', ['b', 'a', 'abc'], default='J')
+    'J'
+    """
+    for p in prefixes:
+        if string.startswith(p):
+            return p
+
+    return default
+
 def subdict(d, keys):
     """
     ``subdict()`` receives a dict and a list of strings and return a dict
