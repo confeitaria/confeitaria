@@ -485,3 +485,33 @@ def path_dict(obj, condition, sep='.', path=None):
             result.update(attr_dict)
 
     return result
+
+def parse_qs_flat(query_string):
+    """
+    ``parse_qs_flat()`` works very much like ``urlparse.parse_qs()`` with a
+    difference: while the values of the ``urlparse.parse_qs()`` dict are
+    lists, in ``parse_qs_flat()`` they are lists only if more than one is
+    given; otherwise, the sole value is the dict value. While
+    ``urlparse.parse_qs()`` would behave like this::
+
+    >>> import urlparse
+    >>> urlparse.parse_qs('a=1')
+    {'a': ['1']}
+
+
+    ``parse_qs_flat()`` takes the value out of the list::
+
+    >>> parse_qs_flat('a=1')
+    {'a': '1'}
+
+    ...but only if it a one-value list::
+
+    >>> parse_qs_flat('a=1&b=2&b=3') == {'a': '1', 'b': ['2', '3']}
+    True
+    """
+    query_parameters = urlparse.parse_qs(query_string)
+
+    return {
+        k: v[0] if isinstance(v, list) and len(v) == 1 else v
+        for k, v in query_parameters.items()
+    }
