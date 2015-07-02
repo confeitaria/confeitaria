@@ -12,7 +12,7 @@ from confeitaria.responses import NotFound
 
 import confeitaria.server.requestparser
 from confeitaria.server.requestparser import \
-    RequestParser, subdict, path_dict, parse_qs_flat, first_prefix
+    RequestParser, subdict, path_dict, parse_qs_flat, first_prefix, signature
 
 class TestRequestParser(unittest.TestCase):
 
@@ -555,6 +555,42 @@ class TestRequestParserFunctions(unittest.TestCase):
         self.assertEquals(
             'J', first_prefix('jkl', ['b', 'a', 'abc'], default='J')
         )
+
+    def test_signature(self):
+        """
+        ``signature()`` should return a named tuple representing the argspec of
+        the function in a more palatable way.
+        """
+        def f(a, b, c=3, d=3.14, e=4, *args, **kwargs): pass
+        sig = signature(f)
+        self.assertEquals(['a', 'b'], sig.args)
+        self.assertEquals({'c': 3, 'd': 3.14, 'e': 4}, sig.kwargs)
+        self.assertEquals('args', sig.varargs)
+        self.assertEquals('kwargs', sig.keywords)
+
+    def test_signature_bound_method(self):
+        """
+        ``signature()`` should work with bound methods.
+        """
+        class O(object):
+            def f(self, a, b, c=3, e=4, *args, **kwargs): pass
+        sig = signature(O().f)
+        self.assertEquals(['self', 'a', 'b'], sig.args)
+        self.assertEquals({'c': 3, 'e': 4}, sig.kwargs)
+        self.assertEquals('args', sig.varargs)
+        self.assertEquals('kwargs', sig.keywords)
+
+    def test_signature_no_arg(self):
+        """
+        ``signature()`` should work with functions without args.
+        """
+        def f(): pass
+        sig = signature(f)
+        self.assertEquals([], sig.args)
+        self.assertEquals({}, sig.kwargs)
+        self.assertEquals(None, sig.varargs)
+        self.assertEquals(None, sig.keywords)
+
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
 test_suite.addTest(
