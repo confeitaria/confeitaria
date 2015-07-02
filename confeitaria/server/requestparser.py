@@ -365,10 +365,9 @@ class RequestParser(object):
                 )
             )
 
-        sig = signature(page_method)
+        sig = signature(page_method, exclude_self=True)
 
-        self_count = 1 if page_method.im_self is not None else 0
-        if len(path_args) != len(sig.args) - self_count:
+        if len(path_args) != len(sig.args):
             raise NotFound(message='{0} not found'.format(url))
 
         kwargs = subdict(request_kwargs, sig.kwargs.keys())
