@@ -360,27 +360,21 @@ class RequestParser(object):
 
         if method == 'POST' and confeitaria.interfaces.has_action_method(page):
             page_method = page.action
-            kwargs = form_args
+            request_kwargs = form_args
         elif method == 'GET' and confeitaria.interfaces.has_index_method(page):
             page_method = page.index
-            kwargs = query_args
+            request_kwargs = query_args
         else:
             raise MethodNotAllowed(
                 message='{0} does not support {1} requests'.format(url, method)
             )
 
-        argspec = inspect.getargspec(page_method)
+        sig = signature(page_method)
 
-        defaults = argspec.defaults if argspec.defaults is not None else []
-        args = argspec.args[1:]
-        kwargs_count = len(defaults)
-        mandatory_args_count = len(args) - kwargs_count
-
-        if len(path_args) != mandatory_args_count:
+        if len(path_args) != len(sig.args)-1:
             raise NotFound(message='{0} not found'.format(url))
 
-        kwargs_names = args[-kwargs_count:]
-        kwargs = subdict(kwargs, kwargs_names)
+        kwargs = subdict(request_kwargs, sig.kwargs.keys())
 
         return confeitaria.request.Request(
             page, path_args, query_args, form_args, path_args, kwargs, url,
