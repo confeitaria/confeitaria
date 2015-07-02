@@ -591,6 +591,17 @@ class TestRequestParserFunctions(unittest.TestCase):
         self.assertEquals(None, sig.varargs)
         self.assertEquals(None, sig.keywords)
 
+    def test_signature_callable(self):
+        """
+        ``signature()`` should work with callables.
+        """
+        class F(object):
+            def __call__(self, a, b, c=3, e=4, *args, **kwargs): pass
+        sig = signature(F())
+        self.assertEquals(['self', 'a', 'b'], sig.args)
+        self.assertEquals({'c': 3, 'e': 4}, sig.kwargs)
+        self.assertEquals('args', sig.varargs)
+        self.assertEquals('kwargs', sig.keywords)
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
 test_suite.addTest(
