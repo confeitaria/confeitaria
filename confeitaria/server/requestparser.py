@@ -6,7 +6,8 @@ try:
 except:
     import StringIO
 
-import confeitaria.interfaces
+from  confeitaria.interfaces import \
+    has_action_method, has_index_method, has_page_method, has_setter
 import confeitaria.request
 
 from confeitaria.responses import NotFound, MethodNotAllowed
@@ -323,19 +324,16 @@ class RequestParser(object):
         ``RequestParser`` expects as its constructor argument a page
         (probably with subpages) to which to map URLs.
         """
-        self.url_dict = path_dict(
-            page, condition=confeitaria.interfaces.has_page_method,
-            sep='/', path=''
-        )
+        self.url_dict = path_dict(page, has_page_method, sep='/', path='')
 
         for url, page in self.url_dict.items():
-            if confeitaria.interfaces.has_setter(page, 'url'):
+            if has_setter(page, 'url'):
                 page.set_url(url if url != '' else '/')
 
         self.urls = sorted(self.url_dict.keys(), reverse=True)
 
     def parse_request(self, environment):
-        method = environment.get('REQUEST_METHOD', 'GET')
+        request_method = environment.get('REQUEST_METHOD', 'GET')
         path_info = environment.get('PATH_INFO', '')
         query_string = environment.get('QUERY_STRING', '')
         url = path_info + ('?' + query_string if query_string else '')
@@ -354,15 +352,17 @@ class RequestParser(object):
 
         page = self.url_dict[page_path]
 
-        if method == 'POST' and confeitaria.interfaces.has_action_method(page):
+        if request_method == 'POST' and has_action_method(page):
             page_method = page.action
             request_kwargs = form_args
-        elif method == 'GET' and confeitaria.interfaces.has_index_method(page):
+        elif request_method == 'GET' and has_index_method(page):
             page_method = page.index
             request_kwargs = query_args
         else:
             raise MethodNotAllowed(
-                message='{0} does not support {1} requests'.format(url, method)
+                message='{0} does not support {1} requests'.format(
+                    path_info, request_method
+                )
             )
 
         sig = signature(page_method)
@@ -375,7 +375,7 @@ class RequestParser(object):
 
         return confeitaria.request.Request(
             page, path_args, query_args, form_args, path_args, kwargs, url,
-            method
+            request_method
         )
 
 def first_prefix(string, prefixes, default=None):
