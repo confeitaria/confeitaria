@@ -563,6 +563,7 @@ class TestRequestParserFunctions(unittest.TestCase):
         """
         def f(a, b, c=3, d=3.14, e=4, *args, **kwargs): pass
         sig = signature(f)
+
         self.assertEquals(['a', 'b'], sig.args)
         self.assertEquals({'c': 3, 'd': 3.14, 'e': 4}, sig.kwargs)
         self.assertEquals('args', sig.varargs)
@@ -575,6 +576,7 @@ class TestRequestParserFunctions(unittest.TestCase):
         class O(object):
             def f(self, a, b, c=3, e=4, *args, **kwargs): pass
         sig = signature(O().f)
+
         self.assertEquals(['self', 'a', 'b'], sig.args)
         self.assertEquals({'c': 3, 'e': 4}, sig.kwargs)
         self.assertEquals('args', sig.varargs)
@@ -588,6 +590,7 @@ class TestRequestParserFunctions(unittest.TestCase):
         class O(object):
             def f(self, a, b, c=3, e=4, *args, **kwargs): pass
         sig = signature(O().f, exclude_self=True)
+
         self.assertEquals(['a', 'b'], sig.args)
         self.assertEquals({'c': 3, 'e': 4}, sig.kwargs)
         self.assertEquals('args', sig.varargs)
@@ -599,6 +602,7 @@ class TestRequestParserFunctions(unittest.TestCase):
         """
         def f(): pass
         sig = signature(f)
+
         self.assertEquals([], sig.args)
         self.assertEquals({}, sig.kwargs)
         self.assertEquals(None, sig.varargs)
@@ -611,6 +615,7 @@ class TestRequestParserFunctions(unittest.TestCase):
         class F(object):
             def __call__(self, a, b, c=3, e=4, *args, **kwargs): pass
         sig = signature(F())
+
         self.assertEquals(['self', 'a', 'b'], sig.args)
         self.assertEquals({'c': 3, 'e': 4}, sig.kwargs)
         self.assertEquals('args', sig.varargs)
