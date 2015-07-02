@@ -1,5 +1,6 @@
 import inspect
 import urlparse
+import collections
 try:
     import cStringIO as StringIO
 except:
@@ -521,3 +522,19 @@ def parse_qs_flat(query_string):
         k: v[0] if isinstance(v, list) and len(v) == 1 else v
         for k, v in query_parameters.items()
     }
+
+
+Signature = collections.namedtuple(
+    'Signature', ('args', 'kwargs', 'varargs', 'keywords')
+)
+
+def signature(f):
+    argspec = inspect.getargspec(f)
+
+    defaults = argspec.defaults if argspec.defaults is not None else []
+    args_count = len(argspec.args) - len(defaults)
+
+    args = argspec.args[:args_count]
+    kwargs = dict(zip(argspec.args[args_count:], defaults))
+
+    return Signature(args, kwargs, argspec.varargs, argspec.keywords)
