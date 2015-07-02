@@ -577,7 +577,13 @@ def signature(f):
             True
 
     """
-    argspec = inspect.getargspec(f)
+    try:
+        argspec = inspect.getargspec(f)
+    except TypeError:
+        if hasattr(f, '__call__'):
+            return signature(f.__call__)
+        else:
+            raise TypeError('{0} is neither a Python function nor callable')
 
     defaults = argspec.defaults if argspec.defaults is not None else []
     args_count = len(argspec.args) - len(defaults)
