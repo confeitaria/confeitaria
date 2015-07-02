@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="confeitaria",
-    version="0.1.dev0",
+    version="0.1.a1",
     author='Adam Victor Brandizzi',
     author_email='adam@brandizzi.com.br',
     description='Confeitaria is a Python web framework',
