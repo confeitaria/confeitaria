@@ -519,7 +519,7 @@ Signature = collections.namedtuple(
     'Signature', ('args', 'kwargs', 'varargs', 'keywords')
 )
 
-def signature(f):
+def signature(f, exclude_self=False):
     """
     ``signature()`` should return a named tuple representing the argspec of
     the function in a more palatable way. it will have four attributes:
@@ -581,7 +581,7 @@ def signature(f):
         argspec = inspect.getargspec(f)
     except TypeError:
         if hasattr(f, '__call__'):
-            return signature(f.__call__)
+            return signature(f.__call__, exclude_self=exclude_self)
         else:
             raise TypeError('{0} is neither a Python function nor callable')
 
@@ -590,5 +590,8 @@ def signature(f):
 
     args = argspec.args[:args_count]
     kwargs = dict(zip(argspec.args[args_count:], defaults))
+
+    if exclude_self and getattr(f, 'im_self', False):
+        args.pop(0)
 
     return Signature(args, kwargs, argspec.varargs, argspec.keywords)
