@@ -343,20 +343,16 @@ class RequestParser(object):
             body_size = int(environment.get('CONTENT_LENGTH', 0))
         except (ValueError):
             body_size = 0
-
         content = environment.get('wsgi.input', StringIO.StringIO())
         body = content.read(body_size)
 
-        parsed_url = urlparse.urlparse(url)
-
-        page_path = first_prefix(parsed_url.path, self.urls, default='/')
-        extra_path = parsed_url.path.replace(page_path, '')
+        page_path = first_prefix(path_info, self.urls, default='/')
+        extra_path = path_info.replace(page_path, '')
+        path_args = [a for a in extra_path.split('/') if a]
+        query_args = parse_qs_flat(query_string)
+        form_args = parse_qs_flat(body)
 
         page = self.url_dict[page_path]
-
-        path_args = [a for a in extra_path.split('/') if a]
-        query_args = parse_qs_flat(parsed_url.query)
-        form_args = parse_qs_flat(body)
 
         if method == 'POST' and confeitaria.interfaces.has_action_method(page):
             page_method = page.action
