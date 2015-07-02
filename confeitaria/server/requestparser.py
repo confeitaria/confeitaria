@@ -576,6 +576,32 @@ def signature(f, exclude_self=False):
             >>> signature(noarg).keywords is None
             True
 
+    If called with ``exclude_self`` is true, the first argument of a bound
+    method will be dropped. For example, if we have the class below::
+
+        >>> class O(object):
+        ...     def f(s, a, b):
+        ...         pass
+
+    ...the default behavior of ``signature()`` will be::
+
+        >>> signature(O().f)
+        Signature(args=['s', 'a', 'b'], kwargs={}, varargs=None, keywords=None)
+
+    ...but it will ot list the first argument if ``exclude_self`` is true::
+
+        >>> signature(O().f, exclude_self=True)
+        Signature(args=['a', 'b'], kwargs={}, varargs=None, keywords=None)
+
+    This does not happen with unbound methods and functions, however::
+
+        >>> signature(O.f, exclude_self=True)
+        Signature(args=['s', 'a', 'b'], kwargs={}, varargs=None, keywords=None)
+        >>> def g(s, a, b): pass
+        >>> signature(g, exclude_self=True)
+        Signature(args=['s', 'a', 'b'], kwargs={}, varargs=None, keywords=None)
+
+    This function should also work with callables.
     """
     try:
         argspec = inspect.getargspec(f)
