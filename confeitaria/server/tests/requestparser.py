@@ -580,6 +580,19 @@ class TestRequestParserFunctions(unittest.TestCase):
         self.assertEquals('args', sig.varargs)
         self.assertEquals('kwargs', sig.keywords)
 
+    def test_signature_bound_method_exclude_self(self):
+        """
+        ``signature()`` should not list the first ("self") argument from a bound
+        method if called with ``exclude_self=True``.
+        """
+        class O(object):
+            def f(self, a, b, c=3, e=4, *args, **kwargs): pass
+        sig = signature(O().f, exclude_self=True)
+        self.assertEquals(['a', 'b'], sig.args)
+        self.assertEquals({'c': 3, 'e': 4}, sig.kwargs)
+        self.assertEquals('args', sig.varargs)
+        self.assertEquals('kwargs', sig.keywords)
+
     def test_signature_no_arg(self):
         """
         ``signature()`` should work with functions without args.
