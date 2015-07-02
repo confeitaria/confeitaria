@@ -529,6 +529,63 @@ Signature = collections.namedtuple(
 )
 
 def signature(f):
+    """
+    ``signature()`` should return a named tuple representing the argspec of
+    the function in a more palatable way. it will have four attributes:
+
+    ``args``
+        a list with the name of positional arguments::
+
+            >>> def f(a, b, c=3, d=3.14, e=4, *args, **kwargs): pass
+            >>> sig = signature(f)
+            >>> sig.args
+            ['a', 'b']
+
+        If the function has no arg, ``args`` is an empty list::
+
+            >>> def noarg(): pass
+            >>> signature(noarg).args
+            []
+
+    ``kwargs``
+        a dictionary whose keys are the names of optional arguments mapping
+        their default values::
+
+            >>> sig.kwargs == {'c': 3, 'd': 3.14, 'e': 4}
+            True
+
+        If there is no optional argument, ``kwargs`` is a empty dict::
+
+            >>> def noopt(): pass
+            >>> signature(noopt).kwargs
+            {}
+
+    ``varargs``
+        the name of the attribute containing the extra positional arguments (the
+        "asterisk argument")::
+
+            >>> sig.varargs
+            'args'
+
+        It is ``None`` if the function does not expect varargs::
+
+            >>> signature(noarg).varargs is None
+            True
+
+    ``keywords``:
+
+        the name of the argument containing the extra keyword values (i.e. the
+        "double asterisk arg")::
+
+            >>> sig.keywords
+            'kwargs'
+
+        It is ``None`` if the function does not expect extra keyword arguments::
+
+            >>> signature(noarg).keywords is None
+            True
+
+    """
     argspec = inspect.getargspec(f)
 
     defaults = argspec.defaults if argspec.defaults is not None else []
