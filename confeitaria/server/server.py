@@ -95,9 +95,9 @@ class Server(object):
         page::
 
         >>> s.respond({}, dummy_start_response)
-        'no argument'
+        ['no argument']
         >>> s.respond({'QUERY_STRING': 'arg=value'}, dummy_start_response)
-        'value'
+        ['value']
 
         ``response`` should be set as well::
 
@@ -147,7 +147,7 @@ class Server(object):
         headers.extend(get_cookies_tuples(cookies))
         start_response(status, headers)
 
-        return content
+        return [content]
 
     def __enter__(self):
         import multiprocessing
