@@ -15,14 +15,16 @@ class Server(object):
     to the page object returned values.
     """
 
-    def __init__(self, page, port=8000, request_parser=None):
+    def __init__(
+            self, page, port=8000, request_parser=None, session_storage=None
+        ):
         self.request_parser = (
             request_parser
                 if request_parser is not None
                 else requestparser.RequestParser(page)
         )
         self.port = port
-        self.sessions = {}
+        self.session_storage = session_storage if session_storage else {}
         self._process = None
 
     def run(self, force=True):
@@ -132,10 +134,10 @@ class Server(object):
                 else:
                     session_id = cookies['SESSIONID'].value
 
-                if session_id not in self.sessions:
-                    self.sessions[session_id] = {}
+                if session_id not in self.session_storage:
+                    self.session_storage[session_id] = {}
 
-                page.set_session(self.sessions[session_id])
+                page.set_session(self.session_storage[session_id])
 
             if request.method == 'GET':
                 content = page.index(*request.args, **request.kwargs)
