@@ -21,7 +21,7 @@ class Server(object):
         self.sessions = {}
         self._process = None
 
-    def run(self):
+    def run(self, force=True):
         """
         This method starts the server up serving the given page.
         A page is an object of a class as the one below:
@@ -60,9 +60,14 @@ class Server(object):
         ...     r.text
         u'This is a test'
         """
-        httpd = simple_server.make_server('', self.port, self._run_app)
-        print "Serving on port 8000..."
-        httpd.serve_forever()
+        while True:
+            try:
+                httpd = simple_server.make_server('', self.port, self._run_app)
+                print "Serving on port 8000..."
+                httpd.serve_forever()
+            except socket.error:
+                if not force:
+                    raise
 
     def _run_app(self, environ, start_response):
         cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
@@ -113,7 +118,7 @@ class Server(object):
         import waiters
 
         try:
-            self._process = multiprocessing.Process(target=self._force_run)
+            self._process = multiprocessing.Process(target=self.run)
             self._process.start()
             waiters.wait_server_up('', self.port)
         except:
@@ -125,15 +130,6 @@ class Server(object):
         self._process.terminate()
         waiters.wait_server_down('', self.port)
         self._process = None
-
-    def _force_run(self):
-        import socket
-
-        while True:
-            try:
-                self.run()
-            except socket.error:
-                pass
 
 def get_cookies_tuples(cookies):
     """
