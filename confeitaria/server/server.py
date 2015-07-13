@@ -62,14 +62,14 @@ class Server(object):
         """
         while True:
             try:
-                httpd = simple_server.make_server('', self.port, self._run_app)
+                httpd = simple_server.make_server('', self.port, self.respond)
                 print "Serving on port 8000..."
                 httpd.serve_forever()
             except socket.error:
                 if not force:
                     raise
 
-    def _run_app(self, environ, start_response):
+    def respond(self, environ, start_response):
         cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
