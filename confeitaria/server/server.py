@@ -15,8 +15,12 @@ class Server(object):
     to the page object returned values.
     """
 
-    def __init__(self, page, port=8000):
-        self.request_parser = requestparser.RequestParser(page)
+    def __init__(self, page, port=8000, request_parser=None):
+        self.request_parser = (
+            request_parser
+                if request_parser is not None
+                else requestparser.RequestParser(page)
+        )
         self.port = port
         self.sessions = {}
         self._process = None
