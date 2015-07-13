@@ -70,6 +70,42 @@ class Server(object):
                     raise
 
     def respond(self, environ, start_response):
+        """
+        This method responds to HTTP requests encoded as a WSGI environment. It
+        is a WSGI application `as defined by PEP 0333`__ if bound, and so it
+        receives two arguments: a dict representing a WSGI environment and a
+        callable to start a response. So, if we have a function like this::
+
+        >>> def dummy_start_response(*args):
+        ...     global response
+        ...     response = args
+
+        ...and a class like this::
+
+        >>> class TestPage(object):
+        ...     def index(self, arg=None):
+        ...         return arg if arg is not None else 'no argument'
+
+
+        ...given to a server::
+
+        >>> s = Server(TestPage())
+
+        ...then calling ``Server.respond()`` should return the output from the
+        page::
+
+        >>> s.respond({}, dummy_start_response)
+        'no argument'
+        >>> s.respond({'QUERY_STRING': 'arg=value'}, dummy_start_response)
+        'value'
+
+        ``response`` should be set as well::
+
+        >>> response
+        ('200 OK', [('Content-type', 'text/html')])
+
+        __ https://www.python.org/dev/peps/pep-0333/#the-application-framework-side
+        """
         cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
