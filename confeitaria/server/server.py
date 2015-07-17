@@ -68,6 +68,8 @@ class Server(object):
         u'This is a test'
         """
         while True:
+            import socket
+
             try:
                 httpd = simple_server.make_server('', self.port, self.respond)
                 print "Serving on port 8000..."
