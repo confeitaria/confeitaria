@@ -7,7 +7,7 @@ except:
 
 
 import confeitaria.server.environment
-from confeitaria.server.environment import Environment
+from confeitaria.server.environment import Environment, parse_qs_flat
 
 class TestEnvironment(unittest.TestCase):
 
@@ -104,6 +104,20 @@ class TestEnvironment(unittest.TestCase):
         """
         env = Environment({'HTTP_COOKIE': 'a=b'})
         self.assertEquals('Set-Cookie: a=b', env.http_cookie.output())
+
+class TestEnvironmentFunctions(unittest.TestCase):
+
+
+    def test_parse_qs_flat(self):
+        """
+        ``parse_qs_flat()`` works very much like ``urlparse.parse_qs()`` with a
+        difference: while the values of the ``urlparse.parse_qs()`` dict are
+        lists, in ``parse_qs_flat()`` they are lists only if more than one is
+        given; otherwise, the sole value is the dict value.
+        """
+        self.assertEquals(
+            {'a': '1', 'b': ['2', '3']}, parse_qs_flat('a=1&b=2&b=3')
+        )
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestEnvironment)
 test_suite.addTest(doctest.DocTestSuite(confeitaria.server.environment))
