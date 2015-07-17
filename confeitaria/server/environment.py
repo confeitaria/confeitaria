@@ -7,6 +7,76 @@ except:
 
 class Environment(object):
     """
+    ``Environment`` represents relevant info from the environment dict in a more
+    palatable way. Although you can create one without giving any arg...
+
+    ::
+
+    >>> e = Environment()
+
+    ...it may be more useful if called with an environment dict::
+
+    >>> e = Environment({})
+
+    You can get from it the request method...
+
+    ::
+
+    >>> Environment({'REQUEST_METHOD': 'POST'}).request_method
+    'POST'
+
+    ...and the path info::
+
+    >>> Environment({'PATH_INFO': '/example/value'}).path_info
+    '/example/value'
+
+    While you can also get the query string...
+
+    ::
+
+    >>> e = Environment({'QUERY_STRING': 'value=example'})
+    >>> e.query_string
+    'value=example'
+
+    ...you may feel relieved to find it already parsed in the ``query_args``
+    attribute::
+
+    >>> e.query_args
+    {'value': 'example'}
+
+
+    There is also available a proper concatenation of path info and
+    query string::
+
+    >>> e = Environment(
+    ...     {'PATH_INFO': '/example/value', 'QUERY_STRING': 'a=b&c=d'}
+    ... )
+    >>> e.url
+    '/example/value?a=b&c=d'
+
+    If there is a proper content length and input buffer, the environment will
+    provide the submitted content as a string::
+
+    >>> e = Environment(
+    ...     {
+    ...         'CONTENT_LENGTH': len('value=example'),
+    ...         'wsgi.input': StringIO.StringIO('value=example')
+    ...     }
+    ... )
+    >>> e.request_body
+    'value=example'
+
+    Also, as a parsed dict::
+
+    >>> e.form_args
+    {'value': 'example'}
+
+    If cookies are available in the header, you will find them in a
+    ``Cookie.SimpleCookie`` object::
+
+    >>> e = Environment({'HTTP_COOKIE': 'a=b'})
+    >>> e.http_cookie.output()
+    'Set-Cookie: a=b'
     """
     def __init__(
             self, env_dict=None, request_method='GET', path_info='',
