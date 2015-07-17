@@ -12,6 +12,8 @@ import confeitaria.request
 
 from confeitaria.responses import NotFound, MethodNotAllowed
 
+import confeitaria.server.environment
+
 class RequestParser(object):
     """
     ``RequestParser`` is responsible for building a ``Request`` object from a
@@ -333,48 +335,40 @@ class RequestParser(object):
         self.urls = sorted(self.url_dict.keys(), reverse=True)
 
     def parse_request(self, environment):
-        request_method = environment.get('REQUEST_METHOD', 'GET')
-        path_info = environment.get('PATH_INFO', '')
-        query_string = environment.get('QUERY_STRING', '')
-        url = path_info + ('?' + query_string if query_string else '')
-        try:
-            body_size = int(environment.get('CONTENT_LENGTH', 0))
-        except (ValueError):
-            body_size = 0
-        content = environment.get('wsgi.input', StringIO.StringIO())
-        body = content.read(body_size)
+        if isinstance(environment, dict):
+            env = confeitaria.server.environment.Environment(environment)
+        else:
+            env = environment
 
-        page_path = first_prefix(path_info, self.urls, default='/')
-        extra_path = path_info.replace(page_path, '')
+        page_path = first_prefix(env.path_info, self.urls, default='/')
+        extra_path = env.path_info.replace(page_path, '')
         path_args = [a for a in extra_path.split('/') if a]
-        query_args = parse_qs_flat(query_string)
-        form_args = parse_qs_flat(body)
 
         page = self.url_dict[page_path]
 
-        if request_method == 'POST' and has_action_method(page):
+        if env.request_method == 'POST' and has_action_method(page):
             page_method = page.action
-            request_kwargs = form_args
-        elif request_method == 'GET' and has_index_method(page):
+            request_kwargs = env.form_args
+        elif env.request_method == 'GET' and has_index_method(page):
             page_method = page.index
-            request_kwargs = query_args
+            request_kwargs = env.query_args
         else:
             raise MethodNotAllowed(
                 message='{0} does not support {1} requests'.format(
-                    path_info, request_method
+                    env.path_info, env.request_method
                 )
             )
 
         sig = signature(page_method, exclude_self=True)
 
         if len(path_args) != len(sig.args):
-            raise NotFound(message='{0} not found'.format(url))
+            raise NotFound(message='{0} not found'.format(env.url))
 
         kwargs = subdict(request_kwargs, sig.kwargs.keys())
 
         return confeitaria.request.Request(
-            page, path_args, query_args, form_args, path_args, kwargs, url,
-            request_method
+            page, path_args, env.query_args, env.form_args, path_args, kwargs,
+            env.url, env.request_method
         )
 
 def first_prefix(string, prefixes, default=None):
