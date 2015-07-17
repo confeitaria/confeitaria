@@ -527,17 +527,6 @@ class TestRequestParserFunctions(unittest.TestCase):
         self.assertEquals(pd['o.sub.another'], o.sub.another)
         self.assertEquals(pd['o.another'], o.another)
 
-    def test_parse_qs_flat(self):
-        """
-        ``parse_qs_flat()`` works very much like ``urlparse.parse_qs()`` with a
-        difference: while the values of the ``urlparse.parse_qs()`` dict are
-        lists, in ``parse_qs_flat()`` they are lists only if more than one is
-        given; otherwise, the sole value is the dict value.
-        """
-        self.assertEquals(
-            {'a': '1', 'b': ['2', '3']}, parse_qs_flat('a=1&b=2&b=3')
-        )
-
     def test_first_prefix(self):
         """
         Given a list of strings ``l`` and a string ``s``, ``first_prefix()``
