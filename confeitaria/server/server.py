@@ -5,6 +5,7 @@ import wsgiref.simple_server as simple_server
 import Cookie
 
 import requestparser
+import environment
 
 import confeitaria.request
 import confeitaria.responses
@@ -112,33 +113,32 @@ class Server(object):
 
         __ https://www.python.org/dev/peps/pep-0333/#the-application-framework-side
         """
-        cookies = Cookie.SimpleCookie(environ.get('HTTP_COOKIE', ''))
+        env = environment.Environment(environ)
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
 
         try:
             content = ''
-            request = self.request_parser.parse_request(environ)
+            request = self.request_parser.parse_request(env)
             page = request.page
 
             if hasattr(page, 'set_request'):
                 page.set_request(request)
 
             if hasattr(page, 'set_cookies'):
-                page.set_cookies(cookies)
+                page.set_cookies(env.http_cookie)
 
             if hasattr(page, 'set_session'):
-                if 'SESSIONID' not in cookies:
+                if 'SESSIONID' not in env.http_cookie:
                     session_id = binascii.hexlify(os.urandom(16))
-                    cookies['SESSIONID'] = session_id
+                    env.http_cookie['SESSIONID'] = session_id
                 else:
-                    session_id = cookies['SESSIONID'].value
+                    session_id = env.http_cookie['SESSIONID'].value
 
                 if session_id not in self.session_storage:
                     self.session_storage[session_id] = {}
 
                 page.set_session(self.session_storage[session_id])
-
             if request.method == 'GET':
                 content = page.index(*request.args, **request.kwargs)
             elif request.method == 'POST':
@@ -150,7 +150,7 @@ class Server(object):
             if e.status_code.startswith('30'):
                 headers = replace_none_location(headers, request.url)
 
-        headers.extend(get_cookies_tuples(cookies))
+        headers.extend(get_cookies_tuples(env.http_cookie))
         start_response(status, headers)
 
         return [content]
