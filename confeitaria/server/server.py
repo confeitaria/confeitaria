@@ -5,7 +5,7 @@ import wsgiref.simple_server as simple_server
 import Cookie
 
 import requestparser
-import environment
+from environment import Environment
 
 import confeitaria.request
 import confeitaria.responses
@@ -76,7 +76,7 @@ class Server(object):
                 if not force:
                     raise
 
-    def respond(self, environ, start_response):
+    def respond(self, env_dict, start_response):
         """
         This method responds to HTTP requests encoded as a WSGI environment. It
         is a WSGI application `as defined by PEP 0333`__ if bound, and so it
@@ -113,7 +113,7 @@ class Server(object):
 
         __ https://www.python.org/dev/peps/pep-0333/#the-application-framework-side
         """
-        env = environment.Environment(environ)
+        env = Environment(env_dict)
         status = '200 OK'
         headers = [('Content-type', 'text/html')]
 
