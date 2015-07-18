@@ -120,6 +120,9 @@ class TestEnvironmentFunctions(unittest.TestCase):
         )
 
 test_suite = unittest.TestLoader().loadTestsFromTestCase(TestEnvironment)
+test_suite = unittest.TestLoader().loadTestsFromTestCase(
+    TestEnvironmentFunctions
+)
 test_suite.addTest(doctest.DocTestSuite(confeitaria.server.environment))
 
 def load_tests(loader, tests, ignore):

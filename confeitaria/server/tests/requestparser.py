@@ -12,7 +12,7 @@ from confeitaria.responses import NotFound
 
 import confeitaria.server.requestparser
 from confeitaria.server.requestparser import \
-    RequestParser, subdict, path_dict, parse_qs_flat, first_prefix, signature
+    RequestParser, subdict, path_dict, first_prefix, signature
 
 class TestRequestParser(unittest.TestCase):
 
