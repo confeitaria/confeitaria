@@ -48,6 +48,20 @@ class Response(Exception):
         except AttributeError:
             self.headers = [] if headers is None else headers
 
+class OK(Response):
+    """
+    This response reports that the request was successful::
+
+        >>> r = OK(message='Just fine')
+        >>> r.status_code
+        '200 OK'
+        >>> r.message
+        'Just fine'
+    """
+    def __init__(self, message='', headers=None, *args):
+        headers = [] if not headers else headers
+        Response.__init__(self, '200 OK', headers, message, *args)
+
 class MovedPermanently(Response):
     """
     This response redirects the client to a new URL, to which the sought content
