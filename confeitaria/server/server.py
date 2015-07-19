@@ -138,6 +138,7 @@ class Server(object):
                     self.session_storage[session_id] = {}
 
                 page.set_session(self.session_storage[session_id])
+
             if request.method == 'GET':
                 content = page.index(*request.args, **request.kwargs)
                 headers = [('Content-type', 'text/html')]
@@ -145,15 +146,16 @@ class Server(object):
             elif request.method == 'POST':
                 page.action(*request.args, **request.kwargs)
                 raise confeitaria.responses.SeeOther()
-        except confeitaria.responses.Response as e:
-            status = e.status_code
-            headers = e.headers
-            content = e.message if e.message is not None else ''
-            if e.status_code.startswith('30'):
+        except confeitaria.responses.Response as r:
+            status = r.status_code
+            headers = r.headers
+            content = r.message if r.message is not None else ''
+
+            if status.startswith('30'):
                 headers = replace_none_location(headers, request.url)
             headers.extend(get_cookies_tuples(env.http_cookie))
-            start_response(status, headers)
 
+            start_response(status, headers)
             return [content]
 
 
