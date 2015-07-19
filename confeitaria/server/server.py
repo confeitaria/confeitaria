@@ -116,11 +116,8 @@ class Server(object):
         __ https://www.python.org/dev/peps/pep-0333/#the-application-framework-side
         """
         env = Environment(env_dict)
-        status = '200 OK'
-        headers = [('Content-type', 'text/html')]
 
         try:
-            content = ''
             request = self.request_parser.parse_request(env)
             page = request.page
 
@@ -143,19 +140,22 @@ class Server(object):
                 page.set_session(self.session_storage[session_id])
             if request.method == 'GET':
                 content = page.index(*request.args, **request.kwargs)
+                headers = [('Content-type', 'text/html')]
+                raise confeitaria.responses.OK(message=content, headers=headers)
             elif request.method == 'POST':
                 page.action(*request.args, **request.kwargs)
                 raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as e:
             status = e.status_code
             headers = e.headers
+            content = e.message if e.message is not None else ''
             if e.status_code.startswith('30'):
                 headers = replace_none_location(headers, request.url)
+            headers.extend(get_cookies_tuples(env.http_cookie))
+            start_response(status, headers)
 
-        headers.extend(get_cookies_tuples(env.http_cookie))
-        start_response(status, headers)
+            return [content]
 
-        return [content]
 
     def __enter__(self):
         import multiprocessing
