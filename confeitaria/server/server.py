@@ -5,6 +5,7 @@ import wsgiref.simple_server as simple_server
 import Cookie
 
 import requestparser
+import session
 from environment import Environment
 
 import confeitaria.request
@@ -25,7 +26,9 @@ class Server(object):
                 else requestparser.RequestParser(page)
         )
         self.port = port
-        self.session_storage = session_storage if session_storage else {}
+        self.session_storage = (
+            session_storage if session_storage else session.SessionStorage()
+        )
         self._process = None
 
     def run(self, force=True):
@@ -133,9 +136,6 @@ class Server(object):
                     env.http_cookie['SESSIONID'] = session_id
                 else:
                     session_id = env.http_cookie['SESSIONID'].value
-
-                if session_id not in self.session_storage:
-                    self.session_storage[session_id] = {}
 
                 page.set_session(self.session_storage[session_id])
 
