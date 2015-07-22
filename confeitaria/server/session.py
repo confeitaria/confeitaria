@@ -1,3 +1,5 @@
+import time
+
 class SessionStorage(object):
     """
     ``SessionStorage`` stores and retrieves sessions used by the server. This
@@ -22,15 +24,45 @@ class SessionStorage(object):
     >>> s['id']['value']
     'example'
     """
-    def __init__(self):
+    def __init__(self, timeout=30*60):
+        self.timeout = timeout
         self.sessions = {}
 
     def __getitem__(self, key):
-        if key not in self.sessions:
-            self.sessions[key] = {}
-        return self.sessions[key]
+        if key in self.sessions:
+            session = self.sessions[key]
+        else:
+            session = Session()
+
+        if time.time() - session.create_time > self.timeout:
+            session = Session()
+
+        self.sessions[key] = session
+
+        return session
 
     def __iter__(self):
         return iter(self.sessions)
 
+class Session(dict):
+    """
+    ``Session`` objects are dicts used as HTTP sessions::
 
+    >>> s = Session()
+    >>> 'key' in s
+    False
+    >>> s['key'] = 'value'
+    >>> 'key' in s
+    True
+    >>> s['key']
+    'value'
+
+    The main difference from dicts is that session objects know the instant they
+    were created::
+
+    >>> s.create_time - time.time() < 1
+    True
+    """
+    def __init__(self, create_time=0):
+        dict.__init__(self)
+        self.create_time = create_time if create_time != 0 else time.time()
