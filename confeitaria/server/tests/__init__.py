@@ -1,12 +1,15 @@
 import unittest
 
-from .server import test_suite as server_test_suite
-from .requestparser import test_suite as request_parser_test_suite
-from .environment import test_suite as environment_suite
-from .session import test_suite as session_suite
+import inelegant.finder
 
-test_suite = unittest.TestSuite()
-test_suite.addTest(server_test_suite)
-test_suite.addTest(request_parser_test_suite)
-test_suite.addTest(environment_suite)
-test_suite.addTest(session_suite)
+import server
+import requestparser
+import environment
+import session
+
+load_tests = inelegant.finder.TestFinder(
+    server, requestparser, environment, session
+).load_tests
+
+if __name__ == "__main__":
+    unittest.main()

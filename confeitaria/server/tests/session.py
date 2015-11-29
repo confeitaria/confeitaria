@@ -1,5 +1,4 @@
 import unittest
-import doctest
 
 import Cookie
 import time
@@ -53,11 +52,11 @@ class TestSessionStorage(unittest.TestCase):
         session3 = storage['key']
         self.assertNotIn('value', session3)
 
-test_suite = unittest.TestLoader().loadTestsFromTestCase(TestSessionStorage)
-test_suite.addTest(doctest.DocTestSuite(confeitaria.server.session))
+import inelegant.finder
 
-def load_tests(loader, tests, ignore):
-    return test_suite
+load_tests = inelegant.finder.TestFinder(
+    __name__, confeitaria.server.session
+).load_tests
 
 if __name__ == "__main__":
     unittest.main()

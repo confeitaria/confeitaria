@@ -1,5 +1,4 @@
 import unittest
-import doctest
 import Cookie
 
 import requests
@@ -117,17 +116,13 @@ class TestServerFunctions(unittest.TestCase):
             replace_none_location(headers, '/b')
         )
 
-test_suite = unittest.TestLoader().loadTestsFromTestCase(TestServer)
-test_suite.addTest(
-    unittest.TestLoader().loadTestsFromTestCase(TestServerFunctions)
-)
-test_suite.addTest(doctest.DocTestSuite(server))
-test_suite.addTest(doctest.DocTestSuite(runner))
-test_suite.addTest(
-    doctest.DocFileSuite(
-        'doc/index.rst', module_relative=True, package=confeitaria
-    )
-)
+del TestReference
 
-def load_tests(loader, tests, ignore):
-    return test_suite
+import inelegant.finder
+
+load_tests = inelegant.finder.TestFinder(
+    __name__, server, runner
+).load_tests
+
+if __name__ == "__main__":
+    unittest.main()

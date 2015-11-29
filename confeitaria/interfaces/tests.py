@@ -1,4 +1,3 @@
-import doctest
 import unittest
 
 import interfaces
@@ -274,25 +273,9 @@ class TestHasSetter(unittest.TestCase):
 
         self.assertFalse(interfaces.has_setter(TestPage, 'example'))
 
-test_suite = unittest.TestSuite()
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromTestCase(TestURLedPage))
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromTestCase(TestCookiedPage))
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromTestCase(TestSessionedPage))
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromTestCase(TestRequestedPage))
-test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestPage))
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromTestCase(TestHasPageMethod))
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromTestCase(TestHasIndexMethod))
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromTestCase(TestHasActionMethod))
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromTestCase(TestHasSetter))
-test_suite.addTest(doctest.DocTestSuite(interfaces))
+import inelegant.finder
 
-def load_tests(loader, tests, ignore):
-    return test_suite
+load_tests = inelegant.finder.TestFinder(__name__, interfaces).load_tests
+
+if __name__ == "__main__":
+    unittest.main()
