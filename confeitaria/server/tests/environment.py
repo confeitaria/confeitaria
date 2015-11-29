@@ -1,5 +1,4 @@
 import unittest
-import doctest
 try:
     import cStringIO as StringIO
 except:
@@ -80,7 +79,6 @@ class TestEnvironment(unittest.TestCase):
         )
         self.assertEquals('/example/value?a=b&c=d', env.url)
 
-
     def test_request_body(self):
         """
         If the request has a body, then it should be read into the
@@ -107,7 +105,6 @@ class TestEnvironment(unittest.TestCase):
 
 class TestEnvironmentFunctions(unittest.TestCase):
 
-
     def test_parse_qs_flat(self):
         """
         ``parse_qs_flat()`` works very much like ``urlparse.parse_qs()`` with a
@@ -119,14 +116,11 @@ class TestEnvironmentFunctions(unittest.TestCase):
             {'a': '1', 'b': ['2', '3']}, parse_qs_flat('a=1&b=2&b=3')
         )
 
-test_suite = unittest.TestLoader().loadTestsFromTestCase(TestEnvironment)
-test_suite = unittest.TestLoader().loadTestsFromTestCase(
-    TestEnvironmentFunctions
-)
-test_suite.addTest(doctest.DocTestSuite(confeitaria.server.environment))
+import inelegant.finder
 
-def load_tests(loader, tests, ignore):
-    return test_suite
+load_tests = inelegant.finder.TestFinder(
+    __name__, confeitaria.server.environment
+).load_tests
 
 if __name__ == "__main__":
     unittest.main()

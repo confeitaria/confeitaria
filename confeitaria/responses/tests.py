@@ -1,10 +1,9 @@
-import doctest
 import unittest
-
 import responses
 
-test_suite = unittest.TestSuite()
-test_suite.addTest(doctest.DocTestSuite(responses))
+import inelegant.finder
 
-def load_tests(loader, tests, ignore):
-    return test_suite
+load_tests = inelegant.finder.TestFinder(__name__, responses).load_tests
+
+if __name__ == "__main__":
+    unittest.main()

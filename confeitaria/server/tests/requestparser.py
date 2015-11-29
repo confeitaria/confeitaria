@@ -1,5 +1,4 @@
 import unittest
-import doctest
 
 try:
     import cStringIO as StringIO
@@ -637,14 +636,11 @@ class TestRequestParserFunctions(unittest.TestCase):
         self.assertEquals('args', sig.varargs)
         self.assertEquals('kwargs', sig.keywords)
 
-test_suite = unittest.TestLoader().loadTestsFromTestCase(TestRequestParser)
-test_suite.addTest(
-    unittest.TestLoader().loadTestsFromTestCase(TestRequestParserFunctions)
-)
-test_suite.addTest(doctest.DocTestSuite(confeitaria.server.requestparser))
+import inelegant.finder
 
-def load_tests(loader, tests, ignore):
-    return test_suite
+load_tests = inelegant.finder.TestFinder(
+    __name__, confeitaria.server.requestparser
+).load_tests
 
 if __name__ == "__main__":
     unittest.main()
