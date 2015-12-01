@@ -116,12 +116,10 @@ class TestServerFunctions(unittest.TestCase):
             replace_none_location(headers, '/b')
         )
 
-del TestReference
-
 import inelegant.finder
 
 load_tests = inelegant.finder.TestFinder(
-    __name__, server, runner
+    __name__, server, runner, skip=TestReference
 ).load_tests
 
 if __name__ == "__main__":
