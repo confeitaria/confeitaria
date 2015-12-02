@@ -5,7 +5,7 @@ import requests
 
 from confeitaria.reference.tests import TestReference
 from ..server import Server, get_cookies_tuples, replace_none_location
-from ..waiters import wait_server_up, wait_server_down
+from inelegant.net import wait_server_up, wait_server_down
 from confeitaria.server import server
 from confeitaria import runner
 
@@ -27,7 +27,7 @@ class TestServer(TestReference):
 
         process = multiprocessing.Process(target=server.run)
         process.start()
-        wait_server_up('', 8000)
+        wait_server_up('', 8000, tries=10000)
 
         request = requests.get('http://localhost:8000/')
         self.assertEquals('page content', request.text)
@@ -35,7 +35,7 @@ class TestServer(TestReference):
         self.assertEquals('text/html', request.headers['content-type'])
 
         process.terminate()
-        wait_server_down('', 8000)
+        wait_server_down('', 8000, tries=10000)
 
     def test_with(self):
         """

@@ -44,10 +44,10 @@ class Server(object):
 
         >>> s = Server(TestPage())
 
-        >>> import multiprocessing, waiters
+        >>> import multiprocessing, inelegant.net
         >>> p = multiprocessing.Process(target=s.run)
         >>> p.start()
-        >>> waiters.wait_server_up('', s.port)
+        >>> inelegant.net.wait_server_up('', s.port)
 
         Then the server is supposed to serve the content provided by the page:
 
@@ -161,20 +161,20 @@ class Server(object):
 
     def __enter__(self):
         import multiprocessing
-        import waiters
+        import inelegant.net
 
         try:
             self._process = multiprocessing.Process(target=self.run)
             self._process.start()
-            waiters.wait_server_up('', self.port)
+            inelegant.net.wait_server_up('', self.port, tries=10000)
         except:
             raise
 
     def __exit__(self, type, value, traceback):
-        import waiters
+        import inelegant.net
 
         self._process.terminate()
-        waiters.wait_server_down('', self.port)
+        inelegant.net.wait_server_down('', self.port, tries=10000)
         self._process = None
 
 def get_cookies_tuples(cookies):

@@ -17,13 +17,13 @@ def run(page):
     To run it, just call `confeitaria.run()`, as in:
 
     >>> def start():
-    ...    from confeitaria.server.waiters import wait_server_down
+    ...    from inelegant.net import wait_server_down
     ...    wait_server_down('', 8000)
     ...    test_page = TestPage()
     ...    run(test_page)
 
     >>> import multiprocessing
-    >>> from confeitaria.server.waiters import wait_server_up
+    >>> from inelegant.net import wait_server_up
     >>> p = multiprocessing.Process(target=start)
     >>> p.start()
     >>> wait_server_up('', 8000)
