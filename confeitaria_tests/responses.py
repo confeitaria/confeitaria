@@ -2,7 +2,7 @@ import unittest
 
 import inelegant.finder
 
-import confeitaria.responses.responses as responses
+from confeitaria import responses
 
 load_tests = inelegant.finder.TestFinder(__name__, responses).load_tests
 

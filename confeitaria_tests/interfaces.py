@@ -1,6 +1,6 @@
 import unittest
 
-import confeitaria.interfaces.interfaces as interfaces
+from confeitaria import interfaces
 
 class TestHasPageMethod(unittest.TestCase):
 
