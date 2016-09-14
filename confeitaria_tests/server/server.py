@@ -3,11 +3,11 @@ import Cookie
 
 import requests
 
-from confeitaria.reference.tests import TestReference
-from ..server import Server, get_cookies_tuples, replace_none_location
+from confeitaria_tests.reference import TestReference
+from confeitaria.server.server import Server, get_cookies_tuples, replace_none_location
 from inelegant.net import wait_server_up, wait_server_down
 from confeitaria.server import server
-from confeitaria import runner
+from confeitaria.runner import runner
 
 import confeitaria
 import confeitaria.interfaces
