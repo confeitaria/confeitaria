@@ -1,7 +1,7 @@
 import functools
 import wsgiref.simple_server as simple_server
 
-from server import Server
+from confeitaria.server import Server
 
 def run(page):
     """

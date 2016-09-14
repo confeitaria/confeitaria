@@ -1,7 +1,8 @@
 import unittest
-import responses
 
 import inelegant.finder
+
+import confeitaria.responses.responses as responses
 
 load_tests = inelegant.finder.TestFinder(__name__, responses).load_tests
 

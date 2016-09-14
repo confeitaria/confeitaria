@@ -1,6 +1,6 @@
 import unittest
 
-import interfaces
+import confeitaria.interfaces.interfaces as interfaces
 
 class TestHasPageMethod(unittest.TestCase):
 
@@ -275,7 +275,10 @@ class TestHasSetter(unittest.TestCase):
 
 import inelegant.finder
 
-load_tests = inelegant.finder.TestFinder(__name__, interfaces).load_tests
+load_tests = inelegant.finder.TestFinder(
+    __name__,
+    interfaces
+).load_tests
 
 if __name__ == "__main__":
     unittest.main()
