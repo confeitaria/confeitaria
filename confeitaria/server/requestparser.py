@@ -57,6 +57,9 @@ class RequestParser(object):
     >>> class KwArgPage(object):
     ...     def index(self, kwarg1='1', kwarg2='2'):
     ...         return 'kwarg1: {0} kwarg2: {1}'.format(kwarg1, kwarg2)
+    >>> class VarArgPage(object):
+    ...     def index(self, *args):
+    ...         return 'args: ' + ' '.join(args)
     >>> class ActionPage(object):
     ...     def action(self, kwarg1='1', kwarg2='2'):
     ...         pass
@@ -69,6 +72,7 @@ class RequestParser(object):
     >>> root.sub.another = AnotherPage()
     >>> root.arg = ArgPage()
     >>> root.kwarg = KwArgPage()
+    >>> root.vararg = VarArgPage()
     >>> root.action = ActionPage()
 
     And then create a request parser as the following::
@@ -285,11 +289,17 @@ class RequestParser(object):
     Neither can we pass _less_ arguments - it will also result in a
     ``confeitaria.responses.NotFound`` response::
 
-    ::
         >>> parser.parse_request({'PATH_INFO': '/arg'})
         Traceback (most recent call last):
           ...
         NotFound: /arg not found
+
+    On the other hand, the page method can have arbitrary path arguments if
+    it has a varargs parameter::
+
+        >>> request = parser.parse_request({'PATH_INFO': '/vararg/v1/v2'})
+        >>> request.page.index(*request.args)
+        'args: v1 v2'
 
     Optional parameters
     -------------------
