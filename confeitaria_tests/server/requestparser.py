@@ -142,6 +142,27 @@ class TestRequestParser(unittest.TestCase):
         with self.assertRaises(NotFound):
             request_parser.parse_request({'PATH_INFO': '/value/excess'})
 
+    def test_many_parameters_and_args(self):
+        """
+        This test ensures that when parser finds a page whose index method
+        expects a variable argument list ``*args``, it should match excess
+        parameters to it.
+        """
+        class TestPage(object):
+            def index(self, arg, *args):
+                return ''
+
+        page = TestPage()
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request({'PATH_INFO': '/value'})
+
+        self.assertEquals(page, request.page)
+        self.assertEquals(['value'], request.path_args)
+        self.assertEquals(['value'], request.args)
+
+        request = request_parser.parse_request({'PATH_INFO': '/value/excess'})
+        self.assertEquals(['value', 'excess'], request.path_args)
+        self.assertEquals(['value', 'excess'], request.args)
 
     def test_query_args(self):
         """
