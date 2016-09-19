@@ -87,6 +87,24 @@ class TestReference(unittest.TestCase):
             r = requests.get('http://localhost:8000/first/second')
             self.assertEquals('arg1: first; arg2: second', r.text)
 
+    def test_index_parameters_vararg_list(self):
+        """
+        This test ensures that an index() method with with a variable argument
+        list ``*args`` will receive extra arguments in this list, if it does
+        not conflict with page attributes.
+        """
+        class TestPage(object):
+            def index(self, first, *args):
+                parts = ['first: {0}'.format(first)]
+                parts.extend(
+                    'arg{0}: {1}'.format(i, a) for i, a in enumerate(args))
+                return ' '.join(parts)
+
+        with self.get_server(TestPage()):
+            r = requests.get('http://localhost:8000/example/one/test')
+            self.assertEquals(200, r.status_code)
+            self.assertEquals(u'first: example arg0: one arg1: test', r.text)
+
     def test_index_parameters_from_path_and_query_args(self):
         """
         This test ensures that positional parameters will  be get from query
