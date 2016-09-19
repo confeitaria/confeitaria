@@ -154,6 +154,10 @@ class TestRequestParser(unittest.TestCase):
 
         page = TestPage()
         request_parser = RequestParser(page)
+
+        with self.assertRaises(NotFound):
+            request_parser.parse_request({'PATH_INFO': '/'})
+
         request = request_parser.parse_request({'PATH_INFO': '/value'})
 
         self.assertEquals(page, request.page)
