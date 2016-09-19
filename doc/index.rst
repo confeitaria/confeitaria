@@ -133,7 +133,9 @@ Query path parameters
 
 
     If the URL path has more values than the number of index method's mandatory
-    parameters, a 404 Not Found error should be the result::
+    parameters, a 404 Not Found error should be the result...
+
+    ::
 
         >>> class NonePage(object):
         ...    def index(self, arg):
@@ -141,6 +143,19 @@ Query path parameters
         >>> with Server(NonePage()):
         ...     requests.get('http://localhost:8000/a/b').status_code
         404
+
+    ...except when the index method accepts varargs. In this case, the extra
+    arguments are added to the varargs::
+
+        >>> class VarargsPage(object):
+        ...    def index(self, arg, *args):
+        ...         return "args: " + arg + ' ' + ' '.join(args)
+        >>> with Server(VarargsPage()):
+        ...     r = requests.get('http://localhost:8000/a/b')
+        ...     r.status_code
+        ...     r.text
+        200
+        u'args: a b'
 
 Query string parameters
     If the index function has optional arguments, their values will come
