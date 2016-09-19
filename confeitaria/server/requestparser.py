@@ -362,7 +362,8 @@ class RequestParser(object):
         sig = signature(page_method, exclude_self=True)
 
         if len(path_args) != len(sig.args):
-            raise NotFound(message='{0} not found'.format(env.url))
+            if not sig.varargs:
+                raise NotFound(message='{0} not found'.format(env.url))
 
         kwargs = subdict(request_kwargs, sig.kwargs.keys())
 
