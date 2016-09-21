@@ -370,9 +370,7 @@ class RequestParser(object):
             )
 
         sig = signature(page_method, exclude_self=True)
-
-        if (len(path_args) < len(sig.args) or
-                (len(path_args) > len(sig.args) and not sig.varargs)):
+        if not match_method_args(path_args, sig):
             raise NotFound(message='{0} not found'.format(env.url))
 
         kwargs = subdict(request_kwargs, sig.kwargs.keys())
@@ -381,6 +379,17 @@ class RequestParser(object):
             page, path_args, env.query_args, env.form_args, path_args, kwargs,
             env.url, env.request_method
         )
+
+def match_method_args(args, sig):
+    available = len(args)
+    required = len(sig.args)
+
+    if available < required:
+        return False
+    elif available > required and not sig.varargs:
+        return False
+    else:
+        return True
 
 def first_prefix(string, prefixes, default=None):
     """
