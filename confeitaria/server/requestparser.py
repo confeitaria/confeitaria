@@ -381,6 +381,40 @@ class RequestParser(object):
         )
 
 def match_method_args(args, sig):
+    """
+    ``match_method_args()`` checks whether we have enough arguments in the
+    ``args`` list to match the signature in ``sig``.
+
+    If the list of arguments has exactly the same number of mandatory arguments
+    found in the signature, it returns ``True``::
+
+    >>> def f(a, b): pass
+    >>> match_method_args([1, 2], signature(f))
+    True
+
+    If we have less arguments than needed, it returns false::
+
+    >>> match_method_args([1], signature(f))
+    False
+
+    If we have more arguments than needed, it returns ``False`` again::
+
+    >>> match_method_args([1, 2, 3], signature(f))
+    False
+
+    However, if the signature accepts varargs, then the args list can have more
+    values than the number of mandatory arguments::
+
+    >>> def g(a, b, *args): pass
+    >>> match_method_args([1, 2, 3, 4, 5, 6], signature(g))
+    True
+
+    Of course, it will return ``False`` when, given a signature with varargs,
+    the arguments count is below the number of mandatory arguments::
+
+    >>> match_method_args([1], signature(g))
+    False
+    """
     available = len(args)
     required = len(sig.args)
 
