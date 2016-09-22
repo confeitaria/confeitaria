@@ -1,4 +1,24 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
+
+import inelegant.finder
 
 try:
     import cStringIO as StringIO
@@ -13,6 +33,7 @@ import confeitaria.server.requestparser
 from confeitaria.server.requestparser import \
     RequestParser, subdict, path_dict, first_prefix, signature
 
+
 class TestRequestParser(unittest.TestCase):
 
     def test_parse_empty_dict(self):
@@ -21,6 +42,7 @@ class TestRequestParser(unittest.TestCase):
         able to parser an empty environment - and this test checks that.
         """
         class TestPage(object):
+
             def index(self):
                 return ''
 
@@ -37,9 +59,11 @@ class TestRequestParser(unittest.TestCase):
 
     def test_get_root(self):
         """
-        This test ensures that the root path (``/``) is mapped to the root page.
+        This test ensures that the root path (``/``) is mapped to the root
+        page.
         """
         class TestPage(object):
+
             def index(self):
                 return ''
 
@@ -59,6 +83,7 @@ class TestRequestParser(unittest.TestCase):
         exception reporting a 404 Not Found status is raised.
         """
         class TestPage(object):
+
             def index(self):
                 return ''
 
@@ -74,6 +99,7 @@ class TestRequestParser(unittest.TestCase):
         not a page, then a 404 Not Found status is raised..
         """
         class TestPage(object):
+
             def index(self):
                 return ''
 
@@ -89,6 +115,7 @@ class TestRequestParser(unittest.TestCase):
         This test ensures that the parser can find parameters in path.
         """
         class TestPage(object):
+
             def index(self, arg):
                 return ''
 
@@ -110,6 +137,7 @@ class TestRequestParser(unittest.TestCase):
         the the arguments values will be ``None``.
         """
         class TestPage(object):
+
             def index(self, arg):
                 return ''
 
@@ -128,6 +156,7 @@ class TestRequestParser(unittest.TestCase):
 
         """
         class TestPage(object):
+
             def index(self, arg):
                 return ''
 
@@ -149,6 +178,7 @@ class TestRequestParser(unittest.TestCase):
         parameters to it.
         """
         class TestPage(object):
+
             def index(self, arg, *args):
                 return ''
 
@@ -176,6 +206,7 @@ class TestRequestParser(unittest.TestCase):
         response will follow.
         """
         class TestPage(object):
+
             def index(self, kwarg1=None, kwarg2=None):
                 return ''
 
@@ -198,6 +229,7 @@ class TestRequestParser(unittest.TestCase):
         called.
         """
         class TestPage(object):
+
             def index(self, kwarg=None):
                 return ''
 
@@ -217,6 +249,7 @@ class TestRequestParser(unittest.TestCase):
         that should be specified as path arguments.
         """
         class TestPage(object):
+
             def index(self, arg, kwarg=None):
                 return ''
 
@@ -237,6 +270,7 @@ class TestRequestParser(unittest.TestCase):
         This test checks whether path and query args are being properly parsed.
         """
         class TestPage(object):
+
             def index(self, arg1, arg2, kwarg1=None, kwarg2=None):
                 return ''
 
@@ -260,9 +294,12 @@ class TestRequestParser(unittest.TestCase):
         parameters.
         """
         class RootPage(object):
+
             def index(self, arg):
                 return 'page: root, arg: {0}'.format(arg)
+
         class AttributePage(object):
+
             def index(self):
                 return 'page: attribute'
 
@@ -294,9 +331,12 @@ class TestRequestParser(unittest.TestCase):
         one that only handles POST requests.
         """
         class RootPage(object):
+
             def index(self, arg):
                 return 'page: root, arg: {0}'.format(arg)
+
         class ActionPage(object):
+
             def action(self):
                 pass
 
@@ -316,9 +356,12 @@ class TestRequestParser(unittest.TestCase):
         The contents of a POST request should be parsed.
         """
         class RootPage(object):
+
             def index(self, arg):
                 return 'page: root, arg: {0}'.format(arg)
+
         class ActionPage(object):
+
             def action(self, kwarg=None):
                 pass
 
@@ -341,6 +384,7 @@ class TestRequestParser(unittest.TestCase):
         The tuple returned by the parser should also be a request object.
         """
         class TestPage(object):
+
             def index(self, kwarg=None):
                 return ''
 
@@ -357,10 +401,11 @@ class TestRequestParser(unittest.TestCase):
     def test_request_not_tuple_anymore(self):
         """
         In the past, the request object used to be a tuple. It proved to be
-        confusing. As a consequence, we removed this behavior from it. This test
-        registers this change.
+        confusing. As a consequence, we removed this behavior from it. This
+        test registers this change.
         """
         class TestPage(object):
+
             def index(self):
                 return ''
 
@@ -370,12 +415,12 @@ class TestRequestParser(unittest.TestCase):
         with self.assertRaises(TypeError):
             _, _, _ = request_parser.parse_request({'PATH_INFO': '/'})
 
-
     def test_request_has_url(self):
         """
         The request object should have the called URL.
         """
         class TestPage(object):
+
             def index(self):
                 return ''
 
@@ -401,6 +446,7 @@ class TestRequestParser(unittest.TestCase):
         method should fail.
         """
         class IndexPage(object):
+
             def index(self):
                 return ''
 
@@ -417,6 +463,7 @@ class TestRequestParser(unittest.TestCase):
         method should fail.
         """
         class ActionPage(object):
+
             def action(self):
                 pass
 
@@ -431,8 +478,10 @@ class TestRequestParser(unittest.TestCase):
         The request object should have the request method.
         """
         class TestPage(object):
+
             def index(self):
                 return ''
+
             def action(self):
                 pass
 
@@ -453,8 +502,10 @@ class TestRequestParser(unittest.TestCase):
         method should fail.
         """
         class TestPage(object):
+
             def index(self):
                 return ''
+
             def action(self):
                 pass
 
@@ -464,6 +515,7 @@ class TestRequestParser(unittest.TestCase):
             request_parser.parse_request({'REQUEST_METHOD': 'PUT'})
         with self.assertRaises(confeitaria.responses.MethodNotAllowed):
             request_parser.parse_request({'REQUEST_METHOD': 'DELETE'})
+
 
 class TestRequestParserFunctions(unittest.TestCase):
 
@@ -561,8 +613,8 @@ class TestRequestParserFunctions(unittest.TestCase):
 
     def test_first_prefix_none(self):
         """
-        If ``first_prefix()`` finds no prefix from the list, it returns ``None``
-        except if the ``default`` parameter is given.
+        If ``first_prefix()`` finds no prefix from the list, it returns
+        ``None`` except if the ``default`` parameter is given.
         """
         self.assertEquals(None, first_prefix('jkl', ['b', 'a', 'abc']))
         self.assertEquals(
@@ -597,8 +649,8 @@ class TestRequestParserFunctions(unittest.TestCase):
 
     def test_signature_bound_method_exclude_self_bound_method(self):
         """
-        ``signature()`` should not list the first ("self") argument from a bound
-        method if called with ``exclude_self=True``.
+        ``signature()`` should not list the first ("self") argument from a
+        bound method if called with ``exclude_self=True``.
         """
         class O(object):
             def f(self, a, b, c=3, e=4, *args, **kwargs): pass
@@ -661,7 +713,6 @@ class TestRequestParserFunctions(unittest.TestCase):
         self.assertEquals('args', sig.varargs)
         self.assertEquals('kwargs', sig.keywords)
 
-import inelegant.finder
 
 load_tests = inelegant.finder.TestFinder(
     __name__, confeitaria.server.requestparser

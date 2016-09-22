@@ -1,12 +1,33 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
+
+import inelegant.finder
+
 try:
     import cStringIO as StringIO
 except:
     import StringIO
 
-
 import confeitaria.server.environment
 from confeitaria.server.environment import Environment, parse_qs_flat
+
 
 class TestEnvironment(unittest.TestCase):
 
@@ -103,6 +124,7 @@ class TestEnvironment(unittest.TestCase):
         env = Environment({'HTTP_COOKIE': 'a=b'})
         self.assertEquals('Set-Cookie: a=b', env.http_cookie.output())
 
+
 class TestEnvironmentFunctions(unittest.TestCase):
 
     def test_parse_qs_flat(self):
@@ -116,7 +138,6 @@ class TestEnvironmentFunctions(unittest.TestCase):
             {'a': '1', 'b': ['2', '3']}, parse_qs_flat('a=1&b=2&b=3')
         )
 
-import inelegant.finder
 
 load_tests = inelegant.finder.TestFinder(
     __name__, confeitaria.server.environment

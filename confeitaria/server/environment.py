@@ -1,14 +1,34 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import Cookie
 import urlparse
+
 try:
     import cStringIO as StringIO
 except:
     import StringIO
 
+
 class Environment(object):
     """
-    ``Environment`` represents relevant info from the environment dict in a more
-    palatable way. Although you can create one without giving any arg...
+    ``Environment`` represents relevant info from the environment dict in a
+    more palatable way. Although you can create one without giving any arg...
 
     ::
 
@@ -81,9 +101,7 @@ class Environment(object):
     def __init__(
             self, env_dict=None, request_method='GET', path_info='',
             query_string='', content_length=0, content_buffer=None,
-            http_cookie=''
-        ):
-
+            http_cookie=''):
         if env_dict is None:
             env_dict = {}
 
@@ -92,8 +110,7 @@ class Environment(object):
         self.query_string = env_dict.get('QUERY_STRING', query_string)
         self.query_args = parse_qs_flat(self.query_string)
         self.url = self.path_info + (
-            '?' + self.query_string if self.query_string else ''
-        )
+            '?' + self.query_string if self.query_string else '')
 
         http_cookie_string = env_dict.get('HTTP_COOKIE', http_cookie)
         self.http_cookie = Cookie.SimpleCookie(http_cookie_string)
@@ -102,9 +119,11 @@ class Environment(object):
             content_length = int(env_dict.get('CONTENT_LENGTH', 0))
         except ValueError:
             content_length = 0
+
         request_body_buffer = env_dict.get('wsgi.input', StringIO.StringIO())
         self.request_body = request_body_buffer.read(content_length)
         self.form_args = parse_qs_flat(self.request_body)
+
 
 def parse_qs_flat(query_string):
     """

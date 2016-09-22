@@ -1,6 +1,27 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 
+import inelegant.finder
+
 from confeitaria import interfaces
+
 
 class TestHasPageMethod(unittest.TestCase):
 
@@ -28,13 +49,14 @@ class TestHasPageMethod(unittest.TestCase):
 
     def test_has_page_method_false_no_method(self):
         """
-        ``has_page_method()`` should return ``False`` if its argument has neither
-        ``index()`` nor an ``action()`` bound method.
+        ``has_page_method()`` should return ``False`` if its argument has
+        neither ``index()`` nor an ``action()`` bound method.
         """
         class TestObject(object):
             pass
 
         self.assertFalse(interfaces.has_page_method(TestObject()))
+
 
 class TestHasIndexMethod(unittest.TestCase):
 
@@ -69,6 +91,7 @@ class TestHasIndexMethod(unittest.TestCase):
             pass
 
         self.assertFalse(interfaces.has_index_method(TestObject()))
+
 
 class TestHasActionMethod(unittest.TestCase):
 
@@ -117,6 +140,7 @@ class TestURLedPage(unittest.TestCase):
 
         self.assertEqual('/test', page.get_url())
 
+
 class TestCookiedPage(unittest.TestCase):
 
     def test_set_cookies_to_get_gookies(self):
@@ -132,24 +156,26 @@ class TestCookiedPage(unittest.TestCase):
 
         self.assertEqual(cookies['example'], page.get_cookies()['example'])
 
+
 class TestSessionedPage(unittest.TestCase):
 
     def test_set_session_to_get_session(self):
         """
-        This test ensures that what goes into ``SessionedPage.set_session()`` is
-        retrieved by ``SessionedPage.get_session()``.
+        This test ensures that what goes into ``SessionedPage.set_session()``
+        is retrieved by ``SessionedPage.get_session()``.
         """
         page = interfaces.SessionedPage()
         page.set_session({'value': 'example'})
 
         self.assertEqual({'value': 'example'}, page.get_session())
 
+
 class TestRequestedPage(unittest.TestCase):
 
     def test_set_request_to_get_request(self):
         """
-        This test ensures that what goes into ``RequestedPage.set_request()`` is
-        retrieved by ``RequestedPage.get_request()``.
+        This test ensures that what goes into ``RequestedPage.set_request()``
+        is retrieved by ``RequestedPage.get_request()``.
         """
         import confeitaria.request
 
@@ -161,6 +187,7 @@ class TestRequestedPage(unittest.TestCase):
 
         self.assertEqual(['arg1', 'arg2'], page.get_request().args)
         self.assertEqual({'value': 'example'}, page.get_request().kwargs)
+
 
 class TestPage(unittest.TestCase):
 
@@ -206,12 +233,12 @@ class TestPage(unittest.TestCase):
 
         page = interfaces.Page()
         request = confeitaria.request.Request(
-            args=['arg1', 'arg2'], kwargs={'value': 'example'}
-        )
+            args=['arg1', 'arg2'], kwargs={'value': 'example'})
         page.set_request(request)
 
         self.assertEqual(['arg1', 'arg2'], page.get_request().args)
         self.assertEqual({'value': 'example'}, page.get_request().kwargs)
+
 
 class TestHasSetter(unittest.TestCase):
 
@@ -273,7 +300,6 @@ class TestHasSetter(unittest.TestCase):
 
         self.assertFalse(interfaces.has_setter(TestPage, 'example'))
 
-import inelegant.finder
 
 load_tests = inelegant.finder.TestFinder(
     __name__,

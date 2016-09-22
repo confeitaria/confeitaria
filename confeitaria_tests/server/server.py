@@ -1,16 +1,39 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
+
+import inelegant.finder
+
 import Cookie
 
 import requests
 
 from confeitaria_tests.reference import TestReference
-from confeitaria.server.server import Server, get_cookies_tuples, replace_none_location
+from confeitaria.server.server import \
+    Server, get_cookies_tuples, replace_none_location
 from inelegant.net import wait_server_up, wait_server_down
 from confeitaria.server import server
 from confeitaria import runner
 
 import confeitaria
 import confeitaria.interfaces
+
 
 class TestServer(TestReference):
 
@@ -57,8 +80,8 @@ class TestServer(TestReference):
         """
         Since the default session is stored in memory, it is lost when the
         server restarts. Yet, a browser can still have the session id from the
-        first execution of the server. If that happens, the server should handle
-        it gracefully.
+        first execution of the server. If that happens, the server should
+        handle it gracefully.
         """
         class TestPage(confeitaria.interfaces.SessionedPage):
             def index(self):
@@ -82,6 +105,7 @@ class TestServer(TestReference):
 
     def get_server(self, page):
         return Server(page)
+
 
 class TestServerFunctions(unittest.TestCase):
 
@@ -116,7 +140,6 @@ class TestServerFunctions(unittest.TestCase):
             replace_none_location(headers, '/b')
         )
 
-import inelegant.finder
 
 load_tests = inelegant.finder.TestFinder(
     __name__, server, runner, skip=TestReference

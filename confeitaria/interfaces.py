@@ -1,4 +1,23 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import inspect
+
 
 def has_index_method(obj):
     """
@@ -25,6 +44,7 @@ def has_index_method(obj):
         inspect.ismethod(attr)
     )
 
+
 def has_action_method(obj):
     """
     This function returns ``True`` if its argument has an action method::
@@ -50,6 +70,7 @@ def has_action_method(obj):
         inspect.ismethod(attr)
     )
 
+
 def has_page_method(obj):
     """
     This function returns ``True`` if its argument has an index method...
@@ -72,14 +93,15 @@ def has_page_method(obj):
     """
     return has_index_method(obj) or has_action_method(obj)
 
+
 class RequestedPage(object):
     """
-    ``RequestedPage`` implements the awareness interface to retrieve the current
-    parsed request - that is, it has a ``set_request()`` method. It also has a
-    ``get_request()`` method so one can retrieve the set URL.
+    ``RequestedPage`` implements the awareness interface to retrieve the
+    current parsed request - that is, it has a ``set_request()`` method. It
+    also has a ``get_request()`` method so one can retrieve the set URL.
 
     To use it you only have to extend it::
-    
+
     >>> class TestPage(RequestedPage):
     ...     def index(self):
     ...         request = self.get_request()
@@ -97,6 +119,7 @@ class RequestedPage(object):
     def get_request(self):
         return self.__request
 
+
 class URLedPage(object):
     """
     ``URLedPage`` implements the awareness interface to retrieve the current
@@ -104,7 +127,7 @@ class URLedPage(object):
     method so one can retrieve the set URL.
 
     To use it you only have to extend it::
-    
+
     >>> class TestPage(URLedPage):
     ...     def index(self):
     ...         return 'url: {0}'.format(self.get_url())
@@ -119,6 +142,7 @@ class URLedPage(object):
 
     def get_url(self):
         return self.__url
+
 
 class CookiedPage(object):
     """
@@ -144,6 +168,7 @@ class CookiedPage(object):
 
     def get_cookies(self):
         return self.__cookies
+
 
 class SessionedPage(object):
     """
@@ -172,6 +197,7 @@ class SessionedPage(object):
 
     def get_session(self):
         return self.__session
+
 
 class Page(URLedPage, RequestedPage, CookiedPage, SessionedPage):
     """
@@ -205,10 +231,11 @@ class Page(URLedPage, RequestedPage, CookiedPage, SessionedPage):
     """
     pass
 
+
 def has_setter(page, attr):
     """
-    This function returs ``True`` if the given object has a proper setter method
-    for the given attribute
+    This function returs ``True`` if the given object has a proper setter
+    method for the given attribute
 
     >>> class TestPage(object):
     ...     def set_url(self, url):
@@ -254,4 +281,3 @@ def has_setter(page, attr):
         return False
 
     return True
-

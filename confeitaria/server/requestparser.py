@@ -1,3 +1,21 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import inspect
 import urlparse
 import collections
@@ -6,13 +24,13 @@ try:
 except:
     import StringIO
 
-from  confeitaria.interfaces import \
-    has_action_method, has_index_method, has_page_method, has_setter
 import confeitaria.request
+import confeitaria.server.environment
 
+from confeitaria.interfaces import \
+    has_action_method, has_index_method, has_page_method, has_setter
 from confeitaria.responses import NotFound, MethodNotAllowed
 
-import confeitaria.server.environment
 
 class RequestParser(object):
     """
@@ -37,8 +55,8 @@ class RequestParser(object):
     of the most important is ``page``. It is the page object that is pointed by
     the ``PATH_INFO`` value from the environment dict.
 
-    ``RequestParser`` implements the so called *object publisher* pattern, where
-    URLs are addresses for real Python objects.
+    ``RequestParser`` implements the so called *object publisher* pattern,
+    where URLs are addresses for real Python objects.
 
     Suppose we have the following page classes::
 
@@ -110,16 +128,18 @@ class RequestParser(object):
 
     ``page``
         The page object pointed by the given URL path, if any. It is either the
-        page given to the ``RequestParser`` constructor or one of its subpages::
+        page given to the ``RequestParser`` constructor or one of its
+        subpages::
 
         >>> isinstance(parser.parse_request({'PATH_INFO': '/'}).page, RootPage)
         True
-        >>> isinstance(parser.parse_request({'PATH_INFO': '/sub'}).page, SubPage)
+        >>> isinstance(
+        ...     parser.parse_request({'PATH_INFO': '/sub'}).page, SubPage)
         True
 
     ``path_args``
-        The components o the URL path do not necessarily point only to the page.
-        If the page method has mandatory arguments, there should be extra
+        The components o the URL path do not necessarily point only to the
+        page. If the page method has mandatory arguments, there should be extra
         components in the URL path after a page is found. These extra componets
         will fill the mandatory arguments from the page method from the found
         page. You can find these components are found at the``path_args``
@@ -173,8 +193,8 @@ class RequestParser(object):
         {}
 
     ``args``
-        A sublist of ``path_args`` to be unpacked as the positional arguments of
-        the page method from ``page``::
+        A sublist of ``path_args`` to be unpacked as the positional arguments
+        of the page method from ``page``::
 
         >>> parser.parse_request({'PATH_INFO': '/arg/value'}).args
         ['value']
@@ -188,7 +208,7 @@ class RequestParser(object):
         If no request body is given, its values will come from ``query_args``::
 
         >>> parser.parse_request({
-        ...     'PATH_INFO': '/kwarg', 'QUERY_STRING': 'kwarg1=query'   
+        ...     'PATH_INFO': '/kwarg', 'QUERY_STRING': 'kwarg1=query'
         ... }).kwargs
         {'kwarg1': 'query'}
 
@@ -208,7 +228,8 @@ class RequestParser(object):
         ``query_args`` are not present::
 
         >>> parser.parse_request({
-        ...     'PATH_INFO': '/kwarg', 'QUERY_STRING': 'kwarg1=query&nothere=true'
+        ...     'PATH_INFO': '/kwarg',
+        ...     'QUERY_STRING': 'kwarg1=query&nothere=true'
         ... }).kwargs
         {'kwarg1': 'query'}
         >>> parser.parse_request({
@@ -229,8 +250,8 @@ class RequestParser(object):
         >>> r.args
         ['yes']
 
-    Unpacking ``args`` and ``kwargs`` as the arguments to the page method of the
-    provided page should always match::
+    Unpacking ``args`` and ``kwargs`` as the arguments to the page method of
+    the provided page should always match::
 
         >>> r.page.index(*r.args, **r.kwargs)
         'arg: yes kwarg: query'
@@ -278,8 +299,8 @@ class RequestParser(object):
         >>> request.page.index(*request.args)
         'arg: value kwarg: 0'
 
-    Yet, we cannot pass more path compoments than the number of arguments in the
-    method::
+    Yet, we cannot pass more path compoments than the number of arguments in
+    the method::
 
         >>> parser.parse_request({'PATH_INFO': '/arg/value/other'})
         Traceback (most recent call last):
@@ -319,8 +340,8 @@ class RequestParser(object):
     values form a POST request body.
 
     If ``parse_request()`` received the second argument, it is expected to be
-    the body of such a POST request, as a string. The parsed values can be found
-    at the ``form_args`` attribute from the request::
+    the body of such a POST request, as a string. The parsed values can be
+    found at the ``form_args`` attribute from the request::
 
     >>> parser.parse_request({
     ...     'REQUEST_METHOD': 'POST', 'PATH_INFO': '/action',
@@ -380,6 +401,7 @@ class RequestParser(object):
             env.url, env.request_method
         )
 
+
 def match_method_args(args, sig):
     """
     ``match_method_args()`` checks whether we have enough arguments in the
@@ -425,6 +447,7 @@ def match_method_args(args, sig):
     else:
         return True
 
+
 def first_prefix(string, prefixes, default=None):
     """
     Given a list of strings ``l`` and a string ``s``, ``first_prefix()``
@@ -452,6 +475,7 @@ def first_prefix(string, prefixes, default=None):
 
     return default
 
+
 def subdict(d, keys):
     """
     ``subdict()`` receives a dict and a list of strings and return a dict
@@ -466,7 +490,8 @@ def subdict(d, keys):
     >>> subdict({'a': 1, 'b': 2}, ['a', 'c'])
     {'a': 1}
     """
-    return { k: d[k] for k in keys if k in d }
+    return {k: d[k] for k in keys if k in d}
+
 
 def path_dict(obj, condition, sep='.', path=None):
     """
@@ -531,9 +556,11 @@ def path_dict(obj, condition, sep='.', path=None):
 
     return result
 
+
 Signature = collections.namedtuple(
     'Signature', ('args', 'kwargs', 'varargs', 'keywords')
 )
+
 
 def signature(f, exclude_self=False):
     """
@@ -568,8 +595,8 @@ def signature(f, exclude_self=False):
             {}
 
     ``varargs``
-        the name of the attribute containing the extra positional arguments (the
-        "asterisk argument")::
+        the name of the attribute containing the extra positional arguments
+        (the "asterisk argument")::
 
             >>> sig.varargs
             'args'
@@ -587,7 +614,8 @@ def signature(f, exclude_self=False):
             >>> sig.keywords
             'kwargs'
 
-        It is ``None`` if the function does not expect extra keyword arguments::
+        It is ``None`` if the function does not expect extra keyword
+        arguments::
 
             >>> signature(noarg).keywords is None
             True

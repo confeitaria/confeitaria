@@ -1,34 +1,52 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import binascii
 
 import wsgiref.simple_server as simple_server
 import Cookie
 
-import requestparser
-import session
-from environment import Environment
-
 import confeitaria.request
 import confeitaria.responses
 
+
+from .requestparser import RequestParser
+from .session import SessionStorage
+from .environment import Environment
+
+
 class Server(object):
     """
-    The ``Server`` objects listen to HTTP requests and serve responses according
-    to the page object returned values.
+    The ``Server`` objects listen to HTTP requests and serve responses
+    according to the page object returned values.
     """
 
     def __init__(
-            self, page, port=8000, request_parser=None, session_storage=None
-        ):
-        self.request_parser = (
-            request_parser
-                if request_parser is not None
-                else requestparser.RequestParser(page)
-        )
+            self, page, port=8000, request_parser=None, session_storage=None):
+
+        if request_parser is None:
+            self.request_parser = RequestParser(page)
+
+        if session_storage is None:
+            self.session_storage = SessionStorage()
+
         self.port = port
-        self.session_storage = (
-            session_storage if session_storage else session.SessionStorage()
-        )
         self._process = None
 
     def run(self, force=True):
@@ -116,7 +134,8 @@ class Server(object):
         >>> response
         ('200 OK', [('Content-type', 'text/html')])
 
-        __ https://www.python.org/dev/peps/pep-0333/#the-application-framework-side
+        __ https://www.python.org/dev/peps/pep-0333/#the-application-framework\
+-side
         """
         env = Environment(env_dict)
 
@@ -142,7 +161,8 @@ class Server(object):
             if request.method == 'GET':
                 content = page.index(*request.args, **request.kwargs)
                 headers = [('Content-type', 'text/html')]
-                raise confeitaria.responses.OK(message=content, headers=headers)
+                raise confeitaria.responses.OK(
+                    message=content, headers=headers)
             elif request.method == 'POST':
                 page.action(*request.args, **request.kwargs)
                 raise confeitaria.responses.SeeOther()
@@ -157,7 +177,6 @@ class Server(object):
 
             start_response(status, headers)
             return [content]
-
 
     def __enter__(self):
         import multiprocessing
@@ -177,6 +196,7 @@ class Server(object):
         inelegant.net.wait_server_down('', self.port, tries=10000)
         self._process = None
 
+
 def get_cookies_tuples(cookies):
     """
     Returns an iterator. This iterator yields tuples - each tuple defines a
@@ -192,6 +212,7 @@ def get_cookies_tuples(cookies):
     return (
         ('Set-Cookie', cookies[k].OutputString()) for k in cookies
     )
+
 
 def replace_none_location(headers, location):
     """
@@ -210,9 +231,7 @@ def replace_none_location(headers, location):
 
     """
     return [
-        (
-            h[0],
-            location if (h[0].lower() == 'location') and (h[1] is None) else h[1]
-        )
+        (h[0], location
+            if (h[0].lower() == 'location') and (h[1] is None) else h[1])
         for h in headers
     ]
