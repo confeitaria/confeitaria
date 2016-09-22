@@ -372,8 +372,8 @@ class RequestParser(object):
             env = environment
 
         page_path = first_prefix(env.path_info, self.urls, default='/')
-        extra_path = env.path_info.replace(page_path, '')
-        path_args = [a for a in extra_path.split('/') if a]
+        args_path = env.path_info.replace(page_path, '')
+        path_args = [a for a in args_path.split('/') if a]
 
         page = self.url_dict[page_path]
 
@@ -397,8 +397,9 @@ class RequestParser(object):
         kwargs = subdict(request_kwargs, sig.kwargs.keys())
 
         return confeitaria.request.Request(
-            page, path_args, env.query_args, env.form_args, path_args, kwargs,
-            env.url, env.request_method
+            page, env.path_info, page_path, args_path, path_args,
+            env.query_args, env.form_args, path_args, kwargs, env.url,
+            env.request_method
         )
 
 
