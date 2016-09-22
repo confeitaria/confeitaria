@@ -130,6 +130,59 @@ class TestRequestParser(unittest.TestCase):
         self.assertEquals(['value'], request.args)
         self.assertEquals({}, request.kwargs)
 
+    def test_path_parts(self):
+        """
+        This test ensures that the pieces of the path can be found as strings
+        in the request object.
+        """
+        class TestPage(object):
+
+            def index(self):
+                return ''
+
+        class SubPage(object):
+
+            def index(self, arg):
+                return ''
+
+        page = TestPage()
+        page.sub = SubPage()
+
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request({'PATH_INFO': '/sub/value'})
+
+        self.assertEquals(page.sub, request.page)
+        self.assertEquals('/sub', request.page_path)
+        self.assertEquals('/value', request.args_path)
+        self.assertEquals('/sub/value', request.path)
+
+    def test_path_parts_with_varargs(self):
+        """
+        This test ensures that the pieces of the path can be found as strings
+        in the request object. If the page method accepts varargs, it should
+        accept a longer path.
+        """
+        class TestPage(object):
+
+            def index(self):
+                return ''
+
+        class SubPage(object):
+
+            def index(self, *args):
+                return ''
+
+        page = TestPage()
+        page.sub = SubPage()
+
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request({'PATH_INFO': '/sub/a/b/c'})
+
+        self.assertEquals(page.sub, request.page)
+        self.assertEquals('/sub', request.page_path)
+        self.assertEquals('/a/b/c', request.args_path)
+        self.assertEquals('/sub/a/b/c', request.path)
+
     def test_missing_path_args_not_found_404(self):
         """
         This test ensures that  parser finds a page whose index method
