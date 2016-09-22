@@ -1,4 +1,23 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import time
+
 
 class SessionStorage(object):
     """
@@ -44,6 +63,7 @@ class SessionStorage(object):
     def __iter__(self):
         return iter(self.sessions)
 
+
 class Session(dict):
     """
     ``Session`` objects are dicts used as HTTP sessions::
@@ -57,12 +77,13 @@ class Session(dict):
     >>> s['key']
     'value'
 
-    The main difference from dicts is that session objects know the instant they
-    were created::
+    The main difference from dicts is that session objects know the instant
+    they were created::
 
     >>> s.create_time - time.time() < 1
     True
     """
+
     def __init__(self, create_time=0):
         dict.__init__(self)
         self.create_time = create_time if create_time != 0 else time.time()

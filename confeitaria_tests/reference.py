@@ -1,6 +1,25 @@
+#!/usr/bin/env python
+#
+# Copyright 2015 Adam Victor Brandizzi
+#
+# This file is part of Confeitaria.
+#
+# Confeitaria is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Confeitaria is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 
 import requests
+
 
 class TestReference(unittest.TestCase):
     """
@@ -13,8 +32,8 @@ class TestReference(unittest.TestCase):
     method. This method should expect a page object as its argument, and return
     some object that respect the ``with`` protocol in a way that:
 
-    * in the ``__enter__()`` method, an HTTP server is asynchronously started at
-      port 8000, running the Confeitaria implementation being tested; and
+    * in the ``__enter__()`` method, an HTTP server is asynchronously started
+    at port 8000, running the Confeitaria implementation being tested; and
     * in the ``__exit__()`` method, the HTTP server is stopped.
     """
 
@@ -24,14 +43,17 @@ class TestReference(unittest.TestCase):
         access subpages (that is, pages that are attributes of other pages).
         """
         class RootPage(object):
+
             def index(self):
                 return 'page: root'
 
         class SubPage(object):
+
             def index(self):
                 return 'page: sub'
 
         class AnotherSubPage(object):
+
             def index(self):
                 return 'page: another'
 
@@ -54,6 +76,7 @@ class TestReference(unittest.TestCase):
         arguments should have default values.
         """
         class TestPage(object):
+
             def index(self, kwarg=None):
                 return 'kwarg: {0}'.format(kwarg)
 
@@ -67,6 +90,7 @@ class TestReference(unittest.TestCase):
         other than ``self`` can have they filled by the query path'.
         """
         class TestPage(object):
+
             def index(self, arg):
                 return 'arg: {0}'.format(arg)
 
@@ -94,6 +118,7 @@ class TestReference(unittest.TestCase):
         not conflict with page attributes.
         """
         class TestPage(object):
+
             def index(self, first, *args):
                 parts = ['first: {0}'.format(first)]
                 parts.extend(
@@ -111,6 +136,7 @@ class TestReference(unittest.TestCase):
         path and the optional ones will be get from the query string
         """
         class TestPage(object):
+
             def index(self, arg1, arg2, kwarg1=None, kwarg2=None):
                 return 'arg1={0}; arg2={1}; kwarg1={2}; kwarg2={3}'.format(
                     arg1, arg2, kwarg1, kwarg2
@@ -135,11 +161,12 @@ class TestReference(unittest.TestCase):
         can have access to its own URL.
         """
         class TestPage(object):
+
             def index(self):
                 return 'url: {0}'.format(self.url)
+
             def set_url(self, url):
                 self.url = url
-
 
         root = TestPage()
         root.sub = TestPage()
@@ -159,32 +186,37 @@ class TestReference(unittest.TestCase):
         ``set_url()`` method will know its subpages URLs.
         """
         class RootPage(object):
+
             def __init__(self):
                 self.sub = SubPage()
                 self.sub.another = SubPage()
+
             def index(self):
                 return 'self.sub url: {0}; self.sub.another url: {1}'.format(
                     self.sub.url, self.sub.another.url
                 )
 
         class SubPage(object):
+
             def index(self):
                 return ''
+
             def set_url(self, url):
                 self.url = url
 
         with self.get_server(RootPage()):
             r = requests.get('http://localhost:8000/')
             self.assertEquals(
-                'self.sub url: /sub; self.sub.another url: /sub/another', r.text
-            )
+                'self.sub url: /sub; self.sub.another url: /sub/another',
+                r.text)
 
     def test_too_few_path_parameters_leads_to_404(self):
         """
-        This test ensures that a path without mandatory arguments will result in
-        a 404 Not Found result.
+        This test ensures that a path without mandatory arguments will result
+        in a 404 Not Found result.
         """
         class TestPage(object):
+
             def index(self, arg):
                 return 'irrelevant content'
 
@@ -222,8 +254,10 @@ class TestReference(unittest.TestCase):
         """
         class TestPage(object):
             post_parameter = None
+
             def action(self, kwarg=None):
                 TestPage.post_parameter = kwarg
+
             def index(self):
                 return 'post_parameter: {0}'.format(TestPage.post_parameter)
 
@@ -241,6 +275,7 @@ class TestReference(unittest.TestCase):
         import confeitaria.responses
 
         class TestPage(object):
+
             def index(self):
                 raise confeitaria.responses.MovedPermanently('/sub')
 
@@ -250,7 +285,6 @@ class TestReference(unittest.TestCase):
             r = requests.get('http://localhost:8000/', allow_redirects=False)
             self.assertEquals(301, r.status_code)
             self.assertEquals('/sub', r.headers['location'])
-
 
     def test_raising_redirect_see_other(self):
         """
@@ -278,8 +312,10 @@ class TestReference(unittest.TestCase):
 
         class TestPage(object):
             post_parameter = None
+
             def index(self):
                 return 'post_parameter: {0}'.format(TestPage.post_parameter)
+
             def action(self, kwarg=None):
                 TestPage.post_parameter = kwarg
                 raise confeitaria.responses.SeeOther('/')
@@ -301,6 +337,7 @@ class TestReference(unittest.TestCase):
         class TestPage(object):
             def set_request(self, request):
                 self.req = request
+
             def index(self):
                 return 'param: {0}'.format(self.req.query_args['param'])
 
@@ -310,12 +347,13 @@ class TestReference(unittest.TestCase):
 
     def test_raising_redirect_see_other_no_location(self):
         """
-        Raising ``SeeOther`` without location should result in a redirect to the
-        requested URL.
+        Raising ``SeeOther`` without location should result in a redirect to
+        the requested URL.
         """
         import confeitaria.responses
 
         class TestPage(object):
+
             def index(self):
                 raise confeitaria.responses.SeeOther()
 
@@ -326,20 +364,23 @@ class TestReference(unittest.TestCase):
             r = requests.get('http://localhost:8000/', allow_redirects=False)
             self.assertEquals(303, r.status_code)
             self.assertEquals('/', r.headers['location'])
-            r = requests.get('http://localhost:8000/sub', allow_redirects=False)
+            r = requests.get(
+                'http://localhost:8000/sub', allow_redirects=False)
             self.assertEquals(303, r.status_code)
             self.assertEquals('/sub', r.headers['location'])
 
     def test_raising_redirect_see_other_no_location_from_action(self):
         """
-        Raising ``SeeOther`` without location should result in a redirect to the
-        requested URL.
+        Raising ``SeeOther`` without location should result in a redirect to
+        the requested URL.
         """
         import confeitaria.responses
 
         class TestPage(object):
+
             def index(self):
                 raise confeitaria.responses.SeeOther()
+
             def action(self):
                 raise confeitaria.responses.SeeOther()
 
@@ -360,6 +401,7 @@ class TestReference(unittest.TestCase):
         import confeitaria.responses
 
         class TestPage(object):
+
             def action(self):
                 pass
 
@@ -379,8 +421,10 @@ class TestReference(unittest.TestCase):
         give access to cookie parameters.
         """
         class TestPage(object):
+
             def set_cookies(self, cookies):
                 self.cookies = cookies
+
             def index(self):
                 return 'value: {0}'.format(self.cookies['value'].value)
 
@@ -397,6 +441,7 @@ class TestReference(unittest.TestCase):
         class TestPage(object):
             def set_cookies(self, cookies):
                 self.cookies = cookies
+
             def index(self):
                 self.cookies['value'] = 'example'
                 return ''
@@ -414,8 +459,10 @@ class TestReference(unittest.TestCase):
         import confeitaria.responses
 
         class TestPage(object):
+
             def index(self):
                 return ''
+
             def action(self):
                 headers = [('Content-type', 'text/plain')]
                 raise confeitaria.responses.SeeOther(headers=headers)
@@ -429,14 +476,16 @@ class TestReference(unittest.TestCase):
 
     def test_set_header_to_moved_permanently(self):
         """
-        Raising ``MovedPermanently`` with ``headers`` argument should not result
-        in error.
+        Raising ``MovedPermanently`` with ``headers`` argument should not
+        result in error.
         """
         import confeitaria.responses
 
         class TestPage(object):
+
             def index(self):
                 return ''
+
             def action(self):
                 headers = [('Content-type', 'text/plain')]
                 raise confeitaria.responses.MovedPermanently(headers=headers)
@@ -456,8 +505,10 @@ class TestReference(unittest.TestCase):
         import confeitaria.responses
 
         class TestPage(object):
+
             def index(self):
                 return ''
+
             def action(self):
                 headers = [('Content-type', 'text/plain')]
                 raise confeitaria.responses.NotFound(headers=headers)
@@ -479,6 +530,7 @@ class TestReference(unittest.TestCase):
         import confeitaria.interfaces
 
         class TestPage(confeitaria.interfaces.URLedPage):
+
             def index(self):
                 return 'url: {0}'.format(self.get_url())
 
@@ -501,13 +553,16 @@ class TestReference(unittest.TestCase):
         well.
         """
         class TestPage(object):
+
             def action(self, value=None):
                 self.session['value'] = value
+
             def index(self):
                 if 'value' in self.session:
                     return 'value: {0}'.format(self.session['value'])
                 else:
                     return 'no value set'
+
             def set_session(self, session):
                 self.session = session
 
@@ -536,13 +591,16 @@ class TestReference(unittest.TestCase):
         sesions.
         """
         class TestPage(object):
+
             def action(self, value=None):
                 self.session['value'] = value
+
             def index(self):
                 if 'value' in self.session:
                     return 'value: {0}'.format(self.session['value'])
                 else:
                     return 'no value set'
+
             def set_session(self, session):
                 self.session = session
 
