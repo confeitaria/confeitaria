@@ -153,7 +153,7 @@ class TestRequestParser(unittest.TestCase):
 
         self.assertEquals(page.sub, request.page)
         self.assertEquals('/sub', request.page_path)
-        self.assertEquals('/value', request.args_path)
+        self.assertEquals('value', request.args_path)
         self.assertEquals('/sub/value', request.path)
 
     def test_path_parts_with_varargs(self):
@@ -180,7 +180,7 @@ class TestRequestParser(unittest.TestCase):
 
         self.assertEquals(page.sub, request.page)
         self.assertEquals('/sub', request.page_path)
-        self.assertEquals('/a/b/c', request.args_path)
+        self.assertEquals('a/b/c', request.args_path)
         self.assertEquals('/sub/a/b/c', request.path)
 
     def test_missing_path_args_not_found_404(self):
