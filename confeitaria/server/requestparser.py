@@ -403,6 +403,16 @@ class RequestParser(object):
 
 
 def split_path(path, urls):
+    """
+    Receives a string representing an HTML request path, and a collection of
+    URL paths. If any of the URL paths are a prefix to the given path, then
+    it returns the prefix and the rest of the path::
+
+    >>> split_path('/a/b/c', {'/a', '/d'})
+    ('/a', '/b/c')
+    >>> split_path('/a/b/c', {'/a/b', '/d'})
+    ('/a/b', '/c')
+    """
     page_path = first_prefix(path, urls, default='/')
     args_path = path.replace(page_path, '')
 
