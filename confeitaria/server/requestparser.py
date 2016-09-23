@@ -409,18 +409,28 @@ def split_path(path, urls):
     it returns the prefix and the rest of the path::
 
     >>> split_path('/a/b/c', {'/a', '/d'})
-    ('/a', '/b/c')
+    ('/a', 'b/c')
     >>> split_path('/a/b/c', {'/a/b', '/d'})
-    ('/a/b', '/c')
+    ('/a/b', 'c')
 
     If no prefix is found, it will consider it to be ``'/'``, even if it is not
     contained in the collection::
 
     >>> split_path('/a/b/c', {})
-    ('/', '/a/b/c')
+    ('/', 'a/b/c')
+
+    The first part will not have any slashes at the end; the second part will
+    not have any slashes either at the beginning or at the end::
+
+    >>> split_path('/a/b/c/', {'/a/', '/d/'})
+    ('/a', 'b/c')
     """
     page_path = first_prefix(path, urls, default='/')
+    if page_path != '/':
+        page_path = page_path.rstrip('/')
+
     args_path = path.replace(page_path, '', 1)
+    args_path = args_path.strip('/')
 
     return page_path, args_path
 
