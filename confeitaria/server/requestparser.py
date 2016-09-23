@@ -371,8 +371,7 @@ class RequestParser(object):
         else:
             env = environment
 
-        page_path = first_prefix(env.path_info, self.urls, default='/')
-        args_path = env.path_info.replace(page_path, '')
+        page_path, args_path = split_path(env.path_info, self.urls)
         path_args = [a for a in args_path.split('/') if a]
 
         page = self.url_dict[page_path]
@@ -401,6 +400,13 @@ class RequestParser(object):
             env.query_args, env.form_args, path_args, kwargs, env.url,
             env.request_method
         )
+
+
+def split_path(path, urls):
+    page_path = first_prefix(path, urls, default='/')
+    args_path = path.replace(page_path, '')
+
+    return page_path, args_path
 
 
 def match_method_args(args, sig):
