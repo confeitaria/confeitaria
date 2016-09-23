@@ -412,6 +412,12 @@ def split_path(path, urls):
     ('/a', '/b/c')
     >>> split_path('/a/b/c', {'/a/b', '/d'})
     ('/a/b', '/c')
+
+    If no prefix is found, it will consider it to be ``'/'``, even if it is not
+    contained in the collection::
+
+    >>> split_path('/a/b/c', {})
+    ('/', '/a/b/c')
     """
     page_path = first_prefix(path, urls, default='/')
     args_path = path.replace(page_path, '')
