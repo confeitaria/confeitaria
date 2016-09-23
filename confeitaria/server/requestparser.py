@@ -372,7 +372,7 @@ class RequestParser(object):
             env = environment
 
         page_path, args_path = split_path(env.path_info, self.urls)
-        path_args = [a for a in args_path.split('/') if a]
+        path_args = split_args(args_path)
 
         page = self.url_dict[page_path]
 
@@ -400,6 +400,21 @@ class RequestParser(object):
             env.query_args, env.form_args, path_args, kwargs, env.url,
             env.request_method
         )
+
+
+def split_args(path):
+    """
+    Given a path, returns its components::
+
+    >>> split_args('a/b/c')
+    ['a', 'b', 'c']
+
+    Any empty value will be discarded::
+
+    >>> split_args('///a////b////c////')
+    ['a', 'b', 'c']
+    """
+    return [a for a in path.split('/') if a if a]
 
 
 def split_path(path, urls):
