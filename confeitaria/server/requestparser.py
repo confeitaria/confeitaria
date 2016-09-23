@@ -420,7 +420,7 @@ def split_path(path, urls):
     ('/', '/a/b/c')
     """
     page_path = first_prefix(path, urls, default='/')
-    args_path = path.replace(page_path, '')
+    args_path = path.replace(page_path, '', 1)
 
     return page_path, args_path
 
