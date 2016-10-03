@@ -98,13 +98,11 @@ class MovedPermanently(Response):
         [('Location', 'http://pudim.com.br')]
     """
 
-    status_code = '301 Moved Permanently'
-
     def __init__(self, location=None, message=None, headers=None, *args):
         headers = [] if not headers else headers
         headers.append(('Location', location))
         Response.__init__(
-            self, MovedPermanently.status_code, message, headers, *args)
+            self, '301 Moved Permanently', message, headers, *args)
         self.location = location
 
 
@@ -120,12 +118,10 @@ class SeeOther(Response):
         [('Location', 'http://pudim.com.br')]
     """
 
-    status_code = '303 See Other'
-
     def __init__(self, location=None, message=None, headers=None, *args):
         headers = [] if not headers else headers
         headers.append(('Location', location))
-        Response.__init__(self, SeeOther.status_code, message, headers, *args)
+        Response.__init__(self, '303 See Other', message, headers, *args)
         self.location = location
 
 
@@ -138,10 +134,8 @@ class NotFound(Response):
         '404 Not Found'
     """
 
-    status_code = '404 Not Found'
-
     def __init__(self, message=None, headers=None, *args):
-        Response.__init__(self, NotFound.status_code, message, headers, *args)
+        Response.__init__(self, '404 Not Found', message, headers, *args)
 
 
 class MethodNotAllowed(Response):
@@ -154,8 +148,6 @@ class MethodNotAllowed(Response):
         '405 Method Not Allowed'
     """
 
-    status_code = '405 Method Not Allowed'
-
     def __init__(self, message=None, headers=None, *args):
         Response.__init__(
-            self, MethodNotAllowed.status_code, message, headers, *args)
+            self, '405 Method Not Allowed', message, headers, *args)
