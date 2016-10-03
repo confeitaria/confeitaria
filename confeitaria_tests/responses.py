@@ -22,6 +22,18 @@ import inelegant.finder
 
 from confeitaria import responses
 
+
+class TestResponses(unittest.TestCase):
+
+    def test_receive_message_as_first_argument(self):
+        """
+        A response should receive the message to go into the response as the
+        first argument
+        """
+        response = responses.NotFound('my message')
+        self.assertEquals('my message', response.message)
+
+
 load_tests = inelegant.finder.TestFinder(__name__, responses).load_tests
 
 if __name__ == "__main__":
