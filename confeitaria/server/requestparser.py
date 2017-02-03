@@ -398,7 +398,7 @@ class RequestParser(object):
         return confeitaria.request.Request(
             page, env.path_info, page_path, args_path, path_args,
             env.query_args, env.form_args, path_args, kwargs, env.url,
-            env.request_method
+            env.request_method, env.http_cookie
         )
 
 

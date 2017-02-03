@@ -26,7 +26,7 @@ class Request(object):
     def __init__(
             self, page=None, path=None, page_path=None, args_path=None,
             path_args=None, query_args=None, form_args=None, args=None,
-            kwargs=None, url=None, method=None):
+            kwargs=None, url=None, method=None, cookies=None):
 
         self.page = page
         self.path = path
@@ -39,3 +39,4 @@ class Request(object):
         self.kwargs = kwargs if kwargs is not None else {}
         self.url = url
         self.method = method
+        self.cookies = cookies
