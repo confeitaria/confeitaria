@@ -569,6 +569,20 @@ class TestRequestParser(unittest.TestCase):
         with self.assertRaises(confeitaria.responses.MethodNotAllowed):
             request_parser.parse_request({'REQUEST_METHOD': 'DELETE'})
 
+    def test_set_cookie(self):
+        """
+        The parsed request should contain the cookies of the request.
+        """
+        class TestPage(object):
+
+            def index(self):
+                return ''
+
+        page = TestPage()
+        request_parser = RequestParser(page)
+        request = request_parser.parse_request({'HTTP_COOKIE': 'a=b'})
+        self.assertIsNotNone(request.cookies)
+
 
 class TestRequestParserFunctions(unittest.TestCase):
 
