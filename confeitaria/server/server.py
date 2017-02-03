@@ -149,12 +149,7 @@ class Server(object):
                 page.set_cookies(env.http_cookie)
 
             if hasattr(page, 'set_session'):
-                if 'SESSIONID' not in env.http_cookie:
-                    session_id = binascii.hexlify(os.urandom(16))
-                    env.http_cookie['SESSIONID'] = session_id
-                else:
-                    session_id = env.http_cookie['SESSIONID'].value
-
+                session_id = get_or_add_session_id(env.http_cookie)
                 page.set_session(self.session_storage[session_id])
 
             if request.method == 'GET':
@@ -234,3 +229,42 @@ def replace_none_location(headers, location):
             if (h[0].lower() == 'location') and (h[1] is None) else h[1])
         for h in headers
     ]
+
+
+def get_or_add_session_id(cookie):
+    """
+    Get the session ID from a cookie object::
+
+    >>> import Cookie
+    >>> cookie = Cookie.SimpleCookie('Set-Cookie: SESSIONID=123456789ABCDEF')
+    >>> get_or_add_session_id(cookie)
+    '123456789ABCDEF'
+
+    If the cookie has no session ID...
+
+    ::
+
+    >>> cookie = Cookie.SimpleCookie('')
+    >>> 'SESSIONID' in cookie
+    False
+
+    ...then one is created...
+
+    ::
+
+    >>> session_id = get_or_add_session_id(cookie)
+    >>> session_id  # doctest: +ELLIPSIS
+    '...'
+
+    ...and is added to the cookie::
+
+    >>> cookie['SESSIONID'].value == session_id
+    True
+    """
+    if 'SESSIONID' not in cookie:
+        session_id = binascii.hexlify(os.urandom(16))
+        cookie['SESSIONID'] = session_id
+    else:
+        session_id = cookie['SESSIONID'].value
+
+    return session_id
