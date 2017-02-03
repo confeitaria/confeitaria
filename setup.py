@@ -34,5 +34,5 @@ setup(
 
     test_suite='confeitaria_tests',
     test_loader='unittest:TestLoader',
-    tests_require=['inelegant']
+    tests_require=['inelegant', 'requests']
 )
