@@ -38,10 +38,9 @@ class Server(object):
     """
 
     def __init__(
-            self, page, port=8000, request_parser=None, session_storage=None):
+            self, page, port=8000, session_storage=None):
 
-        if request_parser is None:
-            self.request_parser = RequestParser(page)
+        self.request_parser = RequestParser(page)
 
         if session_storage is None:
             self.session_storage = SessionStorage()
