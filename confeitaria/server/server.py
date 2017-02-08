@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Confeitaria.  If not, see <http://www.gnu.org/licenses/>.
 import os
+import itertools
 import binascii
 
 import wsgiref.simple_server as simple_server
@@ -162,12 +163,8 @@ class Server(object):
                 raise confeitaria.responses.SeeOther()
         except confeitaria.responses.Response as r:
             status = r.status_code
-            headers = r.headers
+            headers = complete_headers(r, env.http_cookie, env.url)
             content = r.message if r.message is not None else ''
-
-            if status.startswith('30'):
-                headers = replace_none_location(headers, request.url)
-            headers.extend(get_cookies_tuples(env.http_cookie))
 
             start_response(status, headers)
             return [content]
@@ -268,3 +265,61 @@ def get_or_add_session_id(cookie):
         session_id = cookie['SESSIONID'].value
 
     return session_id
+
+
+def complete_headers(response, cookies, default_redirect_url='/'):
+    """
+    Given a response and a set of cookies, return a headers list appropriate to
+    be given to WSGI::
+
+    >>> from confeitaria.responses import OK, NotFound, SeeOther
+    >>> from Cookie import SimpleCookie
+    >>> complete_headers(
+    ...     OK('All right.', headers=[('Content-type', 'text/plain')]),
+    ...     SimpleCookie())
+    [('Content-type', 'text/plain')]
+
+    Adding cookie headers
+    =====================
+
+    If there are any cookies available, they will be added to the headers::
+
+    >>> complete_headers(
+    ...     OK('All right.', headers=[('Content-type', 'text/plain')]),
+    ...     SimpleCookie('Set-Cookie: a=b'))
+    [('Content-type', 'text/plain'), ('Set-Cookie', 'a=b')]
+
+    Also, if the response's status code is a multiple choice status (i.e. one
+    of the 30x status codes) but the response has no redirect URL in it, then
+    this function will add a default redirect URL in the headers. By default,
+    it is ``'/'``...
+
+    ::
+
+    >>> complete_headers(
+    ...     SeeOther(headers=[('Content-type', 'text/plain')]),
+    ...     SimpleCookie())
+    [('Content-type', 'text/plain'), ('Location', '/')]
+
+    ...but it can (and should be changed with the ``default_redirect_url``
+    argument::
+
+    >>> complete_headers(
+    ...     SeeOther(headers=[('Content-type', 'text/plain')]),
+    ...     SimpleCookie(), default_redirect_url='/other/place')
+    [('Content-type', 'text/plain'), ('Location', '/other/place')]
+
+    If the response already has a location value, then this is the one to be
+    returned::
+
+    >>> complete_headers(
+    ...     SeeOther('/my/place', headers=[('Content-type', 'text/plain')]),
+    ...     SimpleCookie(), default_redirect_url='/other/place')
+    [('Content-type', 'text/plain'), ('Location', '/my/place')]
+    """
+    headers = response.headers
+
+    if response.status_code.startswith('30'):
+        headers = replace_none_location(headers, default_redirect_url)
+
+    return list(itertools.chain(headers, get_cookies_tuples(cookies)))
