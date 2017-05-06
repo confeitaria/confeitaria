@@ -2,6 +2,8 @@
 Confeitaria, an experimental web framework for Python
 =====================================================
 
+.. image:: https://img.shields.io/badge/maintained%3F-no!-red.svg?style=flat
+
 Confeitaria is a Web framework for Python whose main purpose is to test some
 hypothesis and possibilities about Web development. They can work or not but we
 will only discover by trying, right?
